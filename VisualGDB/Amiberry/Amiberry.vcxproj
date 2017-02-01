@@ -241,7 +241,6 @@
     <ClCompile Include="..\..\src\osdep\keyboard.cpp" />
     <ClCompile Include="..\..\src\osdep\menu\menu_config.cpp" />
     <ClCompile Include="..\..\src\osdep\mp3decoder.cpp" />
-    <ClCompile Include="..\..\src\osdep\neon_helper.s" />
     <ClCompile Include="..\..\src\osdep\pandora.cpp" />
     <ClCompile Include="..\..\src\osdep\pandora_filesys.cpp" />
     <ClCompile Include="..\..\src\osdep\pandora_gfx.cpp" />
@@ -430,6 +429,8 @@
     <ClInclude Include="..\..\src\include\clipboard.h" />
     <ClInclude Include="..\..\src\include\commpipe.h" />
     <ClInclude Include="..\..\src\include\cpuboard.h" />
+    <ClInclude Include="..\..\src\include\cpummu.h" />
+    <ClInclude Include="..\..\src\include\cpummu030.h" />
     <ClInclude Include="..\..\src\include\cputbl.h" />
     <ClInclude Include="..\..\src\include\cpu_prefetch.h" />
     <ClInclude Include="..\..\src\include\crc32.h" />
@@ -447,6 +448,7 @@
     <ClInclude Include="..\..\src\include\flags_arm.h" />
     <ClInclude Include="..\..\src\include\fpp-ieee-be.h" />
     <ClInclude Include="..\..\src\include\fpp-unknown.h" />
+    <ClInclude Include="..\..\src\include\fpp.h" />
     <ClInclude Include="..\..\src\include\fsdb.h" />
     <ClInclude Include="..\..\src\include\fsusage.h" />
     <ClInclude Include="..\..\src\include\gayle.h" />
@@ -460,6 +462,7 @@
     <ClInclude Include="..\..\src\include\keybuf.h" />
     <ClInclude Include="..\..\src\include\mackbd.h" />
     <ClInclude Include="..\..\src\include\memory.h" />
+    <ClInclude Include="..\..\src\include\mmu_common.h" />
     <ClInclude Include="..\..\src\include\native2amiga.h" />
     <ClInclude Include="..\..\src\include\native2amiga_api.h" />
     <ClInclude Include="..\..\src\include\ncr9x_scsi.h" />
@@ -482,6 +485,10 @@
     <ClInclude Include="..\..\src\include\traps.h" />
     <ClInclude Include="..\..\src\include\uae.h" />
     <ClInclude Include="..\..\src\include\uaeresource.h" />
+    <ClInclude Include="..\..\src\include\uae\attributes.h" />
+    <ClInclude Include="..\..\src\include\uae\likely.h" />
+    <ClInclude Include="..\..\src\include\uae\types.h" />
+    <ClInclude Include="..\..\src\include\uae\vm.h" />
     <ClInclude Include="..\..\src\include\x86.h" />
     <ClInclude Include="..\..\src\include\xwin.h" />
     <ClInclude Include="..\..\src\include\zarchive.h" />
