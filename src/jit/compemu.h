@@ -29,6 +29,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef COMPEMU_H
+#define COMPEMU_H
+
 typedef uae_u32 uintptr;
 
 #define panicbug printf
@@ -121,7 +124,7 @@ typedef union
 #define FLAG_ZNV  (FLAG_Z | FLAG_N | FLAG_V)
 
 #if defined(CPU_arm)
-//#define DEBUG_DATA_BUFFER
+#define USE_DATA_BUFFER
 #define ALIGN_NOT_NEEDED
 #define N_REGS 13  /* really 16, but 13 to 15 are SP, LR, PC */
 #else
@@ -143,7 +146,16 @@ extern void set_cache_state(int enabled);
 extern int get_cache_state(void);
 extern uae_u32 get_jitted_size(void);
 #ifdef JIT
-extern void (*flush_icache)(uaecptr ptr, int n);
+extern void flush_icache(uaecptr ptr, int n);
+extern void flush_icache_hard(uaecptr ptr, int n);
+static inline void flush_icache(int n)
+{
+	flush_icache(0, n);
+}
+static inline void flush_icache_hard(int n)
+{
+	flush_icache(0, n);
+}
 #endif
 extern void alloc_cache(void);
 extern void compile_block(cpu_history* pc_hist, int blocklen, int totcyles);
@@ -422,3 +434,5 @@ void comp_fbcc_opp (uae_u32 opcode);
 void comp_fsave_opp (uae_u32 opcode);
 void comp_frestore_opp (uae_u32 opcode);
 void comp_fpp_opp (uae_u32 opcode, uae_u16 extra);
+
+#endif /* COMPEMU_H */

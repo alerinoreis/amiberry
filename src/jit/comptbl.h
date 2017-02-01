@@ -1,3 +1,4 @@
+#pragma once
 #ifdef NOFLAGS_SUPPORT
 /* 68040 */
 extern const struct comptbl op_smalltbl_0_nf[];

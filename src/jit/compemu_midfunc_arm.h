@@ -32,6 +32,7 @@
  */
 
 // Arm optimized midfunc
+#pragma once
 DECLARE_MIDFUNC(arm_ADD_l(RW4 d, RR4 s));
 DECLARE_MIDFUNC(arm_ADD_l_ri(RW4 d, IMM i));
 DECLARE_MIDFUNC(arm_ADD_l_ri8(RW4 d, IMM i));

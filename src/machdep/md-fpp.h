@@ -10,6 +10,9 @@
   * Copyright 2007 Richard Drummond
   */
 
+#pragma once
+#include <math.h>
+
 #define	FPCR_ROUNDING_MODE	0x00000030
 #define	FPCR_ROUND_NEAR		0x00000000
 #define	FPCR_ROUND_ZERO		0x00000010
@@ -21,6 +24,12 @@
 #define	FPCR_PRECISION_DOUBLE	0x00000080
 #define FPCR_PRECISION_EXTENDED	0x00000000
 
+extern void to_single(fpdata *fpd, uae_u32 value);
+extern void to_double(fpdata *fpd, uae_u32 wrd1, uae_u32 wrd2);
+extern void to_exten(fpdata *fpd, uae_u32 wrd1, uae_u32 wrd2, uae_u32 wrd3);
+extern const TCHAR *fp_print(fpdata *fpd);
+
+#if 0
 STATIC_INLINE void exten_zeronormalize(uae_u32 *pwrd1, uae_u32 *pwrd2, uae_u32 *pwrd3)
 {
 	uae_u32 wrd1 = *pwrd1;
@@ -122,6 +131,8 @@ STATIC_INLINE void from_exten(fpdata *fpd, uae_u32 * wrd1, uae_u32 * wrd2, uae_u
 	*wrd2 = (uae_u32) (frac * twoto32);
 	*wrd3 = (uae_u32) ((frac * twoto32 - *wrd2) * twoto32);
 }
+
+#endif
 
 #define HAVE_from_double
 #define HAVE_to_double

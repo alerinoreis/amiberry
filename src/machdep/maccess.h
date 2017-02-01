@@ -55,10 +55,10 @@ STATIC_INLINE void do_put_mem_long(uae_u32 *a, uae_u32 v)
 
 STATIC_INLINE void do_put_mem_word(uae_u16 *a, uae_u16 v)
 {
-	uae_u8 *b = (uae_u8 *)a;
+	uae_u8 *b = reinterpret_cast<uae_u8 *>(a);
 
 	*b = v >> 8;
-	*(b + 1) = (uae_u8)v;
+	*(b + 1) = uae_u8(v);
 }
 
 STATIC_INLINE void do_put_mem_byte(uae_u8 *a, uae_u8 v)

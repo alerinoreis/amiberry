@@ -9,6 +9,10 @@
 #ifndef UAE_AUTOCONF_H
 #define UAE_AUTOCONF_H
 
+#include "uae/types.h"
+#include "traps.h"
+#include "include/memory.h"
+
 #define AFTERDOS_INIT_PRI ((-121) & 0xff)
 #define AFTERDOS_PRI ((-122) & 0xff)
 
@@ -74,10 +78,9 @@ extern void save_rom_absolute(uaecptr addr);
 
 extern void align (int);
 
-//TODO: extern volatile uae_atomic uae_int_requested;
-extern volatile int uae_int_requested;
-extern void rtarea_reset(void);
-extern bool rethink_traps(void);
+extern volatile uae_atomic uae_int_requested;
+extern void rtarea_reset();
+extern bool rethink_traps();
 
 #define RTS 0x4e75
 #define RTE 0x4e73
@@ -122,27 +125,27 @@ extern int target_get_volume_name(struct uaedev_mount_info *mtinf, struct uaedev
 
 extern int sprintf_filesys_unit(TCHAR *buffer, int num);
 
-extern void filesys_reset(void);
-extern void filesys_cleanup(void);
-extern void filesys_prepare_reset(void);
-extern void filesys_start_threads(void);
-extern void filesys_flush_cache(void);
-extern void filesys_free_handles(void);
-extern void filesys_vsync(void);
+extern void filesys_reset();
+extern void filesys_cleanup();
+extern void filesys_prepare_reset();
+extern void filesys_start_threads();
+extern void filesys_flush_cache();
+extern void filesys_free_handles();
+extern void filesys_vsync();
 
-extern void filesys_install(void);
-extern void filesys_install_code(void);
+extern void filesys_install();
+extern void filesys_install_code();
 extern uaecptr filesys_get_entry(int);
 extern void filesys_store_devinfo(uae_u8 *);
-extern void hardfile_install(void);
-extern void hardfile_reset(void);
-extern void emulib_install(void);
+extern void hardfile_install();
+extern void hardfile_reset();
+extern void emulib_install();
 extern uae_u32 uaeboard_demux(uae_u32*);
-extern void expansion_init(void);
-extern void expansion_cleanup(void);
-extern void expansion_clear(void);
+extern void expansion_init();
+extern void expansion_cleanup();
+extern void expansion_clear();
 extern uaecptr expansion_startaddress(struct uae_prefs*, uaecptr addr, uae_u32 size);
-extern bool expansion_is_next_board_fastram(void);
+extern bool expansion_is_next_board_fastram();
 extern uaecptr uaeboard_alloc_ram(uae_u32);
 extern uae_u8 *uaeboard_map_ram(uaecptr);
 extern void expansion_scan_autoconfig(struct uae_prefs*, bool);
@@ -155,7 +158,7 @@ extern int expansion_autoconfig_move(struct uae_prefs *p, int index, int directi
 extern bool expansion_can_move(struct uae_prefs *p, int index);
 extern bool alloc_expansion_bank(addrbank *bank, struct autoconfig_info *aci);
 extern void free_expansion_bank(addrbank *bank);
-extern void expansion_map(void);
+extern void expansion_map();
 extern uae_u32 expansion_board_size(addrbank *ab);
 
 extern void uaegfx_install_code(uaecptr);

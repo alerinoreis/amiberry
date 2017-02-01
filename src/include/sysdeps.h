@@ -18,6 +18,7 @@
 #include "config.h"
 #endif
 #include "sysconfig.h"
+#include "uae/types.h"
 
 #ifndef UAE
 #define UAE
@@ -248,7 +249,7 @@ extern char *ua_fs_copy(char *dst, int maxlen, const TCHAR *src, int defchar);
 extern TCHAR *au_fs_copy(TCHAR *dst, int maxlen, const char *src);
 extern char *uutf8(const TCHAR *s);
 extern TCHAR *utf8u(const char *s);
-extern void unicode_init(void);
+extern void unicode_init();
 extern void to_lower(TCHAR *s, int len);
 extern void to_upper(TCHAR *s, int len);
 
@@ -402,25 +403,25 @@ extern void write_log(const TCHAR *, ...);
 extern void write_log(const char *, ...);
 #endif
 extern void write_dlog(const TCHAR *, ...);
-extern int read_log(void);
+extern int read_log();
 
-extern void flush_log(void);
+extern void flush_log();
 extern TCHAR *setconsolemode(TCHAR *buffer, int maxlen);
-extern void close_console(void);
-extern void reopen_console(void);
-extern void activate_console(void);
+extern void close_console();
+extern void reopen_console();
+extern void activate_console();
 extern void console_out(const TCHAR *);
 extern void console_out_f(const TCHAR *, ...);
-extern void console_flush(void);
+extern void console_flush();
 extern int console_get(TCHAR *, int);
-extern bool console_isch(void);
-extern TCHAR console_getch(void);
+extern bool console_isch();
+extern TCHAR console_getch();
 extern void f_out(void *, const TCHAR *, ...);
 extern TCHAR* buf_out(TCHAR *buffer, int *bufsize, const TCHAR *format, ...);
 extern void gui_message(const TCHAR *, ...);
 extern int gui_message_multibutton(int flags, const TCHAR *format, ...);
 #define write_log_err write_log
-extern void logging_init(void);
+extern void logging_init();
 extern FILE *log_open(const TCHAR *name, int append, int bootlog, TCHAR*);
 extern void log_close(FILE *f);
 

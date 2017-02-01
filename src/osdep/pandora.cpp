@@ -41,6 +41,7 @@
 #include "SDL.h"
 #include "pandora_rp9.h"
 #include "gfxboard.h"
+#include "uae/types.h"
 
 extern void signal_segv(int signum, siginfo_t* info, void* ptr);
 extern void gui_force_rtarea_hdchange();

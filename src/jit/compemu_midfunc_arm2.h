@@ -32,6 +32,7 @@
  */
 
 // Arm optimized midfunc
+#pragma once
 extern const uae_u32 ARM_CCR_MAP[];
 
 // ADD

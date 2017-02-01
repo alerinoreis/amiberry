@@ -5,6 +5,7 @@
 #include "options.h"
 #include "filesys.h"
 #include "zfile.h"
+#include "uae/types.h"
 
 
 struct hardfilehandle
