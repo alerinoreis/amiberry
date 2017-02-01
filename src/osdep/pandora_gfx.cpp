@@ -21,12 +21,43 @@
 SDL_Surface* screen = nullptr;
 
 /* Possible screen modes (x and y resolutions) */
-#define MAX_SCREEN_MODES 13
-static int x_size_table[MAX_SCREEN_MODES] = {640, 640, 720, 800, 800, 960, 1024, 1280, 1280, 1360, 1366, 1680, 1920};
-static int y_size_table[MAX_SCREEN_MODES] = {400, 480, 400, 480, 600, 540, 768, 720, 800, 768, 768, 1050, 1080};
+#define MAX_SCREEN_MODES 11
+static int x_size_table[MAX_SCREEN_MODES] = {640, 640, 720, 800, 800, 960, 1024, 1280, 1280, 1680, 1920};
+static int y_size_table[MAX_SCREEN_MODES] = {400, 480, 400, 480, 600, 540, 768, 720, 800, 1050, 1080};
+
+struct winuae_currentmode {
+	unsigned int flags;
+	int native_width, native_height, native_depth, pitch;
+	int current_width, current_height, current_depth;
+	int amiga_width, amiga_height;
+	int initdone;
+	int fullfill;
+	int vsync;
+	int freq;
+};
 
 struct PicassoResolution* DisplayModes;
-struct MultiDisplay Displays[MAX_DISPLAYS];
+struct MultiDisplay Displays[MAX_DISPLAYS + 1];
+
+static struct winuae_currentmode currentmodestruct;
+static int screen_is_initialized;
+static int display_change_requested;
+int window_led_drives, window_led_drives_end;
+int window_led_hd, window_led_hd_end;
+int window_led_joys, window_led_joys_end, window_led_joy_start;
+int window_led_msg, window_led_msg_end, window_led_msg_start;
+extern int console_logging;
+int window_extra_width, window_extra_height;
+
+static struct winuae_currentmode *currentmode = &currentmodestruct;
+static int wasfullwindow_a, wasfullwindow_p;
+
+static int vblankbasewait1, vblankbasewait2, vblankbasewait3, vblankbasefull, vblankbaseadjust;
+static bool vblankbaselace;
+static int vblankbaselace_chipset;
+static bool vblankthread_oddeven, vblankthread_oddeven_got;
+static int graphics_mode_changed;
+int vsync_modechangetimeout = 10;
 
 int screen_is_picasso = 0;
 
@@ -50,67 +81,14 @@ int graphics_setup(void)
 	return 1;
 }
 
-#ifdef WITH_LOGGING
-
-SDL_Surface *liveInfo = NULL;
-TTF_Font *liveFont = NULL;
-int liveInfoCounter = 0;
-void ShowLiveInfo(char *msg)
-{
-    if(liveFont == NULL)
-    {
-        TTF_Init();
-        liveFont = TTF_OpenFont("data/FreeSans.ttf", 12);
-    }
-    if(liveInfo != NULL)
-        SDL_FreeSurface(liveInfo);
-    SDL_Color col;
-    col.r = 0xbf;
-    col.g = 0xbf;
-    col.b = 0xbf;
-    liveInfo = TTF_RenderText_Solid(liveFont, msg, col);
-    liveInfoCounter = 50 * 5;
-}
-
-void RefreshLiveInfo()
-{
-    if(liveInfoCounter > 0)
-    {
-        SDL_Rect dst, src;
-
-        dst.x = 0;
-        dst.y = 2;
-        src.w = liveInfo->w;
-        src.h = liveInfo->h;
-        src.x = 0;
-        src.y = 0;
-        SDL_BlitSurface(liveInfo, &src, prSDLScreen, &dst);
-        liveInfoCounter--;
-        if(liveInfoCounter == 0)
-        {
-            SDL_FreeSurface(liveInfo);
-            liveInfo = NULL;
-        }
-    }
-}
-
-#endif
-
 void InitAmigaVidMode(struct uae_prefs* p)
 {
 	/* Initialize structure for Amiga video modes */
 	gfxvidinfo.pixbytes = 2;
 	gfxvidinfo.bufmem = static_cast<uae_u8 *>(screen->pixels);
-	gfxvidinfo.outwidth = p->gfx_size.width;
-	gfxvidinfo.outheight = p->gfx_size.height;
+	gfxvidinfo.outwidth = screen->w ? screen->w : 320; //p->gfx_size.width;
+	gfxvidinfo.outheight = screen->h ? screen->h : 256; //p->gfx_size.height;
 	gfxvidinfo.rowbytes = screen->pitch;
-#ifdef PICASSO96
-	if (screen_is_picasso)
-	{
-		gfxvidinfo.outwidth = picasso_vidinfo.width;
-		gfxvidinfo.outheight = picasso_vidinfo.height;
-	}
-#endif
 }
 
 void graphics_subshutdown()
@@ -212,7 +190,7 @@ int check_prefs_changed_gfx()
 	if (currprefs.chipset_refreshrate != changed_prefs.chipset_refreshrate)
 	{
 		currprefs.chipset_refreshrate = changed_prefs.chipset_refreshrate;
-		init_hz_full();
+		init_hz_normal();
 		changed = 1;
 	}
 
@@ -239,6 +217,49 @@ void wait_for_vsync()
 {
 }
 
+static int flushymin, flushymax;
+#define FLUSH_DIFF 50
+
+static void flushit(struct vidbuffer *vb, int lineno)
+{
+	if (!currprefs.gfx_api)
+		return;
+	if (flushymin > lineno) {
+		if (flushymin - lineno > FLUSH_DIFF && flushymax != 0) {
+			D3D_flushtexture(flushymin, flushymax);
+			flushymin = currentmode->amiga_height;
+			flushymax = 0;
+		}
+		else {
+			flushymin = lineno;
+		}
+	}
+	if (flushymax < lineno) {
+		if (lineno - flushymax > FLUSH_DIFF && flushymax != 0) {
+			D3D_flushtexture(flushymin, flushymax);
+			flushymin = currentmode->amiga_height;
+			flushymax = 0;
+		}
+		else {
+			flushymax = lineno;
+		}
+	}
+}
+
+void flush_line(struct vidbuffer *vb, int lineno)
+{
+	flushit(vb, lineno);
+}
+
+void flush_block(struct vidbuffer *vb, int first, int last)
+{
+	flushit(vb, first);
+	flushit(vb, last);
+}
+
+void flush_screen(struct vidbuffer *vb, int a, int b)
+{
+}
 
 void flush_screen()
 {
@@ -254,57 +275,12 @@ void flush_screen()
 		}
 	}
 
-#ifdef WITH_LOGGING
-    RefreshLiveInfo();
-#endif
-
-	//    unsigned long start = read_processor_time();
-	//    if(current_vsync_frame == 0)
-	//    {
-	//        // Old style for vsync and idle time calc
-	//        if(start < next_synctime && next_synctime - start > time_per_frame - 1000)
-	//            usleep((next_synctime - start) - 750);
-	//        ioctl(fbdev, OMAPFB_WAITFORVSYNC, &current_vsync_frame);
-	//    }
-	//    else
-	//    {
-	//        // New style for vsync and idle time calc
-	//        int wait_till = current_vsync_frame;
-	//        do
-	//        {
-	//            ioctl(fbdev, OMAPFB_WAITFORVSYNC_FRAME, &current_vsync_frame);
-	//        }
-	//        while (wait_till >= current_vsync_frame);
-	//
-	//        if(wait_till + 1 != current_vsync_frame)
-	//        {
-	//            // We missed a vsync...
-	//            next_synctime = 0;
-	//        }
-	//        current_vsync_frame += currprefs.gfx_framerate;
-	//    }
-
 	// Update the texture from the surface
 	SDL_UpdateTexture(texture, nullptr, screen->pixels, screen->pitch);
 	// Copy the texture on the renderer
 	SDL_RenderCopy(renderer, texture, nullptr, nullptr);
 	// Update the window surface (show the renderer)
 	SDL_RenderPresent(renderer);
-
-	//    last_synctime = read_processor_time();
-
-	//    if(!screen_is_picasso)
-	//		gfxvidinfo.bufmem = (uae_u8 *)screen->pixels;
-
-	//    if(last_synctime - next_synctime > time_per_frame * (1 + currprefs.gfx_framerate) - 1000 || next_synctime < start)
-	//        adjust_idletime(0);
-	//    else
-	//        adjust_idletime(next_synctime - start);
-	//
-	//    if (last_synctime - next_synctime > time_per_frame - 5000)
-	//        next_synctime = last_synctime + time_per_frame * (1 + currprefs.gfx_framerate);
-	//    else
-	//        next_synctime = next_synctime + time_per_frame * (1 + currprefs.gfx_framerate);
 
 	init_row_map();
 }
@@ -346,11 +322,17 @@ STATIC_INLINE int maskShift(unsigned long mask)
 	return n;
 }
 
-static int init_colors()
+/* Color management */
+
+static xcolnr xcol8[4096];
+
+static int red_bits, green_bits, blue_bits, alpha_bits;
+static int red_shift, green_shift, blue_shift, alpha_shift;
+static int alpha;
+
+void init_colors()
 {
 	int i;
-	int red_bits, green_bits, blue_bits;
-	int red_shift, green_shift, blue_shift;
 
 	/* Truecolor: */
 	red_bits = bitsInMask(screen->format->Rmask);
@@ -359,12 +341,11 @@ static int init_colors()
 	red_shift = maskShift(screen->format->Rmask);
 	green_shift = maskShift(screen->format->Gmask);
 	blue_shift = maskShift(screen->format->Bmask);
+
 	alloc_colors64k(red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift, 0);
 	notice_new_xcolors();
-	for (i = 0; i < 4096; i++)
-		xcolors[i] = xcolors[i] * 0x00010001;
-
-	return 1;
+	/*for (i = 0; i < 4096; i++)
+		xcolors[i] = xcolors[i] * 0x00010001;*/
 }
 
 /*
@@ -404,14 +385,13 @@ int GetSurfacePixelFormat()
 		        : RGBFB_NONE);
 }
 
-int graphics_init(bool mousecapture)
+static bool graphics_init()
 {
 	graphics_subinit();
 
-	if (!init_colors())
-		return 0;
+	init_colors();
 
-	return 1;
+	return true;
 }
 
 void graphics_leave()
@@ -601,20 +581,21 @@ bool target_graphics_buffer_update()
 
 #ifdef PICASSO96
 
-int picasso_palette()
+int picasso_palette(struct MyCLUTEntry *CLUT)
 {
 	int i, changed;
 
 	changed = 0;
-	for (i = 0; i < 256; i++)
-	{
-		int r = picasso96_state.CLUT[i].Red;
-		int g = picasso96_state.CLUT[i].Green;
-		int b = picasso96_state.CLUT[i].Blue;
-		int value = (r << 16 | g << 8 | b);
-		uae_u32 v = CONVERT_RGB(value);
-		if (v != picasso_vidinfo.clut[i])
-		{
+	for (i = 0; i < 256; i++) {
+		int r = CLUT[i].Red;
+		int g = CLUT[i].Green;
+		int b = CLUT[i].Blue;
+		uae_u32 v = (doMask256(r, red_bits, red_shift)
+			| doMask256(g, green_bits, green_shift)
+			| doMask256(b, blue_bits, blue_shift))
+			| doMask256(0xff, alpha_bits, alpha_shift);
+		if (v != picasso_vidinfo.clut[i]) {
+			//write_log (_T("%d:%08x\n"), i, v);
 			picasso_vidinfo.clut[i] = v;
 			changed = 1;
 		}
@@ -622,10 +603,10 @@ int picasso_palette()
 	return changed;
 }
 
-static int resolution_compare(const void* a, const void* b)
+static int _cdecl resolution_compare(const void *a, const void *b)
 {
-	struct PicassoResolution* ma = (struct PicassoResolution *)a;
-	struct PicassoResolution* mb = (struct PicassoResolution *)b;
+	struct PicassoResolution *ma = (struct PicassoResolution *)a;
+	struct PicassoResolution *mb = (struct PicassoResolution *)b;
 	if (ma->res.width < mb->res.width)
 		return -1;
 	if (ma->res.width > mb->res.width)
@@ -637,42 +618,57 @@ static int resolution_compare(const void* a, const void* b)
 	return ma->depth - mb->depth;
 }
 
-static void sortmodes()
+static void sortmodes(struct MultiDisplay *md)
 {
-	int i = 0, idx = -1;
+	int	i, idx = -1;
 	int pw = -1, ph = -1;
-	while (DisplayModes[i].depth >= 0)
+
+	i = 0;
+	while (md->DisplayModes[i].depth >= 0)
 		i++;
-	qsort(DisplayModes, i, sizeof (struct PicassoResolution), resolution_compare);
-	for (i = 0; DisplayModes[i].depth >= 0; i++)
-	{
-		if (DisplayModes[i].res.height != ph || DisplayModes[i].res.width != pw)
-		{
-			ph = DisplayModes[i].res.height;
-			pw = DisplayModes[i].res.width;
+	qsort(md->DisplayModes, i, sizeof(struct PicassoResolution), resolution_compare);
+	for (i = 0; md->DisplayModes[i].depth >= 0; i++) {
+		int j, k;
+		for (j = 0; md->DisplayModes[i].refresh[j]; j++) {
+			for (k = j + 1; md->DisplayModes[i].refresh[k]; k++) {
+				if (md->DisplayModes[i].refresh[j] > md->DisplayModes[i].refresh[k]) {
+					int t = md->DisplayModes[i].refresh[j];
+					md->DisplayModes[i].refresh[j] = md->DisplayModes[i].refresh[k];
+					md->DisplayModes[i].refresh[k] = t;
+					t = md->DisplayModes[i].refreshtype[j];
+					md->DisplayModes[i].refreshtype[j] = md->DisplayModes[i].refreshtype[k];
+					md->DisplayModes[i].refreshtype[k] = t;
+				}
+			}
+		}
+		if (md->DisplayModes[i].res.height != ph || md->DisplayModes[i].res.width != pw) {
+			ph = md->DisplayModes[i].res.height;
+			pw = md->DisplayModes[i].res.width;
 			idx++;
 		}
-		DisplayModes[i].residx = idx;
+		md->DisplayModes[i].residx = idx;
 	}
 }
 
-static void modesList()
+static void modesList(struct MultiDisplay *md)
 {
 	int i, j;
 
 	i = 0;
-	while (DisplayModes[i].depth >= 0)
-	{
-		write_log ("%d: %s (", i, DisplayModes[i].name);
+	while (md->DisplayModes[i].depth >= 0) {
+		write_log(_T("%d: %s%s ("), i, md->DisplayModes[i].rawmode ? _T("!") : _T(""), md->DisplayModes[i].name);
 		j = 0;
-		while (DisplayModes[i].refresh[j] > 0)
-		{
+		while (md->DisplayModes[i].refresh[j] > 0) {
 			if (j > 0)
-			write_log (",");
-			write_log ("%d", DisplayModes[i].refresh[j]);
+				write_log(_T(","));
+			if (md->DisplayModes[i].refreshtype[j] & REFRESH_RATE_RAW)
+				write_log(_T("!"));
+			write_log(_T("%d"), md->DisplayModes[i].refresh[j]);
+			if (md->DisplayModes[i].refreshtype[j] & REFRESH_RATE_LACE)
+				write_log(_T("i"));
 			j++;
 		}
-		write_log (")\n");
+		write_log(_T(")\n"));
 		i++;
 	}
 }

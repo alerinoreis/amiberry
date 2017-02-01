@@ -13,6 +13,7 @@
 
 #include <ctype.h>
 #include <assert.h>
+#include <math.h>
 
 #include "options.h"
 #include "uae.h"
@@ -71,6 +72,7 @@ static int vpos_count, vpos_count_diff;
 static int lof_store; // real bit in custom registers
 static int lof_current; // what display device thinks
 static int next_lineno, prev_lineno;
+static enum nln_how nextline_how;
 static int lof_changed = 0, lof_changing = 0;
 static int lof_changed_previous_field;
 static int vposw_change;
@@ -248,24 +250,39 @@ static int copper_enabled_thisline;
  * Statistics
  */
 
-static unsigned long lastframetime = 0;
-static unsigned long frametime = 0, timeframes = 0;
+unsigned long int frametime = 0, lastframetime = 0, timeframes = 0;
 unsigned long hsync_counter = 0;
 
 /* Recording of custom chip register changes.  */
-struct sprite_entry* curr_sprite_entries = nullptr;
-struct color_change* curr_color_changes = nullptr;
+static int current_change_set;
+static struct sprite_entry sprite_entries[2][MAX_SPR_PIXELS / 16];
+static struct color_change color_changes[2][MAX_REG_CHANGE];
 
 struct decision line_decisions[2 * (MAXVPOS + 2) + 1];
-struct draw_info curr_drawinfo[2 * (MAXVPOS + 2) + 1];
+static struct draw_info line_drawinfo[2][2 * (MAXVPOS + 2) + 1];
 #define COLOR_TABLE_SIZE (MAXVPOS + 2) * 2
-struct color_entry curr_color_tables[COLOR_TABLE_SIZE];
+static struct color_entry color_tables[2][COLOR_TABLE_SIZE];
 
 static int next_sprite_entry = 0;
+static int prev_next_sprite_entry;
 static int next_sprite_forced = 1;
+
+struct sprite_entry *curr_sprite_entries, *prev_sprite_entries;
+struct color_change *curr_color_changes, *prev_color_changes;
+struct draw_info *curr_drawinfo, *prev_drawinfo;
+struct color_entry *curr_color_tables, *prev_color_tables;
 
 static int next_color_change;
 static int next_color_entry, remembered_color_entry;
+static int color_src_match, color_dest_match, color_compare_result;
+
+static uae_u32 thisline_changed;
+
+#ifdef SMART_UPDATE
+#define MARK_LINE_CHANGED do { thisline_changed = 1; } while (0)
+#else
+#define MARK_LINE_CHANGED do { ; } while (0)
+#endif
 
 static struct decision thisline_decision;
 static int fetch_cycle, fetch_modulo_cycle;
@@ -407,6 +424,39 @@ static void remember_ctable()
 		remembered_color_entry = next_color_entry++;
 	}
 	thisline_decision.ctable = remembered_color_entry;
+	if (color_src_match < 0 || color_dest_match != remembered_color_entry
+		|| line_decisions[next_lineno].ctable != color_src_match)
+	{
+		/* The remembered comparison didn't help us - need to compare again. */
+		int oldctable = line_decisions[next_lineno].ctable;
+		int changed = 0;
+
+		if (oldctable < 0)
+		{
+			changed = 1;
+			color_src_match = color_dest_match = -1;
+		}
+		else
+		{
+			color_compare_result = color_reg_cmp(&prev_color_tables[oldctable], &current_colors) != 0;
+			if (color_compare_result)
+				changed = 1;
+			color_src_match = oldctable;
+			color_dest_match = remembered_color_entry;
+		}
+		thisline_changed |= changed;
+	}
+	else
+	{
+		/* We know the result of the comparison */
+		if (color_compare_result)
+			thisline_changed = 1;
+	}
+}
+
+static void remember_ctable_for_border(void)
+{
+	remember_ctable();
 }
 
 STATIC_INLINE int get_equ_vblank_endline()
@@ -1033,14 +1083,16 @@ STATIC_INLINE void toscr_1(int nbits, int fm)
 	if (out_nbits == 32)
 	{
 		int i;
-		uae_u32* dataptr32 = reinterpret_cast<uae_u32 *>(line_data[next_lineno]);
-		dataptr32 += out_offs;
-
+		uae_u8 *dataptr = line_data[next_lineno] + out_offs * 4;
 		for (i = 0; i < thisline_decision.nr_planes; i++)
 		{
-			*dataptr32 = outword[i];
+			uae_u32 *dataptr32 = reinterpret_cast<uae_u32 *>(dataptr);
+			if (*dataptr32 != outword[i]) {
+				thisline_changed = 1;
+				*dataptr32 = outword[i];
+			}
 			outword[i] = 0;
-			dataptr32 += MAX_WORDS_PER_LINE >> 1;
+			dataptr += MAX_WORDS_PER_LINE * 2;
 		}
 		out_offs++;
 		out_nbits = 0;
@@ -1218,7 +1270,9 @@ STATIC_INLINE void long_fetch_ecs(int plane, int nwords, int weird_number_of_bit
 		{
 			outval <<= bits_left;
 			outval |= t >> (16 - bits_left);
+			thisline_changed |= *dataptr ^ outval;
 			*dataptr++ = outval;
+
 			outval = t;
 			tmp_nbits = 16 - bits_left;
 		}
@@ -1228,6 +1282,7 @@ STATIC_INLINE void long_fetch_ecs(int plane, int nwords, int weird_number_of_bit
 			tmp_nbits += 16;
 			if (tmp_nbits == 32)
 			{
+				thisline_changed |= *dataptr ^ outval;
 				*dataptr++ = outval;
 				tmp_nbits = 0;
 			}
@@ -1236,10 +1291,8 @@ STATIC_INLINE void long_fetch_ecs(int plane, int nwords, int weird_number_of_bit
 		nwords--;
 		if (dma)
 		{
-			__asm__(
-				"ldrh    %[val], [%[pt]], #2   \n\t"
-				"rev16   %[val], %[val]        \n\t"
-				: [val] "=r"(fetchval), [pt] "+r"(real_pt));
+			fetchval = do_get_mem_word(real_pt);
+			real_pt++;
 		}
 	}
 	fetched[plane] = fetchval;
@@ -2018,10 +2071,10 @@ static bool isbrdblank(int hpos, uae_u16 bplcon0, uae_u16 bplcon3)
 {
 	bool brdblank;
 	brdblank = (currprefs.chipset_mask & CSMASK_ECS_DENISE) && (bplcon0 & 1) && (bplcon3 & 0x20);
-	if (hpos >= 0 && current_colors.borderblank != brdblank)
+	if (hpos >= 0 && current_colors.extra != brdblank)
 	{
-		record_color_change(hpos, 0, COLOR_CHANGE_BRDBLANK | (brdblank ? 1 : 0) | (current_colors.bordersprite ? 2 : 0));
-		current_colors.borderblank = brdblank;
+		record_color_change(hpos, 0, COLOR_CHANGE_BRDBLANK | (brdblank ? 1 : 0) | (current_colors.extra ? 2 : 0));
+		current_colors.extra = brdblank;
 		remembered_color_entry = -1;
 	}
 	return brdblank;
@@ -2032,15 +2085,15 @@ static bool issprbrd(int hpos, uae_u16 bplcon0, uae_u16 bplcon3)
 {
 	bool brdsprt;
 	brdsprt = (aga_mode) && (bplcon0 & 1) && (bplcon3 & 0x02);
-	if (hpos >= 0 && current_colors.bordersprite != brdsprt)
+	if (hpos >= 0 && current_colors.extra != brdsprt)
 	{
-		record_color_change(hpos, 0, COLOR_CHANGE_BRDBLANK | (current_colors.borderblank ? 1 : 0) | (brdsprt ? 2 : 0));
-		current_colors.bordersprite = brdsprt;
+		record_color_change(hpos, 0, COLOR_CHANGE_BRDBLANK | (current_colors.extra ? 1 : 0) | (brdsprt ? 2 : 0));
+		current_colors.extra = brdsprt;
 		remembered_color_entry = -1;
-		if (brdsprt && !current_colors.borderblank)
+		if (brdsprt && !current_colors.extra)
 			thisline_decision.bordersprite_seen = true;
 	}
-	return brdsprt && !current_colors.borderblank;
+	return brdsprt && !current_colors.extra;
 }
 
 static void record_register_change(int hpos, int regno, uae_u16 value)
@@ -2594,6 +2647,7 @@ static void reset_decisions()
 	}
 	thisline_decision.ctable = -1;
 
+	thisline_changed = 0;
 	curr_drawinfo[next_lineno].first_color_change = next_color_change;
 	curr_drawinfo[next_lineno].first_sprite_entry = next_sprite_entry;
 	next_sprite_forced = 1;
@@ -3087,6 +3141,18 @@ static void VHPOSW(uae_u16 v)
 {
 	int oldvpos = vpos;
 	bool changed = false;
+
+	// TODO:
+	//	if (currprefs.cpu_cycle_exact && currprefs.cpu_model == 68000) {
+	//		/* Special hack for Smooth Copper in CoolFridge / Upfront demo */
+	//		int chp = current_hpos_safe();
+	//		int hp = v & 0xff;
+	//		if (chp >= 0x21 && chp <= 0x29 && hp == 0x2d) {
+	//			hack_delay_shift = 4;
+	//			record_color_change(chp, 0, COLOR_CHANGE_HSYNC_HACK | 6);
+	//			thisline_changed = true;
+	//		}
+	//	}
 
 	v >>= 8;
 	vpos &= 0xff00;
@@ -4341,22 +4407,11 @@ static void update_copper(int until_hpos)
 
 	if (nocustom())
 	{
-		eventtab[ev_copper].active = false;
 		return;
-	}
-
-	if (currprefs.fast_copper)
-	{
-		if (eventtab[ev_copper].active)
-		{
-			eventtab[ev_copper].active = false;
-			return;
-		}
 	}
 
 	if (cop_state.state == COP_wait && vp < cop_state.vcmp)
 	{
-		eventtab[ev_copper].active = false;
 		copper_enabled_thisline = 0;
 		cop_state.state = COP_stop;
 		unset_special(SPCFLAG_COPPER);
@@ -4566,34 +4621,10 @@ static void update_copper(int until_hpos)
 				int ch_comp = c_hpos;
 				if (ch_comp & 1)
 					ch_comp = 0;
-				if (copper_cant_read(old_hpos))
-					continue;
 
-				hp = ch_comp & (cop_state.i2 & 0xFE);
-				if (vp == cop_state.vcmp && hp < cop_state.hcmp)
-				{
-					/* Position not reached yet.  */
-					if (currprefs.fast_copper)
-					{
-						if ((cop_state.i2 & 0xFE) == 0xFE)
-						{
-							int wait_finish = cop_state.hcmp - 2;
-							/* This will leave c_hpos untouched if it's equal to wait_finish.  */
-							if (wait_finish < c_hpos)
-								return;
-							else if (wait_finish <= until_hpos)
-							{
-								c_hpos = wait_finish;
-							}
-							else
-								c_hpos = until_hpos;
-						}
-					}
-					break;
-				}
-
-				/* Now we know that the comparisons were successful.  We might still
-			   have to wait for the blitter though.  */
+				/* First handle possible blitter wait
+				 * Must be before following free cycle check
+				 */
 				if ((cop_state.i2 & 0x8000) == 0)
 				{
 					if (bltstate != BLT_done)
@@ -4605,6 +4636,13 @@ static void update_copper(int until_hpos)
 						goto out;
 					}
 				}
+
+				if (copper_cant_read(old_hpos))
+					continue;
+
+				hp = ch_comp & (cop_state.i2 & 0xFE);
+				if (vp == cop_state.vcmp && hp < cop_state.hcmp)
+					break;
 
 				cop_state.state = COP_read1;
 			}
@@ -4639,15 +4677,6 @@ static void update_copper(int until_hpos)
 out:
 	cop_state.hpos = c_hpos;
 	last_copper_hpos = until_hpos;
-
-	if (currprefs.fast_copper)
-	{
-		/* The test against maxhpos also prevents us from calling predict_copper
-		   when we are being called from hsync_handler, which would not only be
-		   stupid, but actively harmful.  */
-		if ((regs.spcflags & SPCFLAG_COPPER) && (c_hpos + 8 < maxhpos))
-			predict_copper();
-	}
 }
 
 static void compute_spcflag_copper(int hpos)
@@ -4683,15 +4712,7 @@ static void compute_spcflag_copper(int hpos)
 		cop_state.state = COP_strobe_delay1;
 
 	copper_enabled_thisline = 1;
-
-	if (currprefs.fast_copper)
-	{
-		predict_copper();
-		if (! eventtab[ev_copper].active)
-			set_special(SPCFLAG_COPPER);
-	}
-	else
-		set_special(SPCFLAG_COPPER);
+	set_special(SPCFLAG_COPPER);
 }
 
 static void copper_handler()
@@ -4971,6 +4992,7 @@ static void init_hardware_frame()
 {
 	next_lineno = 0;
 	prev_lineno = -1;
+	nextline_how = nln_normal;
 	diwstate = DIW_waiting_start;
 	ddfstate = DIW_waiting_start;
 	plf_state = plf_end;
@@ -4979,19 +5001,35 @@ static void init_hardware_frame()
 void init_hardware_for_drawing_frame()
 {
 	/* Avoid this code in the first frame after a customreset.  */
-	if (next_sprite_entry > 0)
+	if (prev_sprite_entries)
 	{
-		int npixels = curr_sprite_entries[next_sprite_entry].first_pixel;
-		memset(spixels, 0, npixels * sizeof *spixels);
-		memset(spixstate.bytes, 0, npixels * sizeof *spixstate.bytes);
+		int first_pixel = prev_sprite_entries[0].first_pixel;
+		int npixels = prev_sprite_entries[prev_next_sprite_entry].first_pixel - first_pixel;
+		memset(spixels + first_pixel, 0, npixels * sizeof *spixels);
+		memset(spixstate.bytes + first_pixel, 0, npixels * sizeof *spixstate.bytes);
 	}
+	prev_next_sprite_entry = next_sprite_entry;
 
 	next_color_change = 0;
 	next_sprite_entry = 0;
 	next_color_entry = 0;
 	remembered_color_entry = -1;
 
-	curr_sprite_entries[0].first_pixel = 0;
+	prev_sprite_entries = sprite_entries[current_change_set];
+	curr_sprite_entries = sprite_entries[current_change_set ^ 1];
+	prev_color_changes = color_changes[current_change_set];
+	curr_color_changes = color_changes[current_change_set ^ 1];
+	prev_color_tables = color_tables[current_change_set];
+	curr_color_tables = color_tables[current_change_set ^ 1];
+
+	prev_drawinfo = line_drawinfo[current_change_set];
+	curr_drawinfo = line_drawinfo[current_change_set ^ 1];
+	current_change_set ^= 1;
+
+	color_src_match = color_dest_match = -1;
+
+	/* Use both halves of the array in alternating fashion.  */
+	curr_sprite_entries[0].first_pixel = current_change_set * MAX_SPR_PIXELS;
 	next_sprite_forced = 1;
 }
 
@@ -5036,12 +5074,19 @@ static void fpscounter()
 // vsync functions that are not hardware timing related
 static void vsync_handler_pre()
 {
-	//	handle_events ();
-
 #ifdef PICASSO96
-	if (currprefs.rtgmem_size)
+	if (isvsync_rtg() >= 0)
 		rtg_vsync();
 #endif
+
+	//	if (!vsync_rendered) {
+	//		frame_time_t start, end;
+	//		start = read_processor_time();
+	//		vsync_handle_redraw(lof_store, lof_changed, bplcon0, bplcon3);
+	//		vsync_rendered = true;
+	//		end = read_processor_time();
+	//		frameskiptime += end - start;
+	//	}
 
 	blkdev_vsync();
 	CIA_vsync_prehandler();
@@ -5059,8 +5104,6 @@ static void vsync_handler_pre()
 
 	inputdevice_vsync();
 	filesys_vsync();
-
-	vsync_handle_redraw();
 
 	fpscounter();
 
@@ -5306,7 +5349,7 @@ static void hsync_handler_pre(bool onvsync)
 			if (currprefs.collision_level > 2)
 			DO_PLAYFIELD_COLLISIONS
 		}
-		hsync_record_line_state(next_lineno);
+		hsync_record_line_state(next_lineno, nextline_how, thisline_changed);
 	}
 
 #ifdef CD32
@@ -5397,6 +5440,7 @@ static void hsync_handler_post(bool onvsync)
 		int lineno = vpos;
 		if (lineno >= MAXVPOS)
 			lineno %= MAXVPOS;
+		nextline_how = nln_normal;
 		prev_lineno = next_lineno;
 		next_lineno = lineno;
 		reset_decisions();
@@ -5644,10 +5688,13 @@ void custom_reset(bool hardreset, bool keyboardreset)
 	inputdevice_reset();
 	timehack_alive = 0;
 
-	curr_sprite_entries[0].first_pixel = 0;
-	curr_sprite_entries[1].first_pixel = 0;
-	next_sprite_entry = 0;
-	memset(spixels, 0, sizeof spixels);
+	curr_sprite_entries = 0;
+	prev_sprite_entries = 0;
+	sprite_entries[0][0].first_pixel = 0;
+	sprite_entries[1][0].first_pixel = MAX_SPR_PIXELS;
+	sprite_entries[0][1].first_pixel = 0;
+	sprite_entries[1][1].first_pixel = MAX_SPR_PIXELS;
+	memset(spixels, 0, 2 * MAX_SPR_PIXELS * sizeof *spixels);
 	memset(&spixstate, 0, sizeof spixstate);
 
 	cop_state.state = COP_stop;
@@ -6580,7 +6627,7 @@ uae_u8* restore_custom(uae_u8* src)
 	fmode = RW; /* 1FC FMODE */
 	last_custom_value1 = RW; /* 1FE ? */
 
-	current_colors.borderblank = isbrdblank(-1, bplcon0, bplcon3);
+	current_colors.extra = isbrdblank(-1, bplcon0, bplcon3);
 	DISK_restore_custom(dskpt, dsklen, dskbytr);
 
 	FMODE(0, fmode);
@@ -6862,7 +6909,6 @@ void check_prefs_changed_custom()
 	currprefs.immediate_blits = changed_prefs.immediate_blits;
 	currprefs.waiting_blits = changed_prefs.waiting_blits;
 	currprefs.collision_level = changed_prefs.collision_level;
-	currprefs.fast_copper = changed_prefs.fast_copper;
 	currprefs.cs_cd32cd = changed_prefs.cs_cd32cd;
 	currprefs.cs_cd32c2p = changed_prefs.cs_cd32c2p;
 	currprefs.cs_cd32nvram = changed_prefs.cs_cd32nvram;

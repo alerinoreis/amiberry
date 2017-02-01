@@ -1343,6 +1343,17 @@ static void exception2_handle (uaecptr addr, uaecptr fault)
   Exception (2);
 }
 
+static bool cpu_hardreset, cpu_keyboardreset;
+
+bool is_hardreset()
+{
+	return cpu_hardreset;
+}
+bool is_keyboardreset()
+{
+	return cpu_keyboardreset;
+}
+
 void m68k_go (int may_quit)
 {
   int hardboot = 1;

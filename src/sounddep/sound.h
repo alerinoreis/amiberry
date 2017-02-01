@@ -6,6 +6,8 @@
   * Copyright 1997 Bernd Schmidt
   */
 
+#pragma once
+
 #if defined(PANDORA) || defined(ANDROIDSDL)
 #define DEFAULT_SOUND_CHANNELS 2
 #else
@@ -31,7 +33,10 @@ extern int setup_sound (void);
 extern void resume_sound (void);
 extern void pause_sound (void);
 extern void reset_sound (void);
-extern void sound_volume (int);
+extern void sound_mute(int);
+extern void sound_volume(int);
+extern void set_volume(int, int);
+extern void master_sound_volume(int);
 
 STATIC_INLINE void set_sound_buffers (void)
 {
@@ -49,6 +54,8 @@ STATIC_INLINE void clear_sound_buffers (void)
 #define PUT_SOUND_WORD(b) do { *sndbufpt = b; sndbufpt = sndbufpt + 1; } while (0)
 #define PUT_SOUND_WORD_STEREO(l,r) do { *((uae_u32 *)sndbufpt) = (r << 16) | (l & 0xffff); sndbufpt = sndbufpt + 2; } while (0)
 
+#define DEFAULT_SOUND_MAXB 16384
+#define DEFAULT_SOUND_MINB 16384
 #define DEFAULT_SOUND_BITS 16
 #define DEFAULT_SOUND_FREQ 44100
 #define HAVE_STEREO_SUPPORT

@@ -7,8 +7,8 @@
  */
 
 
-/* functions to save byte,word or long word
- * independent of CPU's endianess */
+#ifndef UAE_SAVESTATE_H
+#define UAE_SAVESTATE_H
 
 extern void save_u64_func (uae_u8 **, uae_u64);
 extern void save_u32_func (uae_u8 **, uae_u32);
@@ -166,3 +166,16 @@ STATIC_INLINE bool isrestore (void)
 {
     return savestate_state == STATE_RESTORE;
 }
+
+extern void savestate_quick(int slot, int save);
+
+extern void savestate_capture(int);
+extern void savestate_free(void);
+extern void savestate_init(void);
+extern void savestate_rewind(void);
+extern int savestate_dorewind(int);
+extern void savestate_listrewind(void);
+extern void statefile_save_recording(const TCHAR*);
+extern void savestate_capture_request(void);
+
+#endif /* UAE_SAVESTATE_H */

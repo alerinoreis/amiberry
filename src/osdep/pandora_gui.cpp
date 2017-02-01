@@ -595,7 +595,6 @@ void gui_led(int led, int on)
 	// Check current prefs/ update if changed
 	if (currprefs.kbd_led_num != changed_prefs.kbd_led_num) currprefs.kbd_led_num = changed_prefs.kbd_led_num;
 	if (currprefs.kbd_led_scr != changed_prefs.kbd_led_scr) currprefs.kbd_led_scr = changed_prefs.kbd_led_scr;
-	if (currprefs.kbd_led_cap != changed_prefs.kbd_led_cap) currprefs.kbd_led_cap = changed_prefs.kbd_led_cap;
 
 	ioctl(0, KDGETLED, &kbd_led_status);
 
@@ -634,9 +633,7 @@ void gui_led(int led, int on)
 
 void gui_flicker_led(int led, int status)
 {
-#ifdef RASPBERRY
 	gui_led(led, status);
-#endif
 }
 
 

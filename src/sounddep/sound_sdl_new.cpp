@@ -484,6 +484,20 @@ void reset_sound(void)
 
 void sound_volume(int dir)
 {
+	currprefs.sound_volume_master -= dir * 10;
+	currprefs.sound_volume_cd -= dir * 10;
+	if (currprefs.sound_volume_master < 0)
+		currprefs.sound_volume_master = 0;
+	if (currprefs.sound_volume_master > 100)
+		currprefs.sound_volume_master = 100;
+	changed_prefs.sound_volume_master = currprefs.sound_volume_master;
+	if (currprefs.sound_volume_cd < 0)
+		currprefs.sound_volume_cd = 0;
+	if (currprefs.sound_volume_cd > 100)
+		currprefs.sound_volume_cd = 100;
+	changed_prefs.sound_volume_cd = currprefs.sound_volume_cd;
+	set_volume(currprefs.sound_volume_master, sdp->mute);
+	config_changed = 1;
 }
 
 #endif

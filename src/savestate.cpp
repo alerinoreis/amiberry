@@ -854,6 +854,632 @@ bool savestate_check (void)
 	return false;
 }
 
+static int rewindmode;
+
+
+static struct staterecord *canrewind(int pos)
+{
+	if (pos < 0)
+		pos += staterecords_max;
+	if (!staterecords)
+		return 0;
+	if (staterecords[pos] == NULL)
+		return NULL;
+	if (staterecords[pos]->inuse == 0)
+		return NULL;
+	if ((pos + 1) % staterecords_max == staterecords_first)
+		return NULL;
+	return staterecords[pos];
+}
+
+int savestate_dorewind(int pos)
+{
+	rewindmode = pos;
+	if (pos < 0)
+		pos = replaycounter - 1;
+	if (canrewind(pos)) {
+		savestate_state = STATE_DOREWIND;
+		write_log(_T("dorewind %d (%010ld/%03ld) -> %d\n"), replaycounter - 1, hsync_counter, vsync_counter, pos);
+		return 1;
+	}
+	return 0;
+}
+#if 0
+void savestate_listrewind(void)
+{
+	int i = replaycounter;
+	int cnt;
+	uae_u8 *p;
+	uae_u32 pc;
+
+	cnt = 1;
+	for (;;) {
+		struct staterecord *st;
+		st = &staterecords[i];
+		if (!st->start)
+			break;
+		p = st->cpu + 17 * 4;
+		pc = restore_u32_func(&p);
+		console_out_f(_T("%d: PC=%08X %c\n"), cnt, pc, regs.pc == pc ? '*' : ' ');
+		cnt++;
+		i--;
+		if (i < 0)
+			i += MAX_STATERECORDS;
+	}
+}
+#endif
+
+void savestate_rewind(void)
+{
+	int len, i, dummy;
+	uae_u8 *p, *p2;
+	struct staterecord *st;
+	int pos;
+	bool rewind = false;
+
+	if (hsync_counter % currprefs.statecapturerate <= 25 && rewindmode <= -2) {
+		pos = replaycounter - 2;
+		rewind = true;
+	}
+	else {
+		pos = replaycounter - 1;
+	}
+	st = canrewind(pos);
+	if (!st) {
+		rewind = false;
+		pos = replaycounter - 1;
+		st = canrewind(pos);
+		if (!st)
+			return;
+	}
+	p = st->data;
+	p2 = st->end;
+	write_log(_T("rewinding %d -> %d\n"), replaycounter - 1, pos);
+	hsync_counter = restore_u32_func(&p);
+	vsync_counter = restore_u32_func(&p);
+	p = restore_cpu(p);
+	p = restore_cycles(p);
+	p = restore_cpu_extra(p);
+	if (restore_u32_func(&p))
+		p = restore_cpu_trace(p);
+#ifdef FPUEMU
+	if (restore_u32_func(&p))
+		p = restore_fpu(p);
+#endif
+	for (i = 0; i < 4; i++) {
+		p = restore_disk(i, p);
+		if (restore_u32_func(&p))
+			p = restore_disk2(i, p);
+	}
+	p = restore_floppy(p);
+	p = restore_custom(p);
+	p = restore_custom_extra(p);
+	if (restore_u32_func(&p))
+		p = restore_custom_event_delay(p);
+	p = restore_blitter_new(p);
+	p = restore_custom_agacolors(p);
+	for (i = 0; i < 8; i++) {
+		p = restore_custom_sprite(i, p);
+	}
+	for (i = 0; i < 4; i++) {
+		p = restore_audio(i, p);
+	}
+	p = restore_cia(0, p);
+	p = restore_cia(1, p);
+	p = restore_keyboard(p);
+	p = restore_inputstate(p);
+#ifdef AUTOCONFIG
+	p = restore_expansion(p);
+#endif
+#ifdef PICASSO96
+	if (restore_u32_func(&p))
+		p = restore_p96(p);
+#endif
+	len = restore_u32_func(&p);
+	memcpy(chipmem_bank.baseaddr, p, currprefs.chipmem_size > len ? len : currprefs.chipmem_size);
+	p += len;
+	len = restore_u32_func(&p);
+	memcpy(save_bram(&dummy), p, currprefs.bogomem_size > len ? len : currprefs.bogomem_size);
+	p += len;
+#ifdef AUTOCONFIG
+	len = restore_u32_func(&p);
+	memcpy(save_fram(&dummy, 0), p, currprefs.fastmem[0].size > len ? len : currprefs.fastmem[0].size);
+	p += len;
+	len = restore_u32_func(&p);
+	memcpy(save_zram(&dummy, 0), p, currprefs.z3fastmem[0].size > len ? len : currprefs.z3fastmem[0].size);
+	p += len;
+#endif
+#ifdef ACTION_REPLAY
+	if (restore_u32_func(&p))
+		p = restore_action_replay(p);
+	if (restore_u32_func(&p))
+		p = restore_hrtmon(p);
+#endif
+#ifdef CD32
+	if (restore_u32_func(&p))
+		p = restore_akiko(p);
+#endif
+#ifdef CDTV
+	if (restore_u32_func(&p))
+		p = restore_cdtv(p);
+	if (restore_u32_func(&p))
+		p = restore_cdtv_dmac(p);
+#endif
+#if 0
+	if (restore_u32_func(&p))
+		p = restore_scsi_dmac(WDTYPE_A2091, p);
+	if (restore_u32_func(&p))
+		p = restore_scsi_dmac(WDTYPE_A3000, p);
+#endif
+	if (restore_u32_func(&p))
+		p = restore_gayle(p);
+	for (i = 0; i < 4; i++) {
+		if (restore_u32_func(&p))
+			p = restore_gayle_ide(p);
+	}
+	p += 4;
+	if (p != p2) {
+		gui_message(_T("reload failure, address mismatch %p != %p"), p, p2);
+		uae_reset(0, 0);
+		return;
+	}
+	inprec_setposition(st->inprecoffset, pos);
+	write_log(_T("state %d restored.  (%010ld/%03ld)\n"), pos, hsync_counter, vsync_counter);
+	if (rewind) {
+		replaycounter--;
+		if (replaycounter < 0)
+			replaycounter += staterecords_max;
+		st = canrewind(replaycounter);
+		st->inuse = 0;
+	}
+
+}
+
+#define BS 10000
+
+STATIC_INLINE int bufcheck(struct staterecord *sr, uae_u8 *p, int len)
+{
+	if (p - sr->data + BS + len >= sr->len)
+		return 1;
+	return 0;
+}
+
+void savestate_memorysave(void)
+{
+	new_blitter = true;
+	// create real statefile in memory too for later saving
+	zfile_fclose(staterecord_statefile);
+	staterecord_statefile = zfile_fopen_empty(NULL, _T("statefile.inp.uss"));
+	if (staterecord_statefile)
+		save_state_internal(staterecord_statefile, _T("rerecording"), 1, false);
+}
+
+void savestate_capture(int force)
+{
+	uae_u8 *p, *p2, *p3, *dst;
+	int i, len, tlen, retrycnt;
+	struct staterecord *st;
+	bool firstcapture = false;
+
+#ifdef FILESYS
+	if (nr_units())
+		return;
+#endif
+	if (!staterecords)
+		return;
+	if (!input_record)
+		return;
+	if (currprefs.statecapturerate && hsync_counter == 0 && input_record == INPREC_RECORD_START && savestate_first_capture > 0) {
+		// first capture
+		force = true;
+		firstcapture = true;
+	}
+	else if (savestate_first_capture < 0) {
+		force = true;
+		firstcapture = false;
+	}
+	if (!force) {
+		if (currprefs.statecapturerate <= 0)
+			return;
+		if (hsync_counter % currprefs.statecapturerate)
+			return;
+	}
+	savestate_first_capture = false;
+
+	retrycnt = 0;
+retry2:
+	st = staterecords[replaycounter];
+	if (st == NULL) {
+		st = (struct staterecord*)xmalloc(uae_u8, statefile_alloc);
+		st->len = statefile_alloc;
+	}
+	else if (retrycnt > 0) {
+		write_log(_T("realloc %d -> %d\n"), st->len, st->len + STATEFILE_ALLOC_SIZE);
+		st->len += STATEFILE_ALLOC_SIZE;
+		st = (struct staterecord*)xrealloc(uae_u8, st, st->len);
+	}
+	if (st->len > statefile_alloc)
+		statefile_alloc = st->len;
+	st->inuse = 0;
+	st->data = (uae_u8*)(st + 1);
+	staterecords[replaycounter] = st;
+	retrycnt++;
+	p = p2 = st->data;
+	tlen = 0;
+	save_u32_func(&p, hsync_counter);
+	save_u32_func(&p, vsync_counter);
+	tlen += 8;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	st->cpu = p;
+	save_cpu(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_cycles(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_cpu_extra(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_cpu_trace(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+
+#ifdef FPUEMU
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_fpu(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+#endif
+	for (i = 0; i < 4; i++) {
+		if (bufcheck(st, p, 0))
+			goto retry;
+		save_disk(i, &len, p, true);
+		tlen += len;
+		p += len;
+		p3 = p;
+		save_u32_func(&p, 0);
+		tlen += 4;
+		if (save_disk2(i, &len, p)) {
+			save_u32_func(&p3, 1);
+			tlen += len;
+			p += len;
+		}
+	}
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_floppy(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_custom(&len, p, 0);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_custom_extra(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_custom_event_delay(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_blitter_new(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, 0))
+		goto retry;
+	save_custom_agacolors(&len, p);
+	tlen += len;
+	p += len;
+	for (i = 0; i < 8; i++) {
+		if (bufcheck(st, p, 0))
+			goto retry;
+		save_custom_sprite(i, &len, p);
+		tlen += len;
+		p += len;
+	}
+
+	for (i = 0; i < 4; i++) {
+		if (bufcheck(st, p, 0))
+			goto retry;
+		save_audio(i, &len, p);
+		tlen += len;
+		p += len;
+	}
+
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_cia(0, &len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_cia(1, &len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_keyboard(&len, p);
+	tlen += len;
+	p += len;
+
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_inputstate(&len, p);
+	tlen += len;
+	p += len;
+
+#ifdef AUTOCONFIG
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_expansion(&len, p);
+	tlen += len;
+	p += len;
+#endif
+
+#ifdef PICASSO96
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_p96(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+#endif
+
+	dst = save_cram(&len);
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_u32_func(&p, len);
+	memcpy(p, dst, len);
+	tlen += len + 4;
+	p += len;
+	dst = save_bram(&len);
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_u32_func(&p, len);
+	memcpy(p, dst, len);
+	tlen += len + 4;
+	p += len;
+#ifdef AUTOCONFIG
+	dst = save_fram(&len, 0);
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_u32_func(&p, len);
+	memcpy(p, dst, len);
+	tlen += len + 4;
+	p += len;
+	dst = save_zram(&len, 0);
+	if (bufcheck(st, p, len))
+		goto retry;
+	save_u32_func(&p, len);
+	memcpy(p, dst, len);
+	tlen += len + 4;
+	p += len;
+#endif
+#ifdef ACTION_REPLAY
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_action_replay(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_hrtmon(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+#endif
+#ifdef CD32
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_akiko(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+#endif
+#ifdef CDTV
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_cdtv(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_cdtv_dmac(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+#endif
+#if 0
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_scsi_dmac(WDTYPE_A2091, &len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_scsi_dmac(WDTYPE_A3000, &len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+#endif
+	if (bufcheck(st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func(&p, 0);
+	tlen += 4;
+	if (save_gayle(&len, p)) {
+		save_u32_func(&p3, 1);
+		tlen += len;
+		p += len;
+	}
+	for (i = 0; i < 4; i++) {
+		if (bufcheck(st, p, 0))
+			goto retry;
+		p3 = p;
+		save_u32_func(&p, 0);
+		tlen += 4;
+		if (save_gayle_ide(i, &len, p)) {
+			save_u32_func(&p3, 1);
+			tlen += len;
+			p += len;
+		}
+	}
+	save_u32_func(&p, tlen);
+	st->end = p;
+	st->inuse = 1;
+	st->inprecoffset = inprec_getposition();
+
+	replaycounter++;
+	if (replaycounter >= staterecords_max)
+		replaycounter -= staterecords_max;
+	if (replaycounter == staterecords_first) {
+		staterecords_first++;
+		if (staterecords_first >= staterecords_max)
+			staterecords_first -= staterecords_max;
+	}
+
+	write_log(_T("state capture %d (%010ld/%03ld,%ld/%d) (%ld bytes, alloc %d)\n"),
+		replaycounter, hsync_counter, vsync_counter,
+		hsync_counter % current_maxvpos(), current_maxvpos(),
+		st->end - st->data, statefile_alloc);
+
+	if (firstcapture) {
+		savestate_memorysave();
+		input_record++;
+		for (i = 0; i < 4; i++) {
+			bool wp = true;
+			DISK_validate_filename(&currprefs, currprefs.floppyslots[i].df, false, &wp, NULL, NULL);
+			inprec_recorddiskchange(i, currprefs.floppyslots[i].df, wp);
+		}
+		input_record--;
+	}
+
+
+	return;
+retry:
+	if (retrycnt < 10)
+		goto retry2;
+	write_log(_T("can't save, too small capture buffer or out of memory\n"));
+	return;
+}
+
+void savestate_free(void)
+{
+	xfree(staterecords);
+	staterecords = NULL;
+}
+
+void savestate_capture_request(void)
+{
+	savestate_first_capture = -1;
+}
+
+void savestate_init(void)
+{
+	savestate_free();
+	replaycounter = 0;
+	staterecords_max = currprefs.statecapturebuffersize;
+	staterecords = xcalloc(struct staterecord*, staterecords_max);
+	statefile_alloc = STATEFILE_ALLOC_SIZE;
+	if (input_record && savestate_state != STATE_DORESTORE) {
+		zfile_fclose(staterecord_statefile);
+		staterecord_statefile = NULL;
+		inprec_close(false);
+		inprec_open(NULL, NULL);
+		savestate_first_capture = 1;
+	}
+}
+
+
+void statefile_save_recording(const TCHAR *filename)
+{
+	if (!staterecord_statefile)
+		return;
+	struct zfile *zf = zfile_fopen(filename, _T("wb"), 0);
+	if (zf) {
+		int len = zfile_size(staterecord_statefile);
+		uae_u8 *data = zfile_getdata(staterecord_statefile, 0, len);
+		zfile_fwrite(data, len, 1, zf);
+		xfree(data);
+		zfile_fclose(zf);
+		write_log(_T("input statefile '%s' saved\n"), filename);
+	}
+}
 
 /*
 

@@ -3715,3 +3715,293 @@ uae_u8 *save_floppy(int *len, uae_u8 *dstptr)
 }
 
 #endif /* SAVESTATE */
+
+#define MAX_DISKENTRIES 4
+int disk_prevnext_name(TCHAR *imgp, int dir)
+{
+	TCHAR img[MAX_DPATH], *ext, *p, *p2, *ps, *dst[MAX_DISKENTRIES];
+	int num = -1;
+	int cnt, i;
+	TCHAR imgl[MAX_DPATH];
+	int ret, gotone, wrapped;
+	TCHAR *old;
+
+	old = my_strdup(imgp);
+
+	struct zfile *zf = zfile_fopen(imgp, _T("rb"), ZFD_NORMAL);
+	if (zf) {
+		_tcscpy(img, zfile_getname(zf));
+		zfile_fclose(zf);
+		zf = zfile_fopen(img, _T("rb"), ZFD_NORMAL);
+		if (!zf) // oops, no directory support in this archive type
+			_tcscpy(img, imgp);
+		zfile_fclose(zf);
+	}
+	else {
+		_tcscpy(img, imgp);
+	}
+
+	wrapped = 0;
+retry:
+	_tcscpy(imgl, img);
+	to_lower(imgl, sizeof imgl / sizeof(TCHAR));
+	gotone = 0;
+	ret = 0;
+	ps = imgl;
+	cnt = 0;
+	dst[cnt] = NULL;
+	for (;;) {
+		// disk x of y
+		p = _tcsstr(ps, _T("(disk "));
+		if (p && _istdigit(p[6])) {
+			p2 = p - imgl + img;
+			num = _tstoi(p + 6);
+			dst[cnt++] = p2 + 6;
+			if (cnt >= MAX_DISKENTRIES - 1)
+				break;
+			gotone = 1;
+			ps = p + 6;
+			continue;
+		}
+		if (gotone)
+			break;
+		p = _tcsstr(ps, _T("disk"));
+		if (p && _istdigit(p[4])) {
+			p2 = p - imgl + img;
+			num = _tstoi(p + 4);
+			dst[cnt++] = p2 + 4;
+			if (cnt >= MAX_DISKENTRIES - 1)
+				break;
+			gotone = 1;
+			ps = p + 4;
+			continue;
+		}
+		if (gotone)
+			break;
+		ext = _tcsrchr(ps, '.');
+		if (!ext || ext - ps < 4)
+			break;
+		TCHAR *ext2 = ext - imgl + img;
+		// name_<non numeric character>x.ext
+		if (ext[-3] == '_' && !_istdigit(ext[-2]) && _istdigit(ext[-1])) {
+			num = _tstoi(ext - 1);
+			dst[cnt++] = ext2 - 1;
+			// name_x.ext, name-x.ext, name x.ext
+		}
+		else if ((ext[-2] == '_' || ext[-2] == '-' || ext[-2] == ' ') && _istdigit(ext[-1])) {
+			num = _tstoi(ext - 1);
+			dst[cnt++] = ext2 - 1;
+			// name_a.ext, name-a.ext, name a .ext
+		}
+		else if ((ext[-2] == '_' || ext[-2] == '-' || ext[-2] == ' ') && ext[-1] >= 'a' && ext[-1] <= 'z') {
+			num = ext[-1] - 'a' + 1;
+			dst[cnt++] = ext2 - 1;
+			// nameA.ext
+		}
+		else if (ext2[-2] >= 'a' && ext2[-2] <= 'z' && ext2[-1] >= 'A' && ext2[-1] <= 'Z') {
+			num = ext[-1] - 'a' + 1;
+			dst[cnt++] = ext2 - 1;
+			// namex.ext
+		}
+		else if (!_istdigit(ext2[-2]) && _istdigit(ext[-1])) {
+			num = ext[-1] - '0';
+			dst[cnt++] = ext2 - 1;
+		}
+		break;
+	}
+	dst[cnt] = NULL;
+	if (num <= 0 || num >= 19)
+		goto end;
+	num += dir;
+	if (num > 9)
+		goto end;
+	if (num == 9)
+		num = 1;
+	else if (num == 0)
+		num = 9;
+	for (i = 0; i < cnt; i++) {
+		if (!_istdigit(dst[i][0])) {
+			int capital = dst[i][0] >= 'A' && dst[i][0] <= 'Z';
+			dst[i][0] = (num - 1) + (capital ? 'A' : 'a');
+		}
+		else {
+			dst[i][0] = num + '0';
+		}
+	}
+	if (zfile_exists(img)) {
+		ret = 1;
+		goto end;
+	}
+	if (gotone) { // was (disk x but no match, perhaps there are extra tags..
+		TCHAR *old2 = my_strdup(img);
+		for (;;) {
+			ext = _tcsrchr(img, '.');
+			if (!ext)
+				break;
+			if (ext == img)
+				break;
+			if (ext[-1] != ']')
+				break;
+			TCHAR *t = _tcsrchr(img, '[');
+			if (!t)
+				break;
+			t[0] = 0;
+			if (zfile_exists(img)) {
+				ret = 1;
+				goto end;
+			}
+		}
+		_tcscpy(img, old2);
+		xfree(old2);
+	}
+	if (!wrapped) {
+		for (i = 0; i < cnt; i++) {
+			if (!_istdigit(dst[i][0]))
+				dst[i][0] = dst[i][0] >= 'A' && dst[i][0] <= 'Z' ? 'A' : 'a';
+			else
+				dst[i][0] = '1';
+			if (dir < 0)
+				dst[i][0] += 8;
+		}
+		wrapped++;
+	}
+	if (zfile_exists(img)) {
+		ret = -1;
+		goto end;
+	}
+	if (dir < 0 && wrapped < 2)
+		goto retry;
+	_tcscpy(img, old);
+
+end:
+	_tcscpy(imgp, img);
+	xfree(old);
+	return ret;
+}
+
+int disk_prevnext(int drive, int dir)
+{
+	TCHAR img[MAX_DPATH];
+
+	_tcscpy(img, currprefs.floppyslots[drive].df);
+
+	if (!img[0])
+		return 0;
+	disk_prevnext_name(img, dir);
+	_tcscpy(changed_prefs.floppyslots[drive].df, img);
+	return 1;
+}
+
+static int getdebug(void)
+{
+	return floppy[0].mfmpos;
+}
+
+static int get_reserved_id(int num)
+{
+	for (int i = 0; i < MAX_FLOPPY_DRIVES; i++) {
+		if (reserved & (1 << i)) {
+			if (num > 0) {
+				num--;
+				continue;
+			}
+			return i;
+		}
+	}
+	return -1;
+}
+
+void disk_reserved_setinfo(int num, int cyl, int head, int motor)
+{
+	int i = get_reserved_id(num);
+	if (i >= 0) {
+		drive *drv = &floppy[i];
+		reserved_side = head;
+		drv->cyl = cyl;
+		drv->state = motor != 0;
+		update_drive_gui(i, false);
+	}
+}
+
+bool disk_reserved_getinfo(int num, struct floppy_reserved *fr)
+{
+	int idx = get_reserved_id(num);
+	if (idx >= 0) {
+		drive *drv = &floppy[idx];
+		fr->num = idx;
+		fr->img = drv->diskfile;
+		fr->wrprot = drv->wrprot;
+		if (drv->diskfile && !drv->pcdecodedfile && (drv->filetype == ADF_EXT2 || drv->filetype == ADF_FDI || drv->filetype == ADF_IPF || drv->filetype == ADF_SCP)) {
+			int cyl = drv->cyl;
+			int side2 = side;
+			struct zfile *z = zfile_fopen_empty(NULL, zfile_getfilename(drv->diskfile));
+			if (z) {
+				bool ok = false;
+				drv->num_secs = 21; // max possible
+				drive_fill_bigbuf(drv, true);
+				int secs = drive_write_pcdos(drv, z, 1);
+				if (secs >= 8) {
+					ok = true;
+					drv->num_secs = secs;
+					for (int i = 0; i < drv->num_tracks; i++) {
+						drv->cyl = i / 2;
+						side = i & 1;
+						drive_fill_bigbuf(drv, true);
+						drive_write_pcdos(drv, z, 0);
+					}
+				}
+				drv->cyl = cyl;
+				side = side2;
+				if (ok) {
+					write_log(_T("Created  internal PC disk image cyl=%d secs=%d size=%d\n"), drv->num_tracks / 2, drv->num_secs, zfile_size(z));
+					drv->pcdecodedfile = z;
+				}
+				else {
+					write_log(_T("Failed to create internal PC disk image\n"));
+					zfile_fclose(z);
+				}
+			}
+		}
+		if (drv->pcdecodedfile) {
+			fr->img = drv->pcdecodedfile;
+		}
+		fr->cyl = drv->cyl;
+		fr->cyls = drv->num_tracks / 2;
+		fr->drive_cyls = currprefs.floppyslots[idx].dfxtype == DRV_PC_ONLY_40 ? 40 : 80;
+		fr->secs = drv->num_secs;
+		fr->heads = drv->num_heads;
+		fr->disk_changed = drv->dskchange || fr->img == NULL;
+		if (currprefs.floppyslots[idx].dfxtype == DRV_PC_ONLY_80) {
+			if (fr->cyls < 80) {
+				if (drv->num_secs < 9)
+					fr->rate = FLOPPY_RATE_250K; // 320k in 80 track drive
+				else
+					fr->rate = FLOPPY_RATE_300K; // 360k in 80 track drive
+			}
+			else {
+				if (drv->num_secs > 14)
+					fr->rate = FLOPPY_RATE_500K; // 1.2M/1.4M
+				else
+					fr->rate = FLOPPY_RATE_250K; // 720K
+			}
+		}
+		else {
+			if (drv->num_secs < 9)
+				fr->rate = FLOPPY_RATE_300K;// 320k in 40 track drive
+			else
+				fr->rate = FLOPPY_RATE_250K;// 360k in 40 track drive
+											// yes, above values are swapped compared to 1.2M drive case
+		}
+		return true;
+	}
+	return false;
+}
+
+void disk_reserved_reset_disk_change(int num)
+{
+	int i = get_reserved_id(num);
+	if (i >= 0) {
+		drive *drv = &floppy[i];
+		drv->dskchange = false;
+	}
+}

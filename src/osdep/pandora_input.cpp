@@ -39,7 +39,7 @@ static int get_mouse_num()
 	return 2;
 }
 
-static const char* get_mouse_friendlyname(int mouse)
+static TCHAR *get_mouse_friendlyname(int mouse)
 {
 	if (mouse == 0)
 		return "Nubs as mouse";
@@ -47,7 +47,7 @@ static const char* get_mouse_friendlyname(int mouse)
 		return "dPad as mouse";
 }
 
-static const char* get_mouse_uniquename(int mouse)
+static TCHAR *get_mouse_uniquename(int mouse)
 {
 	if (mouse == 0)
 		return "MOUSE0";
@@ -140,16 +140,9 @@ static int get_mouse_flags(int num)
 }
 
 struct inputdevice_functions inputdevicefunc_mouse = {
-	init_mouse,
-	close_mouse,
-	acquire_mouse,
-	unacquire_mouse,
-	read_mouse,
-	get_mouse_num,
-	get_mouse_friendlyname,
-	get_mouse_uniquename,
-	get_mouse_widget_num,
-	get_mouse_widget_type,
+	init_mouse, close_mouse, acquire_mouse, unacquire_mouse, read_mouse,
+	get_mouse_num, get_mouse_friendlyname, get_mouse_uniquename,
+	get_mouse_widget_num, get_mouse_widget_type,
 	get_mouse_widget_first,
 	get_mouse_flags
 };
@@ -210,12 +203,12 @@ static int get_kb_num()
 	return 1;
 }
 
-static const char* get_kb_friendlyname(int kb)
+static TCHAR *get_kb_friendlyname(int kb)
 {
 	return strdup("Default Keyboard");
 }
 
-static const char* get_kb_uniquename(int kb)
+static TCHAR *get_kb_uniquename(int kb)
 {
 	return strdup("KEYBOARD0");
 }
@@ -243,19 +236,13 @@ static int get_kb_flags(int num)
 }
 
 struct inputdevice_functions inputdevicefunc_keyboard = {
-	init_kb,
-	close_kb,
-	acquire_kb,
-	unacquire_kb,
-	read_kb,
-	get_kb_num,
-	get_kb_friendlyname,
-	get_kb_uniquename,
-	get_kb_widget_num,
-	get_kb_widget_type,
+	init_kb, close_kb, acquire_kb, unacquire_kb, read_kb,
+	get_kb_num, get_kb_friendlyname, get_kb_uniquename,
+	get_kb_widget_num, get_kb_widget_type,
 	get_kb_widget_first,
 	get_kb_flags
 };
+
 
 int input_get_default_keyboard(int num)
 {
@@ -281,16 +268,11 @@ static SDL_Joystick* Joysticktable[MAX_INPUT_DEVICES];
 
 static int get_joystick_num()
 {
-	// Keep joystick 0 as Pandora implementation...
-	return (nr_joysticks + 1);
+	return nr_joysticks;
 }
 
 static int init_joystick()
 {
-	//This function is called too many times... we can filter if number of joy is good...
-	if (nr_joysticks == SDL_NumJoysticks())
-		return 1;
-
 	nr_joysticks = SDL_NumJoysticks();
 	if (nr_joysticks > MAX_INPUT_DEVICES)
 		nr_joysticks = MAX_INPUT_DEVICES;
@@ -301,14 +283,15 @@ static int init_joystick()
 		printf("Joystick %i : %s\n", cpt, JoystickName[cpt]);
 		printf("    Buttons: %i Axis: %i Hats: %i\n", SDL_JoystickNumButtons(Joysticktable[cpt]), SDL_JoystickNumAxes(Joysticktable[cpt]), SDL_JoystickNumHats(Joysticktable[cpt]));
 
-		if (strcmp(JoystickName[cpt], "Sony PLAYSTATION(R)3 Controller") == 0 ||
+		//TODO: Test if this is needed under SDL2
+		/*if (strcmp(JoystickName[cpt], "Sony PLAYSTATION(R)3 Controller") == 0 ||
 			strcmp(JoystickName[cpt], "PLAYSTATION(R)3 Controller") == 0)
 		{
 			printf("    Found a dualshock controller: Activating workaround.\n");
 			IsPS3Controller[cpt] = 1;
 		}
 		else
-			IsPS3Controller[cpt] = 0;
+			IsPS3Controller[cpt] = 0;*/
 	}
 
 	return 1;
@@ -322,7 +305,6 @@ static void close_joystick()
 	}
 }
 
-
 static int acquire_joystick(int num, int flags)
 {
 	return 1;
@@ -332,32 +314,14 @@ static void unacquire_joystick(int num)
 {
 }
 
-static const char* get_joystick_friendlyname(int joy)
+static TCHAR *get_joystick_friendlyname(int joy)
 {
-	if (joy == 0)
-		return "dPad as joystick";
-	else
-		return JoystickName[joy - 1];
+	return JoystickName[joy];
 }
 
-static const char* get_joystick_uniquename(int joy)
+static TCHAR *get_joystick_uniquename(int joy)
 {
-	if (joy == 0)
-		return "JOY0";
-	if (joy == 1)
-		return "JOY1";
-	if (joy == 2)
-		return "JOY2";
-	if (joy == 3)
-		return "JOY3";
-	if (joy == 4)
-		return "JOY4";
-	if (joy == 5)
-		return "JOY5";
-	if (joy == 6)
-		return "JOY6";
-
-	return "JOY7";
+	return JoystickName[joy];
 }
 
 
@@ -531,16 +495,9 @@ static void read_joystick()
 }
 
 struct inputdevice_functions inputdevicefunc_joystick = {
-	init_joystick,
-	close_joystick,
-	acquire_joystick,
-	unacquire_joystick,
-	read_joystick,
-	get_joystick_num,
-	get_joystick_friendlyname,
-	get_joystick_uniquename,
-	get_joystick_widget_num,
-	get_joystick_widget_type,
+	init_joystick, close_joystick, acquire_joystick, unacquire_joystick,
+	read_joystick, get_joystick_num, get_joystick_friendlyname, get_joystick_uniquename,
+	get_joystick_widget_num, get_joystick_widget_type,
 	get_joystick_widget_first,
 	get_joystick_flags
 };

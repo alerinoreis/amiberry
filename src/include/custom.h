@@ -26,28 +26,39 @@
 #define MAXVPOS_LINES_OCS 512
 #define HPOS_SHIFT 3
 
-extern void set_speedup_values();
-extern int custom_init();
-extern void custom_prepare();
+uae_u32 get_copper_address(int copno);
+
+extern int custom_init(void);
+extern void custom_prepare(void);
 extern void custom_reset(bool hardreset, bool keyboardreset);
-extern int intlev();
+extern int intlev(void);
+extern void dumpcustom(void);
 
-extern void do_copper();
+extern void do_disk(void);
+extern void do_copper(void);
 
-extern void notice_new_xcolors();
-extern void init_row_map();
-extern void init_hz_full();
-extern void init_custom();
+extern void notice_new_xcolors(void);
+extern void notice_screen_contents_lost(void);
+extern void init_row_map(void);
+extern void init_hz_normal(void);
+extern void init_custom(void);
 
-extern bool picasso_requested_on;
-extern bool picasso_on;
+extern bool picasso_requested_on, picasso_requested_forced_on, picasso_on;
+extern void set_picasso_hack_rate(int hz);
 
-extern unsigned long int hsync_counter;
+/* Set to 1 to leave out the current frame in average frame time calculation.
+* Useful if the debugger was active.  */
+extern int bogusframe;
+extern unsigned long int hsync_counter, vsync_counter;
 
 extern uae_u16 dmacon;
-extern uae_u16 intreq;
+extern uae_u16 intena, intreq, intreqr;
 
-extern int vpos;
+extern int vpos, lof_store;
+
+extern int find_copper_record(uaecptr, int *, int *);
+
+extern int n_frames;
 
 STATIC_INLINE int dmaen(unsigned int dmamask)
 {
@@ -58,6 +69,7 @@ STATIC_INLINE int dmaen(unsigned int dmamask)
 #define SPCFLAG_COPPER 4
 #define SPCFLAG_INT 8
 #define SPCFLAG_BRK 16
+#define SPCFLAG_UAEINT 32
 #define SPCFLAG_TRACE 64
 #define SPCFLAG_DOTRACE 128
 #define SPCFLAG_DOINT 256 /* arg, JIT fails without this.. */
@@ -69,6 +81,7 @@ STATIC_INLINE int dmaen(unsigned int dmamask)
 #ifdef JIT
 #define SPCFLAG_END_COMPILE 16384
 #endif
+#define SPCFLAG_CHECK 32768
 
 extern uae_u16 adkcon;
 
@@ -120,6 +133,7 @@ extern int maxvpos, maxvpos_nom, maxvpos_display;
 extern int hsyncstartpos, hsyncendpos;
 extern int minfirstline, vblank_endline, numscrlines;
 extern double vblank_hz, fake_vblank_hz;
+extern double hblank_hz;
 extern int vblank_skip, doublescan;
 extern bool programmedmode;
 
@@ -134,6 +148,21 @@ extern bool programmedmode;
 #define DMA_BITPLANE  0x0100
 #define DMA_MASTER    0x0200
 #define DMA_BLITPRI   0x0400
+
+#define CYCLE_REFRESH	1
+#define CYCLE_STROBE	2
+#define CYCLE_MISC		3
+#define CYCLE_SPRITE	4
+#define CYCLE_COPPER	5
+#define CYCLE_BLITTER	6
+#define CYCLE_CPU		7
+#define CYCLE_CPUNASTY	8
+#define CYCLE_COPPER_SPECIAL 0x10
+
+#define CYCLE_MASK 0x0f
+
+extern unsigned long frametime, timeframes;
+extern uae_u16 htotal, vtotal, beamcon0;
 
 /* 100 words give you 1600 horizontal pixels. Should be more than enough for
  * superhires. Don't forget to update the definition in genp2c.c as well.
@@ -151,6 +180,13 @@ extern unsigned int xredcolors[256], xgreencolors[256], xbluecolors[256];
 #define RES_HIRES 1
 #define RES_SUPERHIRES 2
 #define RES_MAX 2
+#define VRES_NONDOUBLE 0
+#define VRES_DOUBLE 1
+#define VRES_QUAD 2
+#define VRES_MAX 1
+
+/* calculate shift depending on resolution (replaced "decided_hires ? 4 : 8") */
+#define RES_SHIFT(res) ((res) == RES_LORES ? 8 : (res) == RES_HIRES ? 4 : 2)
 
 /* get resolution from bplcon0 */
 STATIC_INLINE int GET_RES_DENISE(uae_u16 con0)
@@ -179,8 +215,26 @@ STATIC_INLINE int GET_PLANES(uae_u16 bplcon0)
 	return (bplcon0 >> 12) & 7; // normal planes bits
 }
 
-extern void fpscounter_reset();
+extern void fpscounter_reset(void);
+extern unsigned long idletime;
+extern int lightpen_x, lightpen_y, lightpen_cx, lightpen_cy, lightpen_active, lightpen_enabled;
 
+struct customhack
+{
+	uae_u16 v;
+	int vpos, hpos;
+};
+
+void customhack_put(struct customhack* ch, uae_u16 v, int hpos);
+uae_u16 customhack_get(struct customhack* ch, int hpos);
+extern void alloc_cycle_ext(int, int);
+extern void alloc_cycle_blitter(int hpos, uaecptr* ptr, int);
+extern bool ispal();
+extern bool isvga();
 extern int current_maxvpos();
+extern struct chipset_refresh* get_chipset_refresh();
+extern void compute_framesync();
+extern void getsyncregisters(uae_u16* phsstrt, uae_u16* phsstop, uae_u16* pvsstrt, uae_u16* pvsstop);
+int is_bitplane_dma(int hpos);
 
 #endif /* CUSTOM_H */

@@ -48,8 +48,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;ARMV6T2;PICASSO96;USE_ARMNEON;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;ARMV6T2;USE_ARMNEON;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-march=armv8-a -mfpu=neon-fp-armv8 -mfloat-abi=hard -pipe %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -63,8 +63,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;ARMV6T2;PICASSO96;USE_ARMNEON;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;ARMV6T2;USE_ARMNEON;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-march=armv8-a -mfpu=neon-fp-armv8 -mfloat-abi=hard -pipe -fweb %(AdditionalOptions)</AdditionalOptions>
       <OmitFramePointer>true</OmitFramePointer>
       <InlineFunctions>true</InlineFunctions>
@@ -80,8 +80,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-rpi2|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;ARMV6T2;PICASSO96;USE_ARMNEON;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;ARMV6T2;USE_ARMNEON;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -pipe -fweb %(AdditionalOptions)</AdditionalOptions>
       <OmitFramePointer>true</OmitFramePointer>
       <InlineFunctions>true</InlineFunctions>
@@ -98,8 +98,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-rpi1|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;PICASSO96;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vmcs_host\linux;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\opt\vc\include\interface\vcos\pthreads;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\local\include\SDL2;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include\libxml2;../../src;../../src/include;../../src/osdep;../../src/threaddep;../../src/guisan/include;=/opt/vc/include;=/opt/vc/include/interface/vmcs_host/linux;=/opt/vc/include/interface/vcos/pthreads;=/usr/local/include;=/usr/local/include/SDL2;=/usr/include/libxml2;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;_REENTRANT;RASPBERRY;CAPSLOCK_DEBIAN_WORKAROUND;CPU_arm;ARMV6_ASSEMBLY;PANDORA;WITH_INGAME_WARNING;USE_SDL;ROM_PATH_PREFIX=\"./\";DATA_PREFIX=\"./data/\";SAVE_PREFIX=\"./saves/\";GCCCONSTFUNC="__attribute__((const))";%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-march=armv6zk -mfpu=vfp -mfloat-abi=hard -pipe -fweb %(AdditionalOptions)</AdditionalOptions>
       <OmitFramePointer>true</OmitFramePointer>
       <InlineFunctions>true</InlineFunctions>
@@ -413,6 +413,8 @@
     <ClInclude Include="..\..\src\guisan\include\guisan\widgets\textfield.hpp" />
     <ClInclude Include="..\..\src\guisan\include\guisan\widgets\window.hpp" />
     <ClInclude Include="..\..\src\guisan\include\guisan\x.hpp" />
+    <ClInclude Include="..\..\src\include\a2065.h" />
+    <ClInclude Include="..\..\src\include\a2091.h" />
     <ClInclude Include="..\..\src\include\akiko.h" />
     <ClInclude Include="..\..\src\include\audio.h" />
     <ClInclude Include="..\..\src\include\autoconf.h" />
@@ -422,9 +424,12 @@
     <ClInclude Include="..\..\src\include\blkdev.h" />
     <ClInclude Include="..\..\src\include\bsdsocket.h" />
     <ClInclude Include="..\..\src\include\calc.h" />
+    <ClInclude Include="..\..\src\include\cdtv.h" />
+    <ClInclude Include="..\..\src\include\cdtvcr.h" />
     <ClInclude Include="..\..\src\include\cia.h" />
     <ClInclude Include="..\..\src\include\clipboard.h" />
     <ClInclude Include="..\..\src\include\commpipe.h" />
+    <ClInclude Include="..\..\src\include\cpuboard.h" />
     <ClInclude Include="..\..\src\include\cputbl.h" />
     <ClInclude Include="..\..\src\include\cpu_prefetch.h" />
     <ClInclude Include="..\..\src\include\crc32.h" />
@@ -434,6 +439,7 @@
     <ClInclude Include="..\..\src\include\diskutil.h" />
     <ClInclude Include="..\..\src\include\drawing.h" />
     <ClInclude Include="..\..\src\include\ersatz.h" />
+    <ClInclude Include="..\..\src\include\ethernet.h" />
     <ClInclude Include="..\..\src\include\events.h" />
     <ClInclude Include="..\..\src\include\execio.h" />
     <ClInclude Include="..\..\src\include\execlib.h" />
@@ -443,10 +449,12 @@
     <ClInclude Include="..\..\src\include\fpp-unknown.h" />
     <ClInclude Include="..\..\src\include\fsdb.h" />
     <ClInclude Include="..\..\src\include\fsusage.h" />
+    <ClInclude Include="..\..\src\include\gayle.h" />
     <ClInclude Include="..\..\src\include\genblitter.h" />
     <ClInclude Include="..\..\src\include\gensound.h" />
     <ClInclude Include="..\..\src\include\gfxboard.h" />
     <ClInclude Include="..\..\src\include\gui.h" />
+    <ClInclude Include="..\..\src\include\idecontrollers.h" />
     <ClInclude Include="..\..\src\include\inputdevice.h" />
     <ClInclude Include="..\..\src\include\keyboard.h" />
     <ClInclude Include="..\..\src\include\keybuf.h" />
@@ -454,21 +462,27 @@
     <ClInclude Include="..\..\src\include\memory.h" />
     <ClInclude Include="..\..\src\include\native2amiga.h" />
     <ClInclude Include="..\..\src\include\native2amiga_api.h" />
+    <ClInclude Include="..\..\src\include\ncr9x_scsi.h" />
+    <ClInclude Include="..\..\src\include\ncr_scsi.h" />
     <ClInclude Include="..\..\src\include\newcpu.h" />
     <ClInclude Include="..\..\src\include\options.h" />
     <ClInclude Include="..\..\src\include\osemu.h" />
+    <ClInclude Include="..\..\src\include\pci.h" />
     <ClInclude Include="..\..\src\include\picasso96.h" />
     <ClInclude Include="..\..\src\include\readcpu.h" />
     <ClInclude Include="..\..\src\include\rommgr.h" />
     <ClInclude Include="..\..\src\include\rtgmodes.h" />
+    <ClInclude Include="..\..\src\include\sana2.h" />
     <ClInclude Include="..\..\src\include\savestate.h" />
     <ClInclude Include="..\..\src\include\scsi.h" />
     <ClInclude Include="..\..\src\include\scsidev.h" />
+    <ClInclude Include="..\..\src\include\sndboard.h" />
     <ClInclude Include="..\..\src\include\statusline.h" />
     <ClInclude Include="..\..\src\include\sysdeps.h" />
     <ClInclude Include="..\..\src\include\traps.h" />
     <ClInclude Include="..\..\src\include\uae.h" />
     <ClInclude Include="..\..\src\include\uaeresource.h" />
+    <ClInclude Include="..\..\src\include\x86.h" />
     <ClInclude Include="..\..\src\include\xwin.h" />
     <ClInclude Include="..\..\src\include\zarchive.h" />
     <ClInclude Include="..\..\src\include\zfile.h" />

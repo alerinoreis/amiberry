@@ -1,6 +1,3 @@
-#ifndef UAE_SYSDEPS_H
-#define UAE_SYSDEPS_H
-
 /*
   * UAE - The Un*x Amiga Emulator
   *
@@ -14,23 +11,32 @@
   *
   * Copyright 1996, 1997 Bernd Schmidt
   */
+#ifndef UAE_SYSDEPS_H
+#define UAE_SYSDEPS_H
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+#include "sysconfig.h"
+
+#ifndef UAE
+#define UAE
+#endif
+
+#ifdef __cplusplus
 #include <string>
 using namespace std;
+#else
+#include <string.h>
+#include <ctype.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
 #include <limits.h>
 
-#ifdef _GCCRES_
-#undef _GCCRES_
-#endif
-
-#ifdef UAE4ALL_NO_USE_RESTRICT
-#define _GCCRES_
-#else
-#define _GCCRES_ __restrict__
-#endif
+#define CPU_arm 1
 
 #ifndef __STDC__
 #error "Your compiler is not ANSI. Get a real one."
@@ -215,6 +221,12 @@ typedef uae_u32 uaecptr;
 #define UVAL64(a) (a ## ul)
 #endif
 
+void atomic_and(volatile uae_atomic *p, uae_u32 v);
+void atomic_or(volatile uae_atomic *p, uae_u32 v);
+uae_atomic atomic_inc(volatile uae_atomic *p);
+uae_atomic atomic_dec(volatile uae_atomic *p);
+uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v);
+
 #ifdef HAVE_STRDUP
 #define my_strdup strdup
 #else
@@ -226,6 +238,8 @@ extern void my_trim(TCHAR*);
 extern TCHAR *my_strdup_trim(const TCHAR*);
 extern TCHAR *au(const char*);
 extern char *ua(const TCHAR*);
+extern TCHAR *aucp(const char *s, unsigned int cp);
+extern char *uacp(const TCHAR *s, unsigned int cp);
 extern TCHAR *au_fs(const char*);
 extern char *ua_fs(const TCHAR*, int);
 extern char *ua_copy(char *dst, int maxlen, const TCHAR *src);
@@ -234,6 +248,9 @@ extern char *ua_fs_copy(char *dst, int maxlen, const TCHAR *src, int defchar);
 extern TCHAR *au_fs_copy(TCHAR *dst, int maxlen, const char *src);
 extern char *uutf8(const TCHAR *s);
 extern TCHAR *utf8u(const char *s);
+extern void unicode_init(void);
+extern void to_lower(TCHAR *s, int len);
+extern void to_upper(TCHAR *s, int len);
 
 /* We can only rely on GNU C getting enums right. Mickeysoft VSC++ is known
  * to have problems, and it's likely that other compilers choke too. */
@@ -370,21 +387,42 @@ extern void mallocemu_free(void *ptr);
 #define ASM_SYM_FOR_FUNC(a)
 #endif
 
+#include "target.h"
+
 #ifdef UAE_CONSOLE
 #undef write_log
 #define write_log write_log_standard
 #endif
 
-#ifndef WITH_LOGGING
-#undef write_log
-#define write_log(FORMATO, RESTO...)
-#define write_log_standard(FORMATO, RESTO...)
+#if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
+extern void write_log(const TCHAR *, ...);
+extern void write_log(const char *, ...) __attribute__((format(printf, 1, 2)));
 #else
-extern void write_log(const TCHAR *format, ...);
-extern FILE *debugfile;
+extern void write_log(const TCHAR *, ...);
+extern void write_log(const char *, ...);
 #endif
-extern void console_out(const TCHAR *, ...);
+extern void write_dlog(const TCHAR *, ...);
+extern int read_log(void);
+
+extern void flush_log(void);
+extern TCHAR *setconsolemode(TCHAR *buffer, int maxlen);
+extern void close_console(void);
+extern void reopen_console(void);
+extern void activate_console(void);
+extern void console_out(const TCHAR *);
+extern void console_out_f(const TCHAR *, ...);
+extern void console_flush(void);
+extern int console_get(TCHAR *, int);
+extern bool console_isch(void);
+extern TCHAR console_getch(void);
+extern void f_out(void *, const TCHAR *, ...);
+extern TCHAR* buf_out(TCHAR *buffer, int *bufsize, const TCHAR *format, ...);
 extern void gui_message(const TCHAR *, ...);
+extern int gui_message_multibutton(int flags, const TCHAR *format, ...);
+#define write_log_err write_log
+extern void logging_init(void);
+extern FILE *log_open(const TCHAR *name, int append, int bootlog, TCHAR*);
+extern void log_close(FILE *f);
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -392,11 +430,7 @@ extern void gui_message(const TCHAR *, ...);
 
 #ifndef STATIC_INLINE
 #if __GNUC__ - 1 > 1 && __GNUC_MINOR__ - 1 >= 0
-#ifdef RASPBERRY
-#define STATIC_INLINE static __inline__
-#else
 #define STATIC_INLINE static __inline__ __attribute__ ((always_inline))
-#endif
 #define NOINLINE __attribute__ ((noinline))
 #define NORETURN __attribute__ ((noreturn))
 #elif _MSC_VER
@@ -409,8 +443,6 @@ extern void gui_message(const TCHAR *, ...);
 #define NORETURN
 #endif
 #endif
-
-#include "target.h"
 
 /* Every Amiga hardware clock cycle takes this many "virtual" cycles.  This
    used to be hardcoded as 1, but using higher values allows us to time some
@@ -445,22 +477,6 @@ extern void gui_message(const TCHAR *, ...);
 #  include <byteswap.h>
 # endif
 #else
-# ifdef ARMV6_ASSEMBLY
-STATIC_INLINE uae_u32 do_byteswap_32(uae_u32 v) {
-	__asm__(
-						"rev %0, %0"
-                                                : "=r" (v) : "0" (v)); return v;
-}
-
-STATIC_INLINE uae_u32 do_byteswap_16(uae_u32 v) {
-	__asm__(
-  						"revsh %0, %0\n\t"
-              "uxth %0, %0"
-                                                : "=r" (v) : "0" (v)); return v;
-}
-#define bswap_16(x) do_byteswap_16(x)
-#define bswap_32(x) do_byteswap_32(x)
-# else
 /* Else, if using SDL, try SDL's endian functions. */
 # ifdef USE_SDL
 #  include <SDL_endian.h>
@@ -468,12 +484,9 @@ STATIC_INLINE uae_u32 do_byteswap_16(uae_u32 v) {
 #  define bswap_32(x) SDL_Swap32(x)
 # else
 /* Otherwise, we'll roll our own. */
-#define bswap_16(x) (((x) >> 8) | (((x) & 0xFF) << 8))
-#define bswap_32(x) (((x) << 24) | (((x) << 8) & 0x00FF0000) | (((x) >> 8) & 0x0000FF00) | ((x) >> 24))
+#  define bswap_16(x) (((x) >> 8) | (((x) & 0xFF) << 8))
+#  define bswap_32(x) (((x) << 24) | (((x) << 8) & 0x00FF0000) | (((x) >> 8) & 0x0000FF00) | ((x) >> 24))
 # endif
-#endif
-#endif
-
 #endif
 
 #ifndef __cplusplus
@@ -499,3 +512,11 @@ extern void xfree(const void*);
 #endif
 
 #define DBLEQU(f, i) (abs ((f) - (i)) < 0.000001)
+
+#ifdef HAVE_VAR_ATTRIBUTE_UNUSED
+#define NOWARN_UNUSED(x) __attribute__((unused)) x
+#else
+#define NOWARN_UNUSED(x) x
+#endif
+
+#endif /* UAE_SYSDEPS_H */

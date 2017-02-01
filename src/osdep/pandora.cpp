@@ -40,6 +40,7 @@
 #include "akiko.h"
 #include "SDL.h"
 #include "pandora_rp9.h"
+#include "gfxboard.h"
 
 extern void signal_segv(int signum, siginfo_t* info, void* ptr);
 extern void gui_force_rtarea_hdchange();
@@ -53,8 +54,8 @@ extern void SetLastActiveConfig(const char* filename);
 /* Keyboard */
 //int customControlMap[SDLK_LAST];
 
-char start_path_data[MAX_DPATH];
-char currentDir[MAX_DPATH];
+TCHAR start_path_data[MAX_DPATH];
+TCHAR currentDir[MAX_DPATH];
 
 #ifdef CAPSLOCK_DEBIAN_WORKAROUND
 #include <linux/kd.h>
@@ -132,14 +133,22 @@ void reinit_amiga()
 	init_m68k();
 }
 
-void sleep_millis_main(int ms)
+static int sleep_millis2(int ms, bool main)
 {
+	int ret = 0;
+	//TODO: This is very simplified for now
 	usleep(ms * 1000);
+	return ret;
+}
+int sleep_millis_main(int ms)
+{
+	return sleep_millis2(ms, true);
+	
 }
 
-void sleep_millis(int ms)
+int sleep_millis(int ms)
 {
-	usleep(ms * 1000);
+	return sleep_millis2(ms, false);
 }
 
 void logging_init()
@@ -229,12 +238,17 @@ void target_quit()
 
 void target_fixup_options(struct uae_prefs* p)
 {
-	p->rtgmem_type = 1;
-	if (p->z3fastmem_start != z3_start_adr)
-		p->z3fastmem_start = z3_start_adr;
-
-	p->picasso96_modeflags = RGBFF_CLUT | RGBFF_R5G6B5 | RGBFF_R8G8B8A8;
-	p->gfx_resolution = p->gfx_size.width > 600 ? 1 : 0;
+	if (p->rtgboards[0].rtgmem_type >= GFXBOARD_HARDWARE) {
+		p->rtg_hardwareinterrupt = false;
+		p->rtg_hardwaresprite = false;
+//		p->win32_rtgmatchdepth = false;
+		if (gfxboard_need_byteswap(&p->rtgboards[0]))
+			p->color_mode = 5;
+//		if (p->ppc_model && !p->gfx_api) {
+//			error_log(_T("Graphics board and PPC: Direct3D enabled."));
+//			p->gfx_api = 1;
+//		}
+	}
 }
 
 void target_default_options(struct uae_prefs* p, int type)
@@ -246,7 +260,7 @@ void target_default_options(struct uae_prefs* p, int type)
 	p->pandora_tapDelay = 10;
 	p->pandora_customControls = 0;
 
-	p->picasso96_modeflags = RGBFF_CLUT | RGBFF_R5G6B5 | RGBFF_R8G8B8A8;
+//	p->picasso96_modeflags = RGBFF_CLUT | RGBFF_R5G6B5 | RGBFF_R8G8B8A8;
 
 	//    memset(customControlMap, 0, sizeof(customControlMap));
 }
@@ -360,7 +374,7 @@ int target_cfgfile_load(struct uae_prefs* p, const char* filename, int type, int
 		gui_force_rtarea_hdchange();
 
 	discard_prefs(p, type);
-	default_prefs(p, 0);
+	default_prefs(p, true, type);
 
 	const char* ptr = strstr(filename, ".rp9");
 	if (ptr > nullptr)
@@ -633,21 +647,6 @@ void loadAdfDir()
 	}
 }
 
-//int currVSyncRate = 0;
-//bool SetVSyncRate(int hz)
-//{
-//    char cmd[64];
-//
-//    if(currVSyncRate != hz)
-//    {
-//        snprintf((char*)cmd, 64, "sudo /usr/pandora/scripts/op_lcdrate.sh %d", hz);
-//        system(cmd);
-//        currVSyncRate = hz;
-//        return true;
-//    }
-//    return false;
-//}
-
 void target_reset()
 {
 }
@@ -889,10 +888,7 @@ int handle_msgpump()
 				//                }
 				//                else
 				//                {
-				if (keyboard_type == KEYCODE_UNK)
-					inputdevice_translatekeycode(0, rEvent.key.keysym.sym, 1);
-				else
-					inputdevice_translatekeycode(0, rEvent.key.keysym.scancode, 1);
+				inputdevice_translatekeycode(0, rEvent.key.keysym.sym, 1);
 				//                }
 				break;
 			}
@@ -965,10 +961,7 @@ int handle_msgpump()
 				//                }
 				//                else
 				//                {
-				if (keyboard_type == KEYCODE_UNK)
-					inputdevice_translatekeycode(0, rEvent.key.keysym.sym, 0);
-				else
-					inputdevice_translatekeycode(0, rEvent.key.keysym.scancode, 0);
+				inputdevice_translatekeycode(0, rEvent.key.keysym.sym, 0);
 				//                }
 				break;
 			}
