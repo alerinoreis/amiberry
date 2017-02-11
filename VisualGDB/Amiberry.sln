@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Amiberry", "Amiberry\Amiberry.vcxproj", "{D76BB09D-FF2A-4028-A065-421C430CD238}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -8,6 +8,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Amiberry", "Amiberry\Amiber
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "guisan", "guisan\guisan.vcxproj", "{A431BAB9-641E-48D7-8ACE-BC1D5100FBA2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build68k", "build68k\build68k.vcxproj", "{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,26 @@ Global
 		{A431BAB9-641E-48D7-8ACE-BC1D5100FBA2}.Release-rpi2|x64.Build.0 = Debug|VisualGDB
 		{A431BAB9-641E-48D7-8ACE-BC1D5100FBA2}.Release-rpi2|x86.ActiveCfg = Debug|VisualGDB
 		{A431BAB9-641E-48D7-8ACE-BC1D5100FBA2}.Release-rpi2|x86.Build.0 = Debug|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Debug|x64.ActiveCfg = Debug|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Debug|x86.ActiveCfg = Debug|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release|VisualGDB.Build.0 = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release|x64.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release|x86.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi1|VisualGDB.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi1|VisualGDB.Build.0 = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi1|x64.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi1|x64.Build.0 = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi1|x86.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi1|x86.Build.0 = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi2|VisualGDB.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi2|VisualGDB.Build.0 = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi2|x64.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi2|x64.Build.0 = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi2|x86.ActiveCfg = Release|VisualGDB
+		{D2A1CE20-C2DD-49A5-A74F-759FF5ABDE2A}.Release-rpi2|x86.Build.0 = Release|VisualGDB
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

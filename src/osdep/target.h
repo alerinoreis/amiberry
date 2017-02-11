@@ -63,7 +63,7 @@ extern "C" {
 #endif
 
 
-STATIC_INLINE size_t uae_tcslcpy(TCHAR *dst, const TCHAR *src, size_t size)
+static inline size_t uae_tcslcpy(TCHAR *dst, const TCHAR *src, size_t size)
 {
 	if (size == 0) {
 		return 0;
@@ -78,7 +78,7 @@ STATIC_INLINE size_t uae_tcslcpy(TCHAR *dst, const TCHAR *src, size_t size)
 	return src_len;
 }
 
-STATIC_INLINE size_t uae_strlcpy(char *dst, const char *src, size_t size)
+static inline size_t uae_strlcpy(char *dst, const char *src, size_t size)
 {
 	if (size == 0) {
 		return 0;
@@ -93,7 +93,7 @@ STATIC_INLINE size_t uae_strlcpy(char *dst, const char *src, size_t size)
 	return src_len;
 }
 
-STATIC_INLINE int max(int x, int y)
+static inline int max(int x, int y)
 {
 	return x > y ? x : y;
 }
