@@ -14,7 +14,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory.h"
+#include "include/memory.h"
 #include "rommgr.h"
 #include "autoconf.h"
 #include "custom.h"
@@ -132,7 +132,7 @@ static bool chipdone;
 
 static void (*card_init[MAX_EXPANSION_BOARDS]) (void);
 static void (*card_map[MAX_EXPANSION_BOARDS]) (void);
-static const char *card_name[MAX_EXPANSION_BOARDS];
+static TCHAR *card_name[MAX_EXPANSION_BOARDS];
 
 static int ecard, cardno;
 

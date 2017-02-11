@@ -18,7 +18,7 @@
 
 #include "uae.h"
 #include "options.h"
-#include "memory.h"
+#include "include/memory.h"
 #include "custom.h"
 #include "ersatz.h"
 #include "disk.h"
@@ -1201,32 +1201,51 @@ static int drive_running (drive * drv)
   return !drv->motoroff;
 }
 
-void DISK_motordelay_func(uae_u32 v)
+static void motordelay_func(uae_u32 v)
 {
-  floppy[v].motordelay = 0;
+	floppy[v].motordelay = 0;
 }
 
-static void drive_motor (drive * drv, bool off)
+static void drive_motor(drive * drv, bool off)
 {
-  if (drv->motoroff && !off) {
+	if (drv->motoroff && !off) {
 		drv->dskready_up_time = DSKREADY_UP_TIME * 312 + (uaerand() & 511);
-    rand_shifter (drv);
-  }
-  if (!drv->motoroff && off) {
-	  drv->drive_id_scnt = 0; /* Reset id shift reg counter */
-	  drv->dskready_down_time = DSKREADY_DOWN_TIME * 312 + (uaerand() & 511);
-	  if (currprefs.cpu_model <= 68010 && currprefs.m68k_speed == 0) {
-	    drv->motordelay = 1;
-	    event2_newevent(ev2_disk_motor0 + (drv - floppy), 30, drv - floppy);
-	  }
-  }
-  drv->motoroff = off;
-  if (drv->motoroff) {
-	  drv->dskready = 0;
+		rand_shifter(drv);
+#ifdef DRIVESOUND
+		if (isfloppysound(drv))
+			driveclick_motor(drv - floppy, drv->dskready_down_time == 0 ? 2 : 1);
+#endif
+		/*if (disk_debug_logging > 1)
+			write_log(_T(" ->motor on"));*/
+	}
+	if (!drv->motoroff && off) {
+		drv->drive_id_scnt = 0; /* Reset id shift reg counter */
+		drv->dskready_down_time = DSKREADY_DOWN_TIME * 312 + (uaerand() & 511);
+#ifdef DRIVESOUND
+		driveclick_motor(drv - floppy, 0);
+#endif
+#ifdef DEBUG_DRIVE_ID
+		write_log(_T("drive_motor: Selected DF%d: reset id shift reg.\n"), drv - floppy);
+#endif
+		/*if (disk_debug_logging > 1)
+			write_log(_T(" ->motor off"));*/
+		if (currprefs.cpu_model <= 68010 && currprefs.m68k_speed == 0) {
+			drv->motordelay = 1;
+			event2_newevent2(30, drv - floppy, motordelay_func);
+		}
+	}
+	drv->motoroff = off;
+	if (drv->motoroff) {
+		drv->dskready = 0;
 		drv->dskready_up_time = 0;
-	} else {
+	}
+	else {
 		drv->dskready_down_time = 0;
-  }
+	}
+#ifdef CATWEASEL
+	if (drv->catweasel)
+		catweasel_set_motor(drv->catweasel, !drv->motoroff);
+#endif
 }
 
 static void read_floppy_data (struct zfile *diskfile, int type, trackid *tid, int offset, uae_u8 *dst, int len)
@@ -2248,6 +2267,7 @@ int disk_setwriteprotect (struct uae_prefs *p, int num, const TCHAR *name, bool 
 
 void disk_eject (int num)
 {
+	set_config_changed();
   gui_filename (num, _T(""));
   drive_eject (floppy + num);
   *currprefs.floppyslots[num].df = *changed_prefs.floppyslots[num].df = 0;
@@ -2346,11 +2366,13 @@ static void disk_insert_2 (int num, const TCHAR *name, bool forced, bool forcedw
 
 void disk_insert (int num, const TCHAR *name, bool forcedwriteprotect)
 {
+	set_config_changed();
 	disk_insert_2 (num, name, 0, forcedwriteprotect);
 }
 
 void disk_insert (int num, const TCHAR *name)
 {
+	set_config_changed();
   disk_insert_2 (num, name, 0, false);
 }
 void disk_insert_force (int num, const TCHAR *name, bool forcedwriteprotect)

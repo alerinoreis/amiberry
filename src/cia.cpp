@@ -12,7 +12,7 @@
 #include <assert.h>
 
 #include "options.h"
-#include "memory.h"
+#include "include/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "cia.h"
@@ -431,6 +431,10 @@ static void tod_hack_reset (void)
 static void setcode (uae_u8 keycode)
 {
   kbcode = ~((keycode << 1) | (keycode >> 7));
+}
+
+void CIA_hsync_prehandler(void)
+{
 }
 
 static void keyreq (void)

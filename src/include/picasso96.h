@@ -18,15 +18,22 @@ struct ScreenResolution
 
 #define MAX_PICASSO_MODES 100
 #define MAX_REFRESH_RATES 10
+
+#define REFRESH_RATE_RAW 1
+#define REFRESH_RATE_LACE 2
+
 struct PicassoResolution
 {
     struct ScreenResolution res;
     int depth;   /* depth in bytes-per-pixel */
     int residx;
     int refresh[MAX_REFRESH_RATES]; /* refresh-rates in Hz */
-    char name[25];
+	int refreshtype[MAX_REFRESH_RATES]; /* 0=normal,1=raw,2=lace */
+	TCHAR name[25];
     /* Bit mask of RGBFF_xxx values.  */
     uae_u32 colormodes;
+	int rawmode;
+	bool lace; // all modes lace
 };
 extern struct PicassoResolution *DisplayModes;
 
@@ -40,16 +47,16 @@ typedef struct _RECT
 
 #define MAX_DISPLAYS 4
 struct MultiDisplay {
-    int primary, disabled, gdi;
-    char *name;
-    char *name2;
-    struct PicassoResolution *DisplayModes;
-    RECT rect;
+	bool primary;
+	//GUID ddguid;
+	TCHAR *adaptername, *adapterid, *adapterkey;
+	TCHAR *monitorname, *monitorid;
+	TCHAR *fullname;
+	struct PicassoResolution *DisplayModes;
+	RECT rect;
 };
 extern struct MultiDisplay Displays[MAX_DISPLAYS];
-
 extern int GetSurfacePixelFormat(void);
-extern void picasso_InitResolutions (void);
 
 #ifdef PICASSO96
 
@@ -498,20 +505,18 @@ struct Line {
 /* BoardInfo flags */
 /*  0-15: hardware flags */
 /* 16-31: user flags */
-#define BIB_HARDWARESPRITE	0	/* board has hardware sprite */
-#define BIB_NOMEMORYMODEMIX	1	/* board does not support modifying planar bitmaps while displaying chunky and vice versa */
-#define BIB_NEEDSALIGNMENT	2	/* bitmaps have to be aligned (not yet supported!) */
+#define BIB_HARDWARESPRITE	 0	/* board has hardware sprite */
+#define BIB_NOMEMORYMODEMIX	 1	/* board does not support modifying planar bitmaps while displaying chunky and vice versa */
+#define BIB_NEEDSALIGNMENT	 2	/* bitmaps have to be aligned (not yet supported!) */
 #define BIB_CACHEMODECHANGE	 3	/* board memory may be set to Imprecise (060) or Nonserialised (040) */
 #define BIB_VBLANKINTERRUPT	 4	/* board can cause a hardware interrupt on a vertical retrace */
-#define BIB_DBLSCANDBLSPRITEY	8	/* hardware sprite y position is doubled on doublescan display modes */
-#define BIB_ILACEHALFSPRITEY	9	/* hardware sprite y position is halved on interlace display modes */
+#define BIB_DBLSCANDBLSPRITEY	 8	/* hardware sprite y position is doubled on doublescan display modes */
+#define BIB_ILACEHALFSPRITEY	 9	/* hardware sprite y position is halved on interlace display modes */
 #define BIB_ILACEDBLROWOFFSET	10	/* doubled row offset in interlaced display modes needs additional horizontal bit */
-
 #define BIB_FLICKERFIXER	12	/* board can flicker fix Amiga RGB signal */
 #define BIB_VIDEOCAPTURE	13	/* board can capture video data to a memory area */
 #define BIB_VIDEOWINDOW		14	/* board can display a second mem area as a pip */
 #define BIB_BLITTER		15	/* board has blitter */
-
 #define BIB_HIRESSPRITE		16	/* mouse sprite has double resolution */
 #define BIB_BIGSPRITE		17	/* user wants big mouse sprite */
 #define BIB_BORDEROVERRIDE	18	/* user wants to override system overscan border prefs */
@@ -525,57 +530,59 @@ struct Line {
 
 #define BIB_IGNOREMASK	BIB_NOMASKBLITS
 
-#define BIF_HARDWARESPRITE	(1<<BIB_HARDWARESPRITE)
-#define BIF_NOMEMORYMODEMIX	(1<<BIB_NOMEMORYMODEMIX)
-#define BIF_NEEDSALIGNMENT	(1<<BIB_NEEDSALIGNMENT)
+#define BIF_HARDWARESPRITE	(1 << BIB_HARDWARESPRITE)
+#define BIF_NOMEMORYMODEMIX	(1 << BIB_NOMEMORYMODEMIX)
+#define BIF_NEEDSALIGNMENT	(1 << BIB_NEEDSALIGNMENT)
 #define BIF_CACHEMODECHANGE	(1 << BIB_CACHEMODECHANGE)
 #define BIF_VBLANKINTERRUPT	(1 << BIB_VBLANKINTERRUPT)
-#define BIF_DBLSCANDBLSPRITEY	(1<<BIB_DBLSCANDBLSPRITEY)
-#define BIF_ILACEHALFSPRITEY	(1<<BIB_ILACEHALFSPRITEY)
-#define BIF_ILACEDBLROWOFFSET	(1<<BIB_ILACEDBLROWOFFSET)
-#define BIF_FLICKERFIXER	(1<<BIB_FLICKERFIXER)
-#define BIF_VIDEOCAPTURE	(1<<BIB_VIDEOCAPTURE)
-#define BIF_VIDEOWINDOW		(1<<BIB_VIDEOWINDOW)
-#define BIF_BLITTER		(1<<BIB_BLITTER)
-#define BIF_HIRESSPRITE		(1<<BIB_HIRESSPRITE)
-#define BIF_BIGSPRITE		(1<<BIB_BIGSPRITE)
-#define BIF_BORDEROVERRIDE	(1<<BIB_BORDEROVERRIDE)
-#define BIF_BORDERBLANK		(1<<BIB_BORDERBLANK)
-#define BIF_INDISPLAYCHAIN	(1<<BIB_INDISPLAYCHAIN)
-#define BIF_QUIET		(1<<BIB_QUIET)
-#define BIF_NOMASKBLITS		(1<<BIB_NOMASKBLITS)
-#define BIF_NOC2PBLITS		(1<<BIB_NOC2PBLITS)
-#define BIF_NOBLITTER		(1<<BIB_NOBLITTER)
+#define BIF_DBLSCANDBLSPRITEY	(1 << BIB_DBLSCANDBLSPRITEY)
+#define BIF_ILACEHALFSPRITEY	(1 << BIB_ILACEHALFSPRITEY)
+#define BIF_ILACEDBLROWOFFSET	(1 << BIB_ILACEDBLROWOFFSET)
+#define BIF_FLICKERFIXER	(1 << BIB_FLICKERFIXER)
+#define BIF_VIDEOCAPTURE	(1 << BIB_VIDEOCAPTURE)
+#define BIF_VIDEOWINDOW		(1 << BIB_VIDEOWINDOW)
+#define BIF_BLITTER		(1 << BIB_BLITTER)
+#define BIF_HIRESSPRITE		(1 << BIB_HIRESSPRITE)
+#define BIF_BIGSPRITE		(1 << BIB_BIGSPRITE)
+#define BIF_BORDEROVERRIDE	(1 << BIB_BORDEROVERRIDE)
+#define BIF_BORDERBLANK		(1 << BIB_BORDERBLANK)
+#define BIF_INDISPLAYCHAIN	(1 << BIB_INDISPLAYCHAIN)
+#define BIF_QUIET		(1 << BIB_QUIET)
+#define BIF_NOMASKBLITS		(1 << BIB_NOMASKBLITS)
+#define BIF_NOC2PBLITS		(1 << BIB_NOC2PBLITS)
+#define BIF_NOBLITTER		(1 << BIB_NOBLITTER)
 #define BIF_OVERCLOCK		(1 << BIB_OVERCLOCK)
 
-#define BIF_IGNOREMASK	BIF_NOMASKBLITS
+#define BIF_IGNOREMASK 	BIF_NOMASKBLITS
 
 /************************************************************************/
 struct picasso96_state_struct
 {
-    uae_u32		RGBFormat;   /* true-colour, CLUT, hi-colour, etc. */
-    struct MyCLUTEntry	CLUT[256];   /* Duh! */
-    uaecptr		Address;     /* Active screen address (Amiga-side) */
-    uaecptr		Extent;	     /* End address of screen (Amiga-side) */
-    uae_u16		Width;	     /* Active display width  (From SetGC) */
-    uae_u16		VirtualWidth;/* Total screen width (From SetPanning) */
-    uae_u16		BytesPerRow; /* Total screen width in bytes (From SetGC) */
-    uae_u16		Height;	     /* Active display height (From SetGC) */
-    uae_u16		VirtualHeight; /* Total screen height */
-    uae_u8		GC_Depth;    /* From SetGC() */
-    uae_u8		GC_Flags;    /* From SetGC() */
-    long		XOffset;     /* From SetPanning() */
-    long		YOffset;     /* From SetPanning() */
-    uae_u8		SwitchState; /* From SetSwitch() - 0 is Amiga, 1 is Picasso */
-    uae_u8		BytesPerPixel;
-    uae_u8		CardFound;
-    //here follow winuae additional entrys
-    uae_u8    *HostAddress; /* Active screen address (PC-side) */
-    // host address is need because Windows
-    // support NO direct access all the time to gfx Card
-    // everytime windows can remove your surface from card so the mainrender place
-    // must be in memory
-    long		XYOffset;
+	RGBFTYPE            RGBFormat;   /* true-colour, CLUT, hi-colour, etc.*/
+	struct MyCLUTEntry  CLUT[256];   /* Duh! */
+	uaecptr             Address;     /* Active screen address (Amiga-side)*/
+	uaecptr             Extent;      /* End address of screen (Amiga-side)*/
+	uae_u16             Width;       /* Active display width  (From SetGC)*/
+	uae_u16             VirtualWidth;/* Total screen width (From SetPanning)*/
+	uae_u16             BytesPerRow; /* Total screen width in bytes (FromSetGC) */
+	uae_u16             Height;      /* Active display height (From SetGC)*/
+	uae_u16             VirtualHeight; /* Total screen height */
+	uae_u8              GC_Depth;    /* From SetGC() */
+	uae_u8              GC_Flags;    /* From SetGC() */
+	long                XOffset;     /* From SetPanning() */
+	long                YOffset;     /* From SetPanning() */
+	uae_u8              SwitchState; /* From SetSwitch() - 0 is Amiga, 1 isPicasso */
+	uae_u8              BytesPerPixel;
+	uae_u8              CardFound;
+	//here follow winuae additional entrys
+	uae_u8		BigAssBitmap; /* Set to 1 when our Amiga screen is bigger than the displayable area */
+	unsigned int	Version;
+	uae_u8		*HostAddress; /* Active screen address (PC-side) */
+							  // host address is need because Windows
+							  // support NO direct access all the time to gfx Card
+							  // everytime windows can remove your surface from card so the mainrender place
+							  // must be in memory
+	long		XYOffset;
 };
 
 extern void InitPicasso96 (void);
@@ -583,23 +590,30 @@ extern void InitPicasso96 (void);
 extern int uaegfx_card_found;
 
 extern struct picasso96_state_struct picasso96_state;
+extern uae_u16 picasso96_pixel_format;
 
-extern void picasso_enablescreen (int on);
-extern void picasso_refresh (void);
-extern void init_hz_p96 (void);
-STATIC_INLINE void picasso_handle_hsync (void)
-{
-}
-extern void picasso_handle_vsync (void);
-extern void picasso_trigger_vblank (void);
-extern void picasso_reset (void);
-extern int picasso_palette (void);
+extern void picasso_enablescreen(int on);
+extern void picasso_refresh(void);
+extern void init_hz_p96(void);
+extern void picasso_handle_hsync(void);
+extern void picasso_handle_vsync(void);
+extern void picasso_trigger_vblank(void);
+extern void picasso_reset(void);
+extern bool picasso_is_active(void);
+extern int picasso_setwincursor(void);
+extern int picasso_palette(void);
+extern bool picasso_flushpixels(uae_u8 *src, int offset);
+extern void picasso_allocatewritewatch(int gfxmemsize);
+extern void picasso_getwritewatch(int offset);
+extern bool picasso_is_vram_dirty(uaecptr addr, int size);
+extern void picasso_statusline(uae_u8 *dst);
+extern void picasso_invalidate(int x, int y, int w, int h);
 
 /* This structure describes the UAE-side framebuffer for the Picasso
  * screen.  */
 struct picasso_vidbuf_description {
     int width, height, depth;
-    int rowbytes, pixbytes;
+    int rowbytes, pixbytes, offset;
     int extra_mem; /* nonzero if there's a second buffer that must be updated */
     uae_u32 rgbformat;
     uae_u32 selected_rgbformat;
@@ -609,11 +623,14 @@ struct picasso_vidbuf_description {
 extern struct picasso_vidbuf_description picasso_vidinfo;
 
 extern void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 d, RGBFTYPE rgbfmt);
+extern void gfx_set_picasso_colors(RGBFTYPE rgbfmt);
 extern void gfx_set_picasso_baseaddr (uaecptr);
 extern void gfx_set_picasso_state (int on);
-extern uae_u8 *gfx_lock_picasso (void);
-extern void gfx_unlock_picasso (void);
+extern uae_u8 *gfx_lock_picasso(bool, bool);
+extern void gfx_unlock_picasso(bool);
+extern int createwindowscursor(uaecptr src, int w, int h, int hiressprite, int doubledsprite, int chipset);
 
+extern int p96refresh_active;
 extern int p96hsync_counter;
 
 #define LIB_SIZE 34
@@ -635,15 +652,6 @@ extern int p96hsync_counter;
 #define CARD_END (CARD_IRQCODE + 11 * 2)
 #define CARD_SIZEOF CARD_END
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
-void copy_screen_8bit(uae_u8 *dst, uae_u8 *src, int bytes, uae_u32 *clut);
-void copy_screen_16bit_swap(uae_u8 *dst, uae_u8 *src, int bytes);
-void copy_screen_32bit_to_16bit(uae_u8 *dst, uae_u8 *src, int bytes);
-#ifdef __cplusplus
-  }
-#endif
 
 #endif
 

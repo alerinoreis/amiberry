@@ -1,14 +1,13 @@
  /*
   * UAE - The Un*x Amiga Emulator
   *
-  * Target specific stuff, Pandora version
+  * Target specific stuff, Amiberry version
   *
   * Copyright 1997 Bernd Schmidt
   */
 
-#include "SDL.h"
-
-#define TARGET_NAME "pandora"
+#pragma once
+#define TARGET_NAME "amiberry"
 
 #define NO_MAIN_IN_MAIN_C
 
@@ -21,12 +20,10 @@ extern int rtg_start_adr;
 
 void run_gui(void);
 void InGameMessage(const char *msg);
-void wait_for_vsync(void);
 
 void saveAdfDir(void);
 void update_display(struct uae_prefs *);
 void graphics_subshutdown(void);
-void moveVertical(int value);
 
 void pandora_stop_sound(void);
 

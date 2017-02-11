@@ -12,7 +12,7 @@
 #include "uae.h"
 #include "gui.h"
 #include "rommgr.h"
-#include "memory.h"
+#include "include/memory.h"
 #include "zfile.h"
 #include "crc32.h"
 
@@ -665,7 +665,7 @@ int load_keyring (struct uae_prefs *p, const TCHAR *path)
 			break;
 		case 1:
 	    if (p) {
-    		_tcscpy (tmp, p->path_rom);
+			_tcscpy(tmp, p->path_rom.path[0]);
     		_tcscat (tmp, _T("rom.key"));
 	    }
     	break;

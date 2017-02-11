@@ -29,6 +29,7 @@
       </FileMasks>
       <TransferNewFilesOnly>true</TransferNewFilesOnly>
       <IncludeSubdirectories>true</IncludeSubdirectories>
+      <SelectedDirectories />
       <DeleteDisappearedFiles>false</DeleteDisappearedFiles>
     </MainSourceTransferCommand>
     <AllowChangingHostForMainCommands>false</AllowChangingHostForMainCommands>
@@ -63,6 +64,7 @@
     <ProjectFile>guisan.vcxproj</ProjectFile>
     <RemoteBuildEnvironment>
       <Records />
+      <EnvironmentSetupFiles />
     </RemoteBuildEnvironment>
     <ParallelJobCount>1</ParallelJobCount>
   </Build>
@@ -109,6 +111,7 @@
             <Value>C:\SysGCC\raspberry\bin;%PATH%</Value>
           </Record>
         </Records>
+        <EnvironmentSetupFiles />
       </GDBEnvironment>
       <DebuggedProgram>$(TargetPath)</DebuggedProgram>
       <GDBServerPort>2000</GDBServerPort>
@@ -143,9 +146,20 @@
   <UserDefinedVariables />
   <ImportedPropertySheets />
   <CodeSense>
-    <Enabled>Unknown</Enabled>
+    <Enabled>False</Enabled>
+    <CFLAGS />
+    <CXXFLAGS />
+    <ExternalSourceFileList />
     <ExtraSettings>
       <HideErrorsInSystemHeaders>true</HideErrorsInSystemHeaders>
+      <DiscoverySettings>
+        <Mode>Enabled</Mode>
+        <SearchInProjectDir>true</SearchInProjectDir>
+        <SearchInSourceDirs>true</SearchInSourceDirs>
+        <SearchInIncludeSubdirs>true</SearchInIncludeSubdirs>
+        <IgnoredDirs />
+        <IgnoredHeaders />
+      </DiscoverySettings>
     </ExtraSettings>
   </CodeSense>
   <BuildContextDirectory>VisualGDB\VisualGDBCache</BuildContextDirectory>

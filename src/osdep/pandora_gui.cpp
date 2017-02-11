@@ -581,6 +581,16 @@ void gui_disk_image_change(int unitnum, const char* name, bool writeprotected)
 {
 }
 
+void gui_fps(int fps, int idle, int color)
+{
+	gui_data.fps = fps;
+	gui_data.idle = idle;
+	gui_data.fps_color = color;
+	gui_led(LED_FPS, 0);
+	gui_led(LED_CPU, 0);
+	gui_led(LED_SND, (gui_data.sndbuf_status > 1 || gui_data.sndbuf_status < 0) ? 0 : 1);
+}
+
 void gui_led(int led, int on)
 {
 	unsigned char kbd_led_status;

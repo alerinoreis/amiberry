@@ -28,7 +28,7 @@
 #include "threaddep/thread.h"
 #include "options.h"
 #include "uae.h"
-#include "memory.h"
+#include "include/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "filesys.h"

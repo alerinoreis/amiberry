@@ -40,6 +40,10 @@
 #include "akiko.h"
 #include "SDL.h"
 #include "pandora_rp9.h"
+#include "picasso96.h"
+#include "scsidev.h"
+#include "pandora_gfx.h"
+#include "gfxboard.h"
 
 extern void signal_segv(int signum, siginfo_t* info, void* ptr);
 extern void gui_force_rtarea_hdchange();
@@ -49,6 +53,8 @@ static int doStylusRightClick;
 
 extern int loadconfig_old(struct uae_prefs* p, const char* orgpath);
 extern void SetLastActiveConfig(const char* filename);
+
+SDL_Rect amigawin_rect, mainwin_rect;
 
 /* Keyboard */
 //int customControlMap[SDLK_LAST];
@@ -229,26 +235,66 @@ void target_quit()
 
 void target_fixup_options(struct uae_prefs* p)
 {
+	if (p->scsi > UAESCSI_LAST)
+		p->scsi = UAESCSI_SPTI;
+
 	p->rtgmem_type = 1;
 	if (p->z3fastmem_start != z3_start_adr)
 		p->z3fastmem_start = z3_start_adr;
 
-	p->picasso96_modeflags = RGBFF_CLUT | RGBFF_R5G6B5 | RGBFF_R8G8B8A8;
-	p->gfx_resolution = p->gfx_size.width > 600 ? 1 : 0;
+	struct MultiDisplay *md = getdisplay(p);
+	if (p->gfx_size_fs.special == WH_NATIVE) {
+		int i;
+		for (i = 0; md->DisplayModes[i].depth >= 0; i++) {
+			if (md->DisplayModes[i].res.width == md->rect.right - md->rect.left &&
+				md->DisplayModes[i].res.height == md->rect.bottom - md->rect.top) {
+				p->gfx_size_fs.width = md->DisplayModes[i].res.width;
+				p->gfx_size_fs.height = md->DisplayModes[i].res.height;
+				break;
+			}
+		}
+		if (md->DisplayModes[i].depth < 0)
+			p->gfx_size_fs.special = 0;
+	}
+	/* switch from 32 to 16 or vice versa if mode does not exist */
+	int depth = p->color_mode == 5 ? 4 : 2;
+	for (int i = 0; md->DisplayModes[i].depth >= 0; i++) {
+		if (md->DisplayModes[i].depth == depth) {
+			depth = 0;
+			break;
+		}
+	}
+	if (depth) {
+		p->color_mode = p->color_mode == 5 ? 2 : 5;
+	}
+	if (p->rtgmem_type >= GFXBOARD_HARDWARE) {
+		if (gfxboard_need_byteswap(p->rtgmem_type))
+			p->color_mode = 5;
+	}
 }
 
 void target_default_options(struct uae_prefs* p, int type)
 {
-	p->pandora_horizontal_offset = 0;
-	p->pandora_vertical_offset = 0;
-	p->pandora_hide_idle_led = 0;
+	TCHAR buf[MAX_DPATH];
+	if (type == 2 || type == 0 || type == 3) {
+		p->sana2 = 0;
+		p->gf[APMODE_RTG].gfx_filter_autoscale = RTG_MODE_SCALE;
+		p->gfx_api = 1;
+		if (p->gf[APMODE_NATIVE].gfx_filter == 0 && p->gfx_api)
+			p->gf[APMODE_NATIVE].gfx_filter = 1;
+		if (p->gf[APMODE_RTG].gfx_filter == 0 && p->gfx_api)
+			p->gf[APMODE_RTG].gfx_filter = 1;
 
-	p->pandora_tapDelay = 10;
+		for (int i = 0; i < GAMEPORT_INPUT_SETTINGS; i++)
+			_stprintf(p->input_config_name[i], buf, i + 1);
+	}
+	if (type == 1 || type == 0 || type == 3) {
+		p->picasso96_modeflags = RGBFF_CLUT | RGBFF_R5G6B5PC | RGBFF_B8G8R8A8;
+	}
+
 	p->pandora_customControls = 0;
 
-	p->picasso96_modeflags = RGBFF_CLUT | RGBFF_R5G6B5 | RGBFF_R8G8B8A8;
-
-	//    memset(customControlMap, 0, sizeof(customControlMap));
+	//memset(customControlMap, 0, sizeof(customControlMap));
 }
 
 void target_save_options(struct zfile* f, struct uae_prefs* p)
@@ -632,21 +678,6 @@ void loadAdfDir()
 		fclose(f1);
 	}
 }
-
-//int currVSyncRate = 0;
-//bool SetVSyncRate(int hz)
-//{
-//    char cmd[64];
-//
-//    if(currVSyncRate != hz)
-//    {
-//        snprintf((char*)cmd, 64, "sudo /usr/pandora/scripts/op_lcdrate.sh %d", hz);
-//        system(cmd);
-//        currVSyncRate = hz;
-//        return true;
-//    }
-//    return false;
-//}
 
 void target_reset()
 {

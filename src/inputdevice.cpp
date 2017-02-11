@@ -4513,6 +4513,7 @@ void inputdevice_updateconfig_internal (const struct uae_prefs *srcprrefs, struc
 void inputdevice_updateconfig (const struct uae_prefs *srcprefs, struct uae_prefs *dstprefs)
 {
 	inputdevice_updateconfig_internal (srcprefs, dstprefs);
+	set_config_changed();
 }
 
 #ifndef INPUTDEVICE_SIMPLE
@@ -4577,6 +4578,8 @@ void inputdevice_devicechange (struct uae_prefs *prefs)
 		inputdevice_copyconfig (&changed_prefs, &currprefs);
 	if (acc)
 		inputdevice_acquire (TRUE);
+
+	set_config_changed();
 }
 #endif
 
@@ -5987,6 +5990,7 @@ int inputdevice_joyport_config (struct uae_prefs *p, const TCHAR *value, int por
 						p->jports[portnum].id = idnum + i;
 						if (mode >= 0)
 							p->jports[portnum].mode = mode;
+						set_config_changed();
 						return 1;
 					}
 				}
@@ -5998,6 +6002,7 @@ int inputdevice_joyport_config (struct uae_prefs *p, const TCHAR *value, int por
 						p->jports[portnum].id = idnum + i;
 						if (mode >= 0)
 							p->jports[portnum].mode = mode;
+						set_config_changed();
 						return 1;
 					}
 				}
@@ -6054,11 +6059,13 @@ int inputdevice_joyport_config (struct uae_prefs *p, const TCHAR *value, int por
 						p->jports[portnum].mode = mode;
 					if (start < JSEM_JOYS)
 						default_keyboard_layout[portnum] = start;
+					set_config_changed();
 					return 1;
 				}
 				// joystick not found, select default
 				if (start == JSEM_JOYS && p->jports[portnum].id < JSEM_JOYS) {
 					p->jports[portnum].id = default_keyboard_layout[portnum];
+					set_config_changed();
 					return 1;
 				}
 			}

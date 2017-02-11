@@ -56,6 +56,7 @@ SDL_Texture *texture;
 long int version = 256 * 65536L*UAEMAJOR + 65536L*UAEMINOR + UAESUBREV;
 
 struct uae_prefs currprefs, changed_prefs; 
+int config_changed;
 
 bool no_gui = false;
 bool cloanto_rom = false;
@@ -415,7 +416,7 @@ static TCHAR *parsetextpath(const TCHAR *s)
 	return s3;
 }
 
-void  print_usage()
+void  usage()
 {
 	printf("\nUsage:\n");
 	printf(" -f <file>                  Load a configuration file.\n");
@@ -491,14 +492,14 @@ static void parse_cmdline(int argc, TCHAR **argv)
 					arg = i + 1 < argc ? argv[i + 1] : 0;
 				ret = parse_cmdline_option(&currprefs, argv[i][1], arg);
 				if (ret == -1)
-					print_usage();
+					usage();
 				if (ret && extra_arg)
 					i++;
 			}
 			else
 			{
 				printf("Unknown option %s\n", argv[i]);
-				print_usage();
+				usage();
 			}
 		}
 	}
@@ -666,6 +667,8 @@ static int real_main2 (int argc, TCHAR **argv)
 	renderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	check_error_sdl(renderer == nullptr, "Unable to create a renderer");
 	
+	set_config_changed();
+
 	keyboard_settrans();
 
 	if (restart_config[0]) {
@@ -704,6 +707,7 @@ static int real_main2 (int argc, TCHAR **argv)
 	if (!no_gui) {
 		int err = gui_init();
 		currprefs = changed_prefs;
+		set_config_changed();
 		if (err == -1) {
 			write_log(_T("Failed to initialize the GUI\n"));
 			return -1;

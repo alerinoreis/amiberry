@@ -350,14 +350,9 @@ int setup_sound(void)
 
 static int open_sound(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : open_sound");
-#endif
-
-		// Android does not like opening sound device several times
-	if (pandora_start_sound(currprefs.sound_freq, 16, currprefs.sound_stereo) != 0)
+	if (!currprefs.produce_sound)
 		return 0;
-
+	config_changed = 1;
 
 	have_sound = 1;
 	sound_available = 1;
@@ -367,103 +362,48 @@ static int open_sound(void)
 	else
 		sample_handler = sample16_handler;
  
-
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! open_sound");
-#endif
 	return 1;
 }
 
 void close_sound(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : close_sound");
-#endif
+	config_changed = 1;
 	if (!have_sound)
 		return;
 
-		    // testing shows that reopenning sound device is not a good idea (causes random sound driver crashes)
-		    // we will close it on real exit instead
-#ifdef RASPBERRY
-		        //pandora_stop_sound();
-#endif
 	have_sound = 0;
 
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! close_sound");
-#endif
 }
 
 int init_sound(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : init_sound");
-#endif
-
 	have_sound = open_sound();
-
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! init_sound");
-#endif
 	return have_sound;
 }
 
 void pause_sound(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : pause_sound");
-#endif
 
 	SDL_PauseAudio(1);
     /* nothing to do */
-
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! pause_sound");
-#endif
 }
 
 void resume_sound(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : resume_sound");
-#endif
-
 	SDL_PauseAudio(0);
     /* nothing to do */
-
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! resume_sound");
-#endif
 }
 
 void uae4all_init_sound(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : uae4all_init_sound");
-#endif
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! uae4all_init_sound");
-#endif
 }
 
 void uae4all_pause_music(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : pause_music");
-#endif
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! pause_music");
-#endif
 }
 
 void uae4all_resume_music(void)
 {
-#ifdef DEBUG_SOUND
-	dbg("sound.c : resume_music");
-#endif
-#ifdef DEBUG_SOUND
-	dbg(" sound.c : ! resume_music");
-#endif
 }
 
 void uae4all_play_click(void)
@@ -484,6 +424,7 @@ void reset_sound(void)
 
 void sound_volume(int dir)
 {
+	config_changed = 1;
 }
 
 #endif

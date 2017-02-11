@@ -6,15 +6,20 @@
   * Copyright 1996 Bernd Schmidt
   */
 
+#pragma once
 extern int gui_init(void);
 extern int gui_update(void);
 extern void gui_exit(void);
 extern void gui_led(int, int);
 extern void gui_filename(int, const TCHAR *);
+extern void gui_fps(int fps, int idle, int color);
 extern void gui_flicker_led(int, int);
 extern void gui_disk_image_change(int, const TCHAR *, bool writeprotected);
 extern unsigned int gui_ledstate;
 extern void gui_display(int shortcut);
+
+extern void gui_gameport_button_change(int port, int button, int onoff);
+extern void gui_gameport_axis_change(int port, int axis, int state, int max);
 
 extern bool no_gui;
 
@@ -48,17 +53,20 @@ struct gui_info
 	bool drive_writing[4];  /* drive is writing */
 	bool drive_disabled[4];	/* drive is disabled */
 	bool powerled;          /* state of power led */
+	uae_u8 powerled_brightness;	/* 0 to 255 */
 	uae_s8 drive_side;				/* floppy side */
 	uae_s8 hd;			          /* harddrive */
 	uae_s8 cd;			          /* CD */
+	uae_s8 md;					/* CD32 or CDTV internal storage */
 	bool cpu_halted;
-	int fps;
+	int fps, idle;
+	int fps_color;
 	int sndbuf, sndbuf_status;
 	TCHAR df[4][256];		    /* inserted image */
 	uae_u32 crc32[4];		    /* crc32 of image */
 };
 #define NUM_LEDS (LED_MAX)
-#define VISIBLE_LEDS 6
+#define VISIBLE_LEDS (LED_MAX - 1)
 
 extern struct gui_info gui_data;
 

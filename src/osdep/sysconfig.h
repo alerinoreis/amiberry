@@ -1,10 +1,17 @@
 
+#pragma once
+#pragma warning (disable : 4761)
+#pragma warning (disable : 4996)
+#pragma warning (disable : 4018)
+
 #define SUPPORT_THREADS
 #define MAX_DPATH 256
 
 /* #define DRIVESOUND */
 /* #define GFXFILTER */
 //#define USE_SOFT_LONG_DOUBLE
+#define OPTIMIZED_FLAGS
+#define PACKAGE_STRING "Amiberry"
 
 /* #define DEBUGGER */
 #define FILESYS /* filesys emulation */
@@ -12,6 +19,7 @@
 #define AUTOCONFIG /* autoconfig support, fast ram, harddrives etc.. */
 #define JIT /* JIT compiler support */
 /* #define NATMEM_OFFSET natmem_offset */
+#define USE_NORMAL_CALLING_CONVENTION 0
 /* #define CATWEASEL */ /* Catweasel MK2/3 support */
 /* #define AHI */ /* AHI sound emulation */
 /* #define ENFORCER */ /* UAE Enforcer */
@@ -24,15 +32,21 @@
 /* #define SCSIEMU */ /* uaescsi.device emulation */
 /* #define UAESERIAL */ /* uaeserial.device emulation */
 #define FPUEMU /* FPU emulation */
-/* #define FPU_UAE */
-/* #define MMUEMU Aranym 68040 MMU */
-/* #define FULLMMU Aranym 68040 MMU */
+#define FPU_UAE
+#define MMUEMU Aranym 68040 MMU
+#define FULLMMU Aranym 68040 MMU
 #define CPUEMU_0 /* generic 680x0 emulation */
-#define CPUEMU_11 /* 68000+prefetch emulation */
-/* #define CPUEMU_12 */ /* cycle-exact cpu&blitter */
+#define CPUEMU_11 /* 68000/68010 prefetch emulation */
+#define CPUEMU_13 /* 68000/68010 cycle-exact cpu&blitter */
+#define CPUEMU_20 /* 68020 prefetch */
+#define CPUEMU_21 /* 68020 "cycle-exact" + blitter */
+#define CPUEMU_22 /* 68030 (040/060) "cycle-exact" + blitter */
+#define CPUEMU_31 /* Aranym 68040 MMU */
+#define CPUEMU_32 /* Previous 68030 MMU */
+#define CPUEMU_33 /* 68060 MMU */
 /* #define ACTION_REPLAY */ /* Action Replay 1/2/3 support */
-/* #define PICASSO96 */ /* Picasso96 display card emulation */
-/* #define UAEGFX_INTERNAL */ /* built-in libs:picasso96/uaegfx.card */
+#define PICASSO96 /* Picasso96 display card emulation */
+#define UAEGFX_INTERNAL /* built-in libs:picasso96/uaegfx.card */
 #define BSDSOCKET /* bsdsocket.library emulation */
 /* #define CAPS */ /* CAPS-image support */
 /* #define FDI2RAW */ /* FDI 1.0 and 2.x image support */
