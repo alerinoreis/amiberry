@@ -3334,3 +3334,7 @@ int main(int argc, char *argv[])
 	fclose(headerfile);
 	return 0;
 }
+
+void write_log(const TCHAR *format, ...)
+{
+}

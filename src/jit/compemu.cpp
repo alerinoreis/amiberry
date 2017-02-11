@@ -2,7 +2,7 @@
 #if defined(JIT)
 #include "sysdeps.h"
 #include "options.h"
-#include "include/memory.h"
+#include "memory.h"
 #include "newcpu.h"
 #include "custom.h"
 #include "comptbl.h"
@@ -31726,8 +31726,8 @@ if (special_mem) {
 	int dst=scratchie++;
 {	int srca=scratchie++;
 	mov_l_rr(srca,srcreg+8);
-{	int dsta = scratchie++;
-	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
+{	int dsta=scratchie++;
+	mov_l_rr(dsta,dstreg+8);
 	 jnf_ADD_im8(srcreg + 8, srcreg + 8, 16);
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
@@ -31750,8 +31750,8 @@ if (special_mem) {
 	int dst=scratchie++;
 {	int srca = scratchie++;
 	mov_l_ri(srca,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
-{	int dsta=scratchie++;
-	mov_l_rr(dsta,dstreg+8);
+{	int dsta = scratchie++;
+	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
 	 jnf_ADD_im8(dstreg + 8, dstreg + 8, 16);
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
@@ -31775,8 +31775,9 @@ if (special_mem) {
 {	int srca=dodgy?scratchie++:srcreg+8;
 	if (dodgy) 
 		mov_l_rr(srca,srcreg+8);
-{	int dsta = scratchie++;
-	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
+{	int dsta=dodgy?scratchie++:dstreg+8;
+	if (dodgy) 
+		mov_l_rr(dsta,dstreg+8);
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
 	if (failure)  m68k_pc_offset=m68k_pc_offset_thisinst;
@@ -31798,9 +31799,8 @@ if (special_mem) {
 	int dst=scratchie++;
 {	int srca = scratchie++;
 	mov_l_ri(srca,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
-{	int dsta=dodgy?scratchie++:dstreg+8;
-	if (dodgy) 
-		mov_l_rr(dsta,dstreg+8);
+{	int dsta = scratchie++;
+	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
 	if (failure)  m68k_pc_offset=m68k_pc_offset_thisinst;
@@ -61715,8 +61715,8 @@ if (special_mem) {
 	int dst=scratchie++;
 {	int srca=scratchie++;
 	mov_l_rr(srca,srcreg+8);
-{	int dsta = scratchie++;
-	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
+{	int dsta=scratchie++;
+	mov_l_rr(dsta,dstreg+8);
 	 jnf_ADD_im8(srcreg + 8, srcreg + 8, 16);
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
@@ -61739,8 +61739,8 @@ if (special_mem) {
 	int dst=scratchie++;
 {	int srca = scratchie++;
 	mov_l_ri(srca,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
-{	int dsta=scratchie++;
-	mov_l_rr(dsta,dstreg+8);
+{	int dsta = scratchie++;
+	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
 	 jnf_ADD_im8(dstreg + 8, dstreg + 8, 16);
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
@@ -61764,8 +61764,9 @@ if (special_mem) {
 {	int srca=dodgy?scratchie++:srcreg+8;
 	if (dodgy) 
 		mov_l_rr(srca,srcreg+8);
-{	int dsta = scratchie++;
-	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
+{	int dsta=dodgy?scratchie++:dstreg+8;
+	if (dodgy) 
+		mov_l_rr(dsta,dstreg+8);
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
 	if (failure)  m68k_pc_offset=m68k_pc_offset_thisinst;
@@ -61787,9 +61788,8 @@ if (special_mem) {
 	int dst=scratchie++;
 {	int srca = scratchie++;
 	mov_l_ri(srca,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
-{	int dsta=dodgy?scratchie++:dstreg+8;
-	if (dodgy) 
-		mov_l_rr(dsta,dstreg+8);
+{	int dsta = scratchie++;
+	mov_l_ri(dsta,comp_get_ilong((m68k_pc_offset+=4)-4)); /* absl */
 	jnf_MOVE16(dst, src);
 }}}	 if (m68k_pc_offset>SYNC_PC_OFFSET) sync_m68k_pc();
 	if (failure)  m68k_pc_offset=m68k_pc_offset_thisinst;
