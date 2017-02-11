@@ -5,6 +5,7 @@
 #include "sounddep/sound.h"
 #include "uae.h"
 
+#define CDADS 0
 
 cda_audio::~cda_audio()
 {

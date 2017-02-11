@@ -14,26 +14,46 @@
   *
   * Copyright 1996, 1997 Bernd Schmidt
   */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+#include "sysconfig.h"
+
+#ifndef UAE
+#define UAE
+#endif
+
+#ifdef __cplusplus
 #include <string>
 using namespace std;
+#else
+#include <string.h>
+#include <ctype.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
 #include <limits.h>
 
-#ifdef _GCCRES_
-#undef _GCCRES_
-#endif
-
-#ifdef UAE4ALL_NO_USE_RESTRICT
-#define _GCCRES_
+#if defined(__x86_64__) || defined(_M_AMD64)
+#define CPU_x86_64 1
+#define CPU_64_BIT 1
+#elif defined(__i386__) || defined(_M_IX86)
+#define CPU_i386 1
+#elif defined(__arm__) || defined(_M_ARM)
+#define CPU_arm 1
+#elif defined(__powerpc__) || defined(__ppc__) || defined(_M_PPC)
+#define CPU_powerpc 1
 #else
-#define _GCCRES_ __restrict__
+#error unrecognized CPU type
 #endif
 
 #ifndef __STDC__
+#ifndef _MSC_VER
 #error "Your compiler is not ANSI. Get a real one."
+#endif
 #endif
 
 #include <stdarg.h>
@@ -146,6 +166,23 @@ struct utimbuf
 };
 #endif
 
+#if defined(WARPUP)
+#include "devices/timer.h"
+#include "osdep/posixemu.h"
+#define REGPARAM
+#define REGPARAM2
+#define RETSIGTYPE
+#define USE_ZFILE
+#define strcasecmp stricmp
+#define memcpy q_memcpy
+#define memset q_memset
+#define strdup my_strdup
+#define random uaerand
+#define creat(x,y) open("T:creat",O_CREAT|O_RDWR|O_TRUNC,777)
+extern void* q_memset(void*, int, size_t);
+extern void* q_memcpy(void*, const void*, size_t);
+#endif
+
 #ifdef __DOS__
 #include <pc.h>
 #include <io.h>
@@ -226,6 +263,8 @@ extern void my_trim(TCHAR*);
 extern TCHAR *my_strdup_trim(const TCHAR*);
 extern TCHAR *au(const char*);
 extern char *ua(const TCHAR*);
+extern TCHAR *aucp(const char *s, unsigned int cp);
+extern char *uacp(const TCHAR *s, unsigned int cp);
 extern TCHAR *au_fs(const char*);
 extern char *ua_fs(const TCHAR*, int);
 extern char *ua_copy(char *dst, int maxlen, const TCHAR *src);
@@ -234,6 +273,9 @@ extern char *ua_fs_copy(char *dst, int maxlen, const TCHAR *src, int defchar);
 extern TCHAR *au_fs_copy(TCHAR *dst, int maxlen, const char *src);
 extern char *uutf8(const TCHAR *s);
 extern TCHAR *utf8u(const char *s);
+extern void unicode_init(void);
+extern void to_lower(TCHAR *s, int len);
+extern void to_upper(TCHAR *s, int len);
 
 /* We can only rely on GNU C getting enums right. Mickeysoft VSC++ is known
  * to have problems, and it's likely that other compilers choke too. */
@@ -265,7 +307,7 @@ extern TCHAR *utf8u(const char *s);
 #undef DONT_HAVE_STDIO
 #undef DONT_HAVE_MALLOC
 
-#if defined PANDORA
+#ifdef RASPBERRY
 
 #include <ctype.h>
 
@@ -324,8 +366,8 @@ extern struct dirent* readdir(DIR *);
 extern void closedir(DIR *);
 
 /* This isn't the best place for this, but it fits reasonably well. The logic
- * is that you probably don't have POSIX errnos if you don't have the above
- * functions. */
+* is that you probably don't have POSIX errnos if you don't have the above
+* functions. */
 extern long dos_errno(void);
 
 #endif
@@ -362,6 +404,8 @@ extern void mallocemu_free(void *ptr);
 #define ASM_SYM_FOR_FUNC(a)
 #endif
 
+#include "target.h"
+
 #ifdef UAE_CONSOLE
 #undef write_log
 #define write_log write_log_standard
@@ -374,8 +418,27 @@ extern void write_log(char *, ...) __attribute__((format(printf, 1, 2)));
 extern void write_log(const TCHAR *, ...);
 extern void write_log(const char *, ...);
 #endif
-extern void console_out(const TCHAR *, ...);
+extern void write_dlog(const TCHAR *, ...);
+
+extern void flush_log(void);
+extern TCHAR *setconsolemode(TCHAR *buffer, int maxlen);
+extern void close_console(void);
+extern void reopen_console(void);
+extern void activate_console(void);
+extern void console_out(const TCHAR *);
+extern void console_out_f(const TCHAR *, ...);
+extern void console_flush(void);
+extern int console_get(TCHAR *, int);
+extern bool console_isch(void);
+extern TCHAR console_getch(void);
+extern void f_out(void *, const TCHAR *, ...);
+extern TCHAR* buf_out(TCHAR *buffer, int *bufsize, const TCHAR *format, ...);
 extern void gui_message(const TCHAR *, ...);
+extern int gui_message_multibutton(int flags, const TCHAR *format, ...);
+#define write_log_err write_log
+extern void logging_init(void);
+extern FILE *log_open(const TCHAR *name, int append, int bootlog, TCHAR*);
+extern void log_close(FILE *f);
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -383,11 +446,7 @@ extern void gui_message(const TCHAR *, ...);
 
 #ifndef STATIC_INLINE
 #if __GNUC__ - 1 > 1 && __GNUC_MINOR__ - 1 >= 0
-#ifdef RASPBERRY
-#define STATIC_INLINE static __inline__
-#else
 #define STATIC_INLINE static __inline__ __attribute__ ((always_inline))
-#endif
 #define NOINLINE __attribute__ ((noinline))
 #define NORETURN __attribute__ ((noreturn))
 #elif _MSC_VER
@@ -400,8 +459,6 @@ extern void gui_message(const TCHAR *, ...);
 #define NORETURN
 #endif
 #endif
-
-#include "target.h"
 
 /* Every Amiga hardware clock cycle takes this many "virtual" cycles.  This
    used to be hardcoded as 1, but using higher values allows us to time some
@@ -473,12 +530,6 @@ STATIC_INLINE uae_u32 do_byteswap_16(uae_u32 v) {
 #define xcalloc(T, N) calloc(sizeof (T), N)
 #define xfree(T) free(T)
 #define xrealloc(T, TP, N) realloc(TP, sizeof (T) * (N))
-
-#if 0
-extern void *xmalloc(size_t);
-extern void *xcalloc(size_t, size_t);
-extern void xfree(const void*);
-#endif
 
 #else
 

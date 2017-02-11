@@ -19,6 +19,7 @@
 #include "events.h"
 #include "custom.h"
 #include "inputdevice.h"
+#include "gfxfilter.h"
 #include "savestate.h"
 #include "include/memory.h"
 #include "rommgr.h"
@@ -33,6 +34,7 @@
 #include "debug.h"
 #include "calc.h"
 #include "gfxboard.h"
+#include "luascript.h"
 
 static int config_newfilesystem;
 static struct strlist *temp_lines;
@@ -6094,75 +6096,63 @@ bool is_error_log(void)
 	return error_lines != NULL;
 }
 
-TCHAR* get_error_log(void)
+TCHAR *get_error_log(void)
 {
-	strlist* sl;
+	strlist *sl;
 	int len = 0;
-	for (sl = error_lines; sl; sl = sl->next)
-	{
+	for (sl = error_lines; sl; sl = sl->next) {
 		len += _tcslen(sl->option) + 1;
 	}
 	if (!len)
 		return NULL;
-	TCHAR* s = xcalloc(TCHAR, len + 1);
-	for (sl = error_lines; sl; sl = sl->next)
-	{
+	TCHAR *s = xcalloc(TCHAR, len + 1);
+	for (sl = error_lines; sl; sl = sl->next) {
 		_tcscat(s, sl->option);
 		_tcscat(s, _T("\n"));
 	}
 	return s;
 }
 
-void error_log(const TCHAR* format, ...)
+void error_log(const TCHAR *format, ...)
 {
 	TCHAR buffer[256], *bufp;
 	int bufsize = 256;
 	va_list parms;
 
-	if (format == NULL)
-	{
-		struct strlist** ps = &error_lines;
-
-		while (*ps)
-		{
-			struct strlist* s = *ps;
+	if (format == NULL) {
+		struct strlist **ps = &error_lines;
+		while (*ps) {
+			struct strlist *s = *ps;
 			*ps = s->next;
 			xfree(s->value);
 			xfree(s->option);
 			xfree(s);
 		}
-
 		return;
 	}
 
 	va_start(parms, format);
 	bufp = buffer;
-
-	for (;;)
-	{
+	for (;;) {
 		int count = _vsntprintf(bufp, bufsize - 1, format, parms);
-
-		if (count < 0)
-		{
+		if (count < 0) {
 			bufsize *= 10;
 			if (bufp != buffer)
-			xfree(bufp);
+				xfree(bufp);
 			bufp = xmalloc(TCHAR, bufsize);
 			continue;
 		}
-
 		break;
 	}
-
 	bufp[bufsize - 1] = 0;
 	write_log(_T("%s\n"), bufp);
 	va_end(parms);
 
-	strlist* u = xcalloc(struct strlist, 1);
+	strlist *u = xcalloc(struct strlist, 1);
 	u->option = my_strdup(bufp);
 	u->next = error_lines;
 	error_lines = u;
 
 	if (bufp != buffer)
-	xfree(bufp);
+		xfree(bufp);
 }

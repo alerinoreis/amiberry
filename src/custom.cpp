@@ -29,9 +29,9 @@
 #include "blitter.h"
 #include "xwin.h"
 #include "inputdevice.h"
-//#include "inputrecord.h"
+#include "inputrecord.h"
 #include "keybuf.h"
-//#include "serial.h"
+#include "serial.h"
 #include "autoconf.h"
 #include "traps.h"
 #include "gui.h"
@@ -44,23 +44,23 @@
 #endif
 #include "debug.h"
 #include "akiko.h"
-//#include "cdtv.h"
+#include "cdtv.h"
 #if defined(ENFORCER)
 #include "enforcer.h"
 #endif
-//#include "gayle.h"
-//#include "gfxfilter.h"
-//#include "a2091.h"
-//#include "a2065.h"
+#include "gayle.h"
+#include "gfxfilter.h"
+#include "a2091.h"
+#include "a2065.h"
 #include "gfxboard.h"
-//#include "ncr_scsi.h"
+#include "ncr_scsi.h"
 #include "blkdev.h"
-//#include "sampler.h"
+#include "sampler.h"
 #include "clipboard.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
-//#include "luascript.h"
+#include "luascript.h"
 
 #define CUSTOM_DEBUG 0
 #define SPRITE_DEBUG 0

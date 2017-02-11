@@ -1,3 +1,5 @@
+
+
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -6,6 +8,8 @@
 #include "options.h"
 #include "include/memory.h"
 #include "newcpu.h"
+#include "cpummu.h"
+#include "cpummu030.h"
 #include "cpu_prefetch.h"
 
 void val_move2c2(int regno, uae_u32 val)
@@ -56,6 +60,8 @@ uae_u32 val_move2c(int regno)
 	default: return 0;
 	}
 }
+
+#ifndef CPUEMU_68000_ONLY
 
 int movec_illg(int regno)
 {
@@ -129,24 +135,15 @@ int m68k_move2c(int regno, uae_u32 *regp)
 		/* 68040/060 only */
 		case 3:
 			regs.tcr = *regp & (currprefs.cpu_model == 68060 ? 0xfffe : 0xc000);
-#ifndef RASPBERRY
 			if (currprefs.mmu_model)
 				mmu_set_tc(regs.tcr);
-#endif
 			break;
 
 			/* no differences between 68040 and 68060 */
-#ifndef RASPBERRY
 		case 4: regs.itt0 = *regp & 0xffffe364; mmu_tt_modified(); break;
 		case 5: regs.itt1 = *regp & 0xffffe364; mmu_tt_modified(); break;
 		case 6: regs.dtt0 = *regp & 0xffffe364; mmu_tt_modified(); break;
 		case 7: regs.dtt1 = *regp & 0xffffe364; mmu_tt_modified(); break;
-#else
-		case 4: regs.itt0 = *regp & 0xffffe364; break;
-		case 5: regs.itt1 = *regp & 0xffffe364; break;
-		case 6: regs.dtt0 = *regp & 0xffffe364; break;
-		case 7: regs.dtt1 = *regp & 0xffffe364; break;
-#endif
 			/* 68060 only */
 		case 8: regs.buscr = *regp & 0xf0000000; break;
 
@@ -238,6 +235,9 @@ int m68k_movec2(int regno, uae_u32 *regp)
 #endif
 	return 1;
 }
+
+#endif
+
 
 /*
 * extract bitfield data from memory and return it in the MSBs
@@ -489,7 +489,6 @@ uae_u32 REGPARAM2 x_get_disp_ea_020(uae_u32 base, int idx)
 	return v;
 }
 
-#ifdef CPUEMU_22
 uae_u32 REGPARAM2 x_get_disp_ea_ce030(uae_u32 base, int idx)
 {
 	uae_u16 dp = next_iword_030ce();
@@ -537,9 +536,7 @@ uae_u32 REGPARAM2 x_get_disp_ea_ce030(uae_u32 base, int idx)
 	}
 	return v;
 }
-#endif
 
-#ifdef CPUEMU_21
 uae_u32 REGPARAM2 x_get_disp_ea_ce020(uae_u32 base, int idx)
 {
 	uae_u16 dp = next_iword_020ce();
@@ -587,7 +584,8 @@ uae_u32 REGPARAM2 x_get_disp_ea_ce020(uae_u32 base, int idx)
 	}
 	return v;
 }
-#endif
+
+
 /*
 * Compute exact number of CPU cycles taken
 * by DIVU and DIVS on a 68000 processor.
@@ -613,38 +611,38 @@ uae_u32 REGPARAM2 x_get_disp_ea_ce020(uae_u32 base, int idx)
 
 /*
 
- The routines below take dividend and divisor as parameters.
- They return 0 if division by zero, or exact number of cycles otherwise.
+The routines below take dividend and divisor as parameters.
+They return 0 if division by zero, or exact number of cycles otherwise.
 
- The number of cycles returned assumes a register operand.
- Effective address time must be added if memory operand.
+The number of cycles returned assumes a register operand.
+Effective address time must be added if memory operand.
 
- For 68000 only (not 68010, 68012, 68020, etc).
- Probably valid for 68008 after adding the extra prefetch cycle.
-
-
- Best and worst cases for register operand:
- (Note the difference with the documented range.)
+For 68000 only (not 68010, 68012, 68020, etc).
+Probably valid for 68008 after adding the extra prefetch cycle.
 
 
- DIVU:
-
- Overflow (always): 10 cycles.
- Worst case: 136 cycles.
- Best case: 76 cycles.
+Best and worst cases for register operand:
+(Note the difference with the documented range.)
 
 
- DIVS:
+DIVU:
 
- Absolute overflow: 16-18 cycles.
- Signed overflow is not detected prematurely.
-
- Worst case: 156 cycles.
- Best case without signed overflow: 122 cycles.
- Best case with signed overflow: 120 cycles
+Overflow (always): 10 cycles.
+Worst case: 136 cycles.
+Best case: 76 cycles.
 
 
- */
+DIVS:
+
+Absolute overflow: 16-18 cycles.
+Signed overflow is not detected prematurely.
+
+Worst case: 156 cycles.
+Best case without signed overflow: 122 cycles.
+Best case with signed overflow: 120 cycles
+
+
+*/
 
 int getDivu68kCycles(uae_u32 dividend, uae_u16 divisor)
 {
@@ -749,6 +747,8 @@ void divbyzero_special(bool issigned, uae_s32 dst)
 		CLEAR_CZNV();
 	}
 }
+
+#ifndef CPUEMU_68000_ONLY
 
 STATIC_INLINE int div_unsigned(uae_u32 src_hi, uae_u32 src_lo, uae_u32 div, uae_u32 *quot, uae_u32 *rem)
 {
@@ -1021,3 +1021,5 @@ bool m68k_mull(uae_u32 opcode, uae_u32 src, uae_u16 extra)
 #endif
 	return true;
 }
+
+#endif

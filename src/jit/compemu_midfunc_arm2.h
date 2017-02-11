@@ -32,6 +32,9 @@
  */
 
 // Arm optimized midfunc
+#pragma once
+#include "sysdeps.h"
+#include "compemu.h"
 extern const uae_u32 ARM_CCR_MAP[];
 
 // ADD

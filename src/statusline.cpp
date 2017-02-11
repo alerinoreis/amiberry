@@ -6,22 +6,15 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory.h"
-#include "newcpu.h"
-#include "custom.h"
 #include "xwin.h"
-#include "autoconf.h"
 #include "gui.h"
-#include "picasso96.h"
+#include "custom.h"
 #include "drawing.h"
 #include "statusline.h"
 
-extern SDL_Surface* screen;
-extern int idletime_percent;
-
 /*
- * Some code to put status information on the screen.
- */
+* Some code to put status information on the screen.
+*/
 
 void statusline_getpos(int *x, int *y, int width, int height)
 {
@@ -51,7 +44,7 @@ void statusline_getpos(int *x, int *y, int width, int height)
 	}
 }
 
-static const char* numbers = {/* ugly  0123456789CHD%+- */
+static const char *numbers = { /* ugly  0123456789CHD%+- */
 	"+++++++--++++-+++++++++++++++++-++++++++++++++++++++++++++++++++++++++++++++-++++++-++++----++---+--------------"
 	"+xxxxx+--+xx+-+xxxxx++xxxxx++x+-+x++xxxxx++xxxxx++xxxxx++xxxxx++xxxxx++xxxx+-+x++x+-+xxx++-+xx+-+x---+----------"
 	"+x+++x+--++x+-+++++x++++++x++x+++x++x++++++x++++++++++x++x+++x++x+++x++x++++-+x++x+-+x++x+--+x++x+--+x+----+++--"
@@ -69,12 +62,6 @@ STATIC_INLINE uae_u32 ledcolor(uae_u32 c, uae_u32 *rc, uae_u32 *gc, uae_u32 *bc,
 	return v;
 }
 
-STATIC_INLINE void putpixel(uae_u8 *buf, int bpp, int x, xcolnr c8, int opaq)
-{
-	uae_u16* p = (uae_u16 *)buf + x;
-	*p = uae_u16(c8);
-}
-
 static void write_tdnumber(uae_u8 *buf, int bpp, int x, int y, int num, uae_u32 c1, uae_u32 c2)
 {
 	int j;
@@ -89,7 +76,6 @@ static void write_tdnumber(uae_u8 *buf, int bpp, int x, int y, int num, uae_u32 
 		numptr++;
 	}
 }
-
 
 void draw_status_line_single(uae_u8 *buf, int bpp, int y, int totalwidth, uae_u32 *rc, uae_u32 *gc, uae_u32 *bc, uae_u32 *alpha)
 {

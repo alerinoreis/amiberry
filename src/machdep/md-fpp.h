@@ -10,6 +10,9 @@
   * Copyright 2007 Richard Drummond
   */
 
+#pragma once
+#include "sysdeps.h"
+
 #define	FPCR_ROUNDING_MODE	0x00000030
 #define	FPCR_ROUND_NEAR		0x00000000
 #define	FPCR_ROUND_ZERO		0x00000010

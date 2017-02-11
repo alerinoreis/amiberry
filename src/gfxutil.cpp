@@ -1,10 +1,10 @@
- /*
-  * UAE - The Un*x Amiga Emulator
-  *
-  * Common code needed by all the various graphics systems.
-  *
-  * (c) 1996 Bernd Schmidt, Ed Hanway, Samuel Devulder
-  */
+/*
+* UAE - The Un*x Amiga Emulator
+*
+* Common code needed by all the various graphics systems.
+*
+* (c) 1996 Bernd Schmidt, Ed Hanway, Samuel Devulder
+*/
 
 #include "sysconfig.h"
 #include "sysdeps.h"
@@ -12,6 +12,7 @@
 #include "custom.h"
 #include "rtgmodes.h"
 #include "xwin.h"
+#include "gfxfilter.h"
 
 #include <math.h>
 
@@ -36,28 +37,16 @@ double getvsyncrate(double hz, int *mult)
 	return hz;
 }
 
-#define	RED 0
-#define	GRN	1
-#define	BLU	2
+#define RED	0
+#define GRN	1
+#define BLU	2
 
-unsigned int doMask (int p, int bits, int shift)
+unsigned int doMask(int p, int bits, int shift)
 {
-  /* p is a value from 0 to 15 (Amiga color value)
-   * scale to 0..255, shift to align msb with mask, and apply mask */
-
-  /*uae_u32 val = p * 0x11111111UL;
-  if (!bits) 
-    return 0;
-  val >>= (32 - bits);
-  val <<= shift;
-
-  return val;*/
-
-  /* scale to 0..255, shift to align msb with mask, and apply mask */
+	/* scale to 0..255, shift to align msb with mask, and apply mask */
 	uae_u32 val;
 
-	//TODO:
-	//if (flashscreen)
+	if (flashscreen)
 		p ^= 0xff;
 	val = p << 24;
 	if (!bits)
@@ -106,23 +95,15 @@ unsigned int doMask256(int p, int bits, int shift)
 
 static unsigned int doColor(int i, int bits, int shift)
 {
-  //int shift2;
-  //if(bits >= 8) 
-  //  shift2 = 0; 
-  //else 
-  //  shift2 = 8 - bits;
-  //return (i >> shift2) << shift;
+	int shift2;
 
-  int shift2;
-
-	//TODO:
-  //if (flashscreen)
-	  i ^= 0xffffffff;
-  if (bits >= 8)
-	  shift2 = 0;
-  else
-	  shift2 = 8 - bits;
-  return (i >> shift2) << shift;
+	if (flashscreen)
+		i ^= 0xffffffff;
+	if (bits >= 8)
+		shift2 = 0;
+	else
+		shift2 = 8 - bits;
+	return (i >> shift2) << shift;
 }
 
 static unsigned int doAlpha(int alpha, int bits, int shift)
@@ -142,7 +123,7 @@ static float video_gamma(float value, float gamma, float bri, float con)
 		return 0.0f;
 
 	factor = pow(255.0f, 1.0f - gamma);
-	ret = float(factor * pow(value, gamma));
+	ret = (float)(factor * pow(value, gamma));
 
 	if (ret < 0.0f)
 		ret = 0.0f;
@@ -159,9 +140,9 @@ static void video_calc_gammatable(void)
 	float bri, con, gam, v;
 	uae_u32 vi;
 
-	bri = float(currprefs.gfx_luminance) * (128.0f / 1000.0f);
-	con = float(currprefs.gfx_contrast + 1000) / 1000.0f;
-	gam = float(1000 - currprefs.gfx_gamma) / 1000.0f;
+	bri = ((float)(currprefs.gfx_luminance)) * (128.0f / 1000.0f);
+	con = ((float)(currprefs.gfx_contrast + 1000)) / 1000.0f;
+	gam = ((float)(1000 - currprefs.gfx_gamma)) / 1000.0f;
 
 	lf = 64 * currprefs.gf[picasso_on].gfx_filter_blur / 1000;
 	hf = 256 - lf * 2;
@@ -182,21 +163,21 @@ static void video_calc_gammatable(void)
 
 static uae_u32 limit256(double v)
 {
-	v = v * double(currprefs.gf[picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[picasso_on].gfx_filter_luminance / 10.0;
+	v = v * (double)(currprefs.gf[picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[picasso_on].gfx_filter_luminance / 10.0;
 	if (v < 0)
 		v = 0;
 	if (v > 255)
 		v = 255;
-	return uae_u32(v) & 0xff;
+	return ((uae_u32)v) & 0xff;
 }
 static uae_u32 limit256rb(double v)
 {
-	v *= double(currprefs.gf[picasso_on].gfx_filter_saturation + 1000) / 1000.0;
+	v *= (double)(currprefs.gf[picasso_on].gfx_filter_saturation + 1000) / 1000.0;
 	if (v < -128)
 		v = -128;
 	if (v > 127)
 		v = 127;
-	return uae_u32(v) & 0xff;
+	return ((uae_u32)v) & 0xff;
 }
 static double get_y(int r, int g, int b)
 {
@@ -458,7 +439,6 @@ void alloc_colors64k(int rw, int gw, int bw, int rs, int gs, int bs, int aw, int
 #endif
 
 #endif
-
 	xredcolor_b = rw;
 	xgreencolor_b = gw;
 	xbluecolor_b = bw;

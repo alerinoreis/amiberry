@@ -1,20 +1,14 @@
 #include "config.h"
 #include "sysconfig.h"
 
-#include <stdlib.h>
-#include <stdarg.h>
-#include <signal.h>
-
 #include "sysdeps.h"
 #include "options.h"
-#include "memory.h"
 #include "newcpu.h"
 #include "custom.h"
 
 extern int screen_is_picasso;
 
 int64_t g_uae_epoch = 0;
-
 
 int machdep_init (void)
 {
@@ -30,6 +24,3 @@ int machdep_init (void)
 }
 
 
-void machdep_free (void)
-{
-}

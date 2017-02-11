@@ -188,3 +188,4 @@ int current_hpos(void)
 	}
 	return hp;
 }
+

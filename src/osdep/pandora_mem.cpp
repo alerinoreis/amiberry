@@ -1,17 +1,15 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
-#include "config.h"
-#include "autoconf.h"
-#include "uae.h"
-#include "options.h"
-#include "gui.h"
-#include "memory.h"
-#include "newcpu.h"
-#include "custom.h"
-#include "akiko.h"
+#include "include/memory.h"
 #include <sys/mman.h>
-#include "SDL.h"
 
+#include "options.h"
+#include "autoconf.h"
+#include "gfxboard.h"
+#include "rommgr.h"
+#include "newcpu.h"
+
+#include "SDL.h"
 
 uae_u8* natmem_offset = nullptr;
 uae_u32 natmem_size;
@@ -136,11 +134,11 @@ void alloc_AmigaMem()
 }
 
 
-static uae_u32 getz2rtgaddr()
+static unsigned long getz2rtgaddr(void)
 {
-	uae_u32 start;
-	start = currprefs.fastmem_size;
-	while (start & (currprefs.rtgmem_size - 1) && start < 4 * 1024 * 1024)
+	unsigned long start;
+	start = changed_prefs.fastmem_size;
+	while (start & (changed_prefs.rtgmem_size - 1) && start < 4 * 1024 * 1024)
 		start += 1024 * 1024;
 	return start + 2 * 1024 * 1024;
 }
