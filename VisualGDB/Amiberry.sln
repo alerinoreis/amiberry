@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gencomp", "gencomp\gencomp.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gencpu", "gencpu\gencpu.vcxproj", "{029BAEC8-0FB2-4102-AF96-FAE9C643663C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genlinetoscr", "genlinetoscr\genlinetoscr.vcxproj", "{3E36D85A-503F-4B16-B977-936859740BEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|VisualGDB = Debug|VisualGDB
@@ -149,6 +151,26 @@ Global
 		{029BAEC8-0FB2-4102-AF96-FAE9C643663C}.Release-rpi2|x64.Build.0 = Release|VisualGDB
 		{029BAEC8-0FB2-4102-AF96-FAE9C643663C}.Release-rpi2|x86.ActiveCfg = Release|VisualGDB
 		{029BAEC8-0FB2-4102-AF96-FAE9C643663C}.Release-rpi2|x86.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Debug|x64.ActiveCfg = Debug|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Debug|x86.ActiveCfg = Debug|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release|VisualGDB.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release|x64.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release|x86.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi1|VisualGDB.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi1|VisualGDB.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi1|x64.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi1|x64.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi1|x86.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi1|x86.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi2|VisualGDB.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi2|VisualGDB.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi2|x64.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi2|x64.Build.0 = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi2|x86.ActiveCfg = Release|VisualGDB
+		{3E36D85A-503F-4B16-B977-936859740BEB}.Release-rpi2|x86.Build.0 = Release|VisualGDB
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
