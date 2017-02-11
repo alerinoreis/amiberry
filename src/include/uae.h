@@ -8,7 +8,7 @@
 
 #ifndef UAE_UAE_H
 #define UAE_UAE_H
-#include <SDL.h>
+
 
 extern void do_start_program (void);
 extern void do_leave_program (void);
@@ -44,7 +44,10 @@ extern uae_u32 getlocaltime (void);
 #define IHF_WINDOWHIDDEN 6
 
 extern int quit_program;
+#ifdef USE_SDL
+#include <SDL.h>
 extern SDL_Rect amigawin_rect, mainwin_rect;
+#endif
 extern TCHAR start_path_data[MAX_DPATH];
 
 void init_colors(void);

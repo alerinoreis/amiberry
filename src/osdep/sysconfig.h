@@ -33,6 +33,7 @@
 /* #define UAESERIAL */ /* uaeserial.device emulation */
 #define FPUEMU /* FPU emulation */
 #define FPU_UAE
+#define USE_LONG_DOUBLE 0
 #define MMUEMU Aranym 68040 MMU
 #define FULLMMU Aranym 68040 MMU
 #define CPUEMU_0 /* generic 680x0 emulation */
@@ -57,19 +58,54 @@
 /* #define LOGITECHLCD */ /* Logitech G15 LCD */
 #define SAVESTATE /* State file support */
 /* #define A2091 */ /* A590/A2091 SCSI */
-/* #define NCR */ /* A4000T/A4091 SCSI */
-/* #define SANA2 */ /* SANA2 network driver */
-/* #define AMAX */ /* A-Max ROM adapater emulation */
-/* #define RETROPLATFORM */ /* Cloanto RetroPlayer support */
+//#define A2065 /* A2065 Ethernet card */
+//#define GFXBOARD /* Hardware graphics board */
+//#define NCR /* A4000T/A4091 SCSI */
+//#define SANA2 /* SANA2 network driver */
+//#define AMAX /* A-Max ROM adapater emulation */
+//#define RETROPLATFORM /* Cloanto RetroPlayer support */
+//#define WITH_CHD
+//#define WITH_LUA /* lua scripting */
+//#define WITH_UAENATIVE
+//#define WITH_SLIRP
+//#define WITH_TABLETLIBRARY
 
-/* #define INPUT_RECORDER */ /* Use input recoder */
+#define A_ZIP
+#define A_RAR
+#define A_7Z
+#define A_LHA
+#define A_LZX
+#define A_DMS
+#define A_WRP
 
-/* #define CUSTOM_SIMPLE */ /* simplified custom chipset emulation */
-/* #define CPUEMU_68000_ONLY */ /* drop 68010+ commands from CPUEMU_0 */
-/* #define ADDRESS_SPACE_24BIT */
-#define INPUTDEVICE_SIMPLE /* simplified inputdevice for faster emulation */
+#ifndef PATH_MAX
+#define PATH_MAX 256
+#endif
 
+#define UAE_RAND_MAX RAND_MAX
+
+#ifndef GFXFILTER
+#undef OPENGL
+#undef D3D
+#endif
+
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
+#include <stdint.h>
+
+#ifdef WIN64
+#undef X86_MSVC_ASSEMBLY
+#undef JIT
+#define X64_MSVC_ASSEMBLY
+#define CPU_64_BIT
+#define SIZEOF_VOID_P 8
+#else
 #define SIZEOF_VOID_P 4
+#endif
 
 #if !defined(AHI)
 #undef ENFORCER
@@ -460,18 +496,6 @@
 
 #define strcmpi(x,y) strcasecmp(x,y)
 #define stricmp(x,y) strcasecmp(x,y)
-
-#define A_ZIP
-//#define A_RAR
-#define A_7Z
-#define A_LHA
-#define A_LZX
-#define A_DMS
-#define A_WRP
-
-#ifndef MAX_PATH
-#define MAX_PATH 256
-#endif
 
 #define WORDS_BIGENDIAN 1
 
