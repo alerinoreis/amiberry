@@ -14,6 +14,8 @@
 #define UAEMINOR 8
 #define UAESUBREV 1
 
+typedef enum { KBD_LANG_US, KBD_LANG_DK, KBD_LANG_DE, KBD_LANG_SE, KBD_LANG_FR, KBD_LANG_IT, KBD_LANG_ES } KbdLang;
+
 extern long int version;
 
 #define MAX_PATHS 8
@@ -22,19 +24,16 @@ struct multipath {
 	TCHAR path[MAX_PATHS][PATH_MAX];
 };
 
-struct strlist
-{
-	struct strlist* next;
+struct strlist {
+	struct strlist *next;
 	TCHAR *option, *value;
 	int unknown;
 };
 
-#define DEFAULT_JIT_CACHE_SIZE 16384
-
 #define MAX_TOTAL_SCSI_DEVICES 8
 
 /* maximum number native input devices supported (single type) */
-#define MAX_INPUT_DEVICES 8
+#define MAX_INPUT_DEVICES 20
 /* maximum number of native input device's buttons and axles supported */
 #define MAX_INPUT_DEVICE_EVENTS 256
 /* 4 different customization settings */
@@ -47,12 +46,11 @@ struct strlist
 
 #define INTERNALEVENT_COUNT 1
 
-struct uae_input_device
-{
-	TCHAR* name;
-	TCHAR* configname;
+struct uae_input_device {
+	TCHAR *name;
+	TCHAR *configname;
 	uae_s16 eventid[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
-	TCHAR* custom[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
+	TCHAR *custom[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
 	uae_u64 flags[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
 	uae_s8 port[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
 	uae_s16 extra[MAX_INPUT_DEVICE_EVENTS];
@@ -62,9 +60,7 @@ struct uae_input_device
 #define MAX_JPORTS 4
 #define NORMAL_JPORTS 2
 #define MAX_JPORTNAME 128
-
-struct jport
-{
+struct jport {
 	int id;
 	int mode; // 0=def,1=mouse,2=joy,3=anajoy,4=lightpen
 	int autofire;
@@ -72,12 +68,15 @@ struct jport
 	TCHAR configname[MAX_JPORTNAME];
 	bool nokeyboardoverride;
 };
-
 #define JPORT_NONE -1
 #define JPORT_CUSTOM -2
 #define JPORT_AF_NORMAL 1
 #define JPORT_AF_TOGGLE 2
 #define JPORT_AF_ALWAYS 3
+
+#define KBTYPE_AMIGA 0
+#define KBTYPE_PC1 1
+#define KBTYPE_PC2 2
 
 #define MAX_SPARE_DRIVES 20
 #define MAX_CUSTOM_MEMORY_ADDRS 2
@@ -90,6 +89,17 @@ struct jport
 #define TABLET_MOUSEHACK 1
 #define TABLET_REAL 2
 
+#ifdef WITH_SLIRP
+#define MAX_SLIRP_REDIRS 32
+struct slirp_redir
+{
+	int proto;
+	int srcport;
+	int dstport;
+	unsigned long addr;
+};
+#endif
+
 struct cdslot
 {
 	TCHAR name[MAX_DPATH];
@@ -97,7 +107,6 @@ struct cdslot
 	bool delayed;
 	int type;
 };
-
 struct floppyslot
 {
 	TCHAR df[MAX_DPATH];
@@ -109,8 +118,7 @@ struct floppyslot
 
 #define ASPECTMULT 1024
 #define WH_NATIVE 1
-struct wh
-{
+struct wh {
 	int x, y;
 	int width, height;
 	int special;
@@ -127,8 +135,7 @@ struct wh
 #define ISAUTOBOOT(ci) ((ci)->bootpri > BOOTPRI_NOAUTOBOOT)
 #define ISAUTOMOUNT(ci) ((ci)->bootpri > BOOTPRI_NOAUTOMOUNT)
 
-struct uaedev_config_info
-{
+struct uaedev_config_info {
 	int type;
 	TCHAR devname[MAX_DPATH];
 	TCHAR volname[MAX_DPATH];
@@ -168,21 +175,9 @@ struct uaedev_config_data
 	int unitnum; // scsi unit number (if tape currently)
 };
 
-enum
-{
-	CP_GENERIC = 1,
-	CP_CDTV,
-	CP_CD32,
-	CP_A500,
-	CP_A500P,
-	CP_A600,
-	CP_A1000,
-	CP_A1200,
-	CP_A2000,
-	CP_A3000,
-	CP_A3000T,
-	CP_A4000,
-	CP_A4000T
+enum {
+	CP_GENERIC = 1, CP_CDTV, CP_CD32, CP_A500, CP_A500P, CP_A600, CP_A1000,
+	CP_A1200, CP_A2000, CP_A3000, CP_A3000T, CP_A4000, CP_A4000T
 };
 
 #define IDE_A600A1200 1
@@ -214,7 +209,6 @@ enum
 #define MAX_CHIPSET_REFRESH_TOTAL (MAX_CHIPSET_REFRESH + 2)
 #define CHIPSET_REFRESH_PAL (MAX_CHIPSET_REFRESH + 0)
 #define CHIPSET_REFRESH_NTSC (MAX_CHIPSET_REFRESH + 1)
-
 struct chipset_refresh
 {
 	int index;
@@ -253,6 +247,7 @@ struct apmode
 
 #define MAX_LUA_STATES 16
 
+
 struct gfx_filterdata
 {
 	int gfx_filter;
@@ -278,7 +273,7 @@ struct gfx_filterdata
 
 struct uae_prefs
 {
-	struct strlist* all_lines;
+	struct strlist *all_lines;
 
 	TCHAR description[256];
 	TCHAR info[256];
@@ -304,6 +299,8 @@ struct uae_prefs
 
 	bool start_debugger;
 	bool start_gui;
+
+	KbdLang keyboard_lang;
 
 	int produce_sound;
 	int sound_stereo;
@@ -529,6 +526,8 @@ struct uae_prefs
 	TCHAR dfxlist[MAX_SPARE_DRIVES][MAX_DPATH];
 	int dfxclickvolume;
 	int dfxclickchannelmask;
+
+	TCHAR luafiles[MAX_LUA_STATES][MAX_DPATH];
 
 	/* Target specific options */
 

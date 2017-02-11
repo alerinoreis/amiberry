@@ -1,7 +1,7 @@
 /*
  * UAE - The Un*x Amiga Emulator
  *
- * Pandora interface
+ * Amiberry interface
  *
  */
 
@@ -299,8 +299,6 @@ void target_default_options(struct uae_prefs* p, int type)
 
 void target_save_options(struct zfile* f, struct uae_prefs* p)
 {
-	cfgfile_write(f, "pandora.cpu_speed", "%d", p->pandora_cpu_speed);
-	cfgfile_write(f, "pandora.hide_idle_led", "%d", p->pandora_hide_idle_led);
 	cfgfile_write(f, "pandora.tap_delay", "%d", p->pandora_tapDelay);
 	cfgfile_write(f, "pandora.custom_controls", "%d", p->pandora_customControls);
 	//	cfgfile_write(f, "pandora.custom_up", "%d", customControlMap[VK_UP]);
@@ -313,8 +311,6 @@ void target_save_options(struct zfile* f, struct uae_prefs* p)
 	//	cfgfile_write(f, "pandora.custom_y", "%d", customControlMap[VK_Y]);
 	//	cfgfile_write(f, "pandora.custom_l", "%d", customControlMap[VK_L]);
 	//	cfgfile_write(f, "pandora.custom_r", "%d", customControlMap[VK_R]);
-	cfgfile_write(f, "pandora.move_x", "%d", p->pandora_horizontal_offset);
-	cfgfile_write(f, "pandora.move_y", "%d", p->pandora_vertical_offset);
 }
 
 void target_restart()
@@ -328,9 +324,7 @@ TCHAR* target_expand_environment(const TCHAR* path)
 
 int target_parse_option(struct uae_prefs* p, const char* option, const char* value)
 {
-	int result = (cfgfile_intval(option, value, "cpu_speed", &p->pandora_cpu_speed, 1)
-		|| cfgfile_intval(option, value, "hide_idle_led", &p->pandora_hide_idle_led, 1)
-		|| cfgfile_intval(option, value, "tap_delay", &p->pandora_tapDelay, 1)
+	int result = (cfgfile_intval(option, value, "tap_delay", &p->pandora_tapDelay, 1)
 		|| cfgfile_intval(option, value, "custom_controls", &p->pandora_customControls, 1)
 		//	              || cfgfile_intval(option, value, "custom_up", &customControlMap[VK_UP], 1)
 		//	              || cfgfile_intval(option, value, "custom_down", &customControlMap[VK_DOWN], 1)
@@ -342,8 +336,6 @@ int target_parse_option(struct uae_prefs* p, const char* option, const char* val
 		//	              || cfgfile_intval(option, value, "custom_y", &customControlMap[VK_Y], 1)
 		//	              || cfgfile_intval(option, value, "custom_l", &customControlMap[VK_L], 1)
 		//	              || cfgfile_intval(option, value, "custom_r", &customControlMap[VK_R], 1)
-		|| cfgfile_intval(option, value, "move_x", &p->pandora_horizontal_offset, 1)
-		|| cfgfile_intval(option, value, "move_y", &p->pandora_vertical_offset, 1)
 	);
 	return result;
 }

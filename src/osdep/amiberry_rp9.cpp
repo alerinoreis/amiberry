@@ -7,7 +7,7 @@
 #include "gui.h"
 #include "disk.h"
 #include "fsdb.h"
-#include "memory.h"
+#include "include/memory.h"
 #include "newcpu.h"
 #include "custom.h"
 #include "filesys.h"
