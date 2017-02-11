@@ -169,7 +169,7 @@ static amodes mode_from_str(const TCHAR *str)
 	if (_tcsncmp(str, _T("PC8r"), 4) == 0) return PC8r;
 	if (_tcsncmp(str, _T("Immd"), 4) == 0) return imm;
 	abort();
-	return 0;
+	return amodes(0);
 }
 
 STATIC_INLINE amodes mode_from_mr(int mode, int reg)
@@ -195,7 +195,7 @@ STATIC_INLINE amodes mode_from_mr(int mode, int reg)
 		}
 	}
 	abort();
-	return 0;
+	return amodes(0);
 }
 
 static void build_insn(int insn)

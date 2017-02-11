@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build68k", "build68k\build6
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genblitter", "genblitter\genblitter.vcxproj", "{BE2B1D39-E9E7-4258-A5E9-97F8A4774321}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gencomp", "gencomp\gencomp.vcxproj", "{02DACC83-9769-4BAC-8561-E64D946502F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|VisualGDB = Debug|VisualGDB
@@ -105,6 +107,26 @@ Global
 		{BE2B1D39-E9E7-4258-A5E9-97F8A4774321}.Release-rpi2|x64.Build.0 = Release|VisualGDB
 		{BE2B1D39-E9E7-4258-A5E9-97F8A4774321}.Release-rpi2|x86.ActiveCfg = Release|VisualGDB
 		{BE2B1D39-E9E7-4258-A5E9-97F8A4774321}.Release-rpi2|x86.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Debug|x64.ActiveCfg = Debug|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Debug|x86.ActiveCfg = Debug|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release|VisualGDB.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release|x64.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release|x86.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi1|VisualGDB.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi1|VisualGDB.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi1|x64.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi1|x64.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi1|x86.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi1|x86.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi2|VisualGDB.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi2|VisualGDB.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi2|x64.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi2|x64.Build.0 = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi2|x86.ActiveCfg = Release|VisualGDB
+		{02DACC83-9769-4BAC-8561-E64D946502F7}.Release-rpi2|x86.Build.0 = Release|VisualGDB
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
