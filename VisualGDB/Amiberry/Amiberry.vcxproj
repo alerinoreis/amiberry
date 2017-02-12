@@ -114,9 +114,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\src\filesys.asm" />
-    <None Include="..\..\src\inputevents.def" />
-    <None Include="..\..\src\table68k" />
     <None Include="Amiberry-Debug.vgdbsettings" />
     <None Include="Amiberry-Release.vgdbsettings" />
   </ItemGroup>
@@ -181,13 +178,9 @@
     <ClCompile Include="..\..\src\cpuemu_20.cpp" />
     <ClCompile Include="..\..\src\cpuemu_21.cpp" />
     <ClCompile Include="..\..\src\cpuemu_22.cpp" />
-    <ClCompile Include="..\..\src\cpuemu_23.cpp" />
-    <ClCompile Include="..\..\src\cpuemu_24.cpp" />
     <ClCompile Include="..\..\src\cpuemu_31.cpp" />
     <ClCompile Include="..\..\src\cpuemu_32.cpp" />
     <ClCompile Include="..\..\src\cpuemu_33.cpp" />
-    <ClCompile Include="..\..\src\cpuemu_40.cpp" />
-    <ClCompile Include="..\..\src\cpuemu_50.cpp" />
     <ClCompile Include="..\..\src\cpummu.cpp" />
     <ClCompile Include="..\..\src\cpummu30.cpp" />
     <ClCompile Include="..\..\src\cpustbl.cpp" />

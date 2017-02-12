@@ -23480,7 +23480,7 @@ void REGPARAM2 CPUFUNC(op_6000_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 0)) goto didnt_jump;
+	if (!cctrue (0)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130983;
@@ -23507,7 +23507,7 @@ void REGPARAM2 CPUFUNC(op_6001_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 0)) goto didnt_jump;
+	if (!cctrue (0)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130984;
@@ -23544,7 +23544,7 @@ void REGPARAM2 CPUFUNC(op_60ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 0)) goto didnt_jump;
+	if (!cctrue (0)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130985;
@@ -23630,7 +23630,7 @@ void REGPARAM2 CPUFUNC(op_6200_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 2)) goto didnt_jump;
+	if (!cctrue (2)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130989;
@@ -23657,7 +23657,7 @@ void REGPARAM2 CPUFUNC(op_6201_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 2)) goto didnt_jump;
+	if (!cctrue (2)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130990;
@@ -23694,7 +23694,7 @@ void REGPARAM2 CPUFUNC(op_62ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 2)) goto didnt_jump;
+	if (!cctrue (2)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130991;
@@ -23719,7 +23719,7 @@ void REGPARAM2 CPUFUNC(op_6300_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 3)) goto didnt_jump;
+	if (!cctrue (3)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130992;
@@ -23746,7 +23746,7 @@ void REGPARAM2 CPUFUNC(op_6301_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 3)) goto didnt_jump;
+	if (!cctrue (3)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130993;
@@ -23783,7 +23783,7 @@ void REGPARAM2 CPUFUNC(op_63ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 3)) goto didnt_jump;
+	if (!cctrue (3)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130994;
@@ -23811,7 +23811,7 @@ void REGPARAM2 CPUFUNC(op_6400_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 4)) goto didnt_jump;
+	if (!cctrue (4)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130995;
@@ -23838,7 +23838,7 @@ void REGPARAM2 CPUFUNC(op_6401_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 4)) goto didnt_jump;
+	if (!cctrue (4)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130996;
@@ -23875,7 +23875,7 @@ void REGPARAM2 CPUFUNC(op_64ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 4)) goto didnt_jump;
+	if (!cctrue (4)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130997;
@@ -23900,7 +23900,7 @@ void REGPARAM2 CPUFUNC(op_6500_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 5)) goto didnt_jump;
+	if (!cctrue (5)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130998;
@@ -23927,7 +23927,7 @@ void REGPARAM2 CPUFUNC(op_6501_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 5)) goto didnt_jump;
+	if (!cctrue (5)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_130999;
@@ -23964,7 +23964,7 @@ void REGPARAM2 CPUFUNC(op_65ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 5)) goto didnt_jump;
+	if (!cctrue (5)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131000;
@@ -23989,7 +23989,7 @@ void REGPARAM2 CPUFUNC(op_6600_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 6)) goto didnt_jump;
+	if (!cctrue (6)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131001;
@@ -24016,7 +24016,7 @@ void REGPARAM2 CPUFUNC(op_6601_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 6)) goto didnt_jump;
+	if (!cctrue (6)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131002;
@@ -24053,7 +24053,7 @@ void REGPARAM2 CPUFUNC(op_66ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 6)) goto didnt_jump;
+	if (!cctrue (6)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131003;
@@ -24078,7 +24078,7 @@ void REGPARAM2 CPUFUNC(op_6700_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 7)) goto didnt_jump;
+	if (!cctrue (7)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131004;
@@ -24105,7 +24105,7 @@ void REGPARAM2 CPUFUNC(op_6701_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 7)) goto didnt_jump;
+	if (!cctrue (7)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131005;
@@ -24142,7 +24142,7 @@ void REGPARAM2 CPUFUNC(op_67ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 7)) goto didnt_jump;
+	if (!cctrue (7)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131006;
@@ -24167,7 +24167,7 @@ void REGPARAM2 CPUFUNC(op_6800_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 8)) goto didnt_jump;
+	if (!cctrue (8)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131007;
@@ -24194,7 +24194,7 @@ void REGPARAM2 CPUFUNC(op_6801_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 8)) goto didnt_jump;
+	if (!cctrue (8)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131008;
@@ -24231,7 +24231,7 @@ void REGPARAM2 CPUFUNC(op_68ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 8)) goto didnt_jump;
+	if (!cctrue (8)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131009;
@@ -24256,7 +24256,7 @@ void REGPARAM2 CPUFUNC(op_6900_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 9)) goto didnt_jump;
+	if (!cctrue (9)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131010;
@@ -24283,7 +24283,7 @@ void REGPARAM2 CPUFUNC(op_6901_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 9)) goto didnt_jump;
+	if (!cctrue (9)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131011;
@@ -24320,7 +24320,7 @@ void REGPARAM2 CPUFUNC(op_69ff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 9)) goto didnt_jump;
+	if (!cctrue (9)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131012;
@@ -24345,7 +24345,7 @@ void REGPARAM2 CPUFUNC(op_6a00_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 10)) goto didnt_jump;
+	if (!cctrue (10)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131013;
@@ -24372,7 +24372,7 @@ void REGPARAM2 CPUFUNC(op_6a01_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 10)) goto didnt_jump;
+	if (!cctrue (10)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131014;
@@ -24409,7 +24409,7 @@ void REGPARAM2 CPUFUNC(op_6aff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 10)) goto didnt_jump;
+	if (!cctrue (10)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131015;
@@ -24434,7 +24434,7 @@ void REGPARAM2 CPUFUNC(op_6b00_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 11)) goto didnt_jump;
+	if (!cctrue (11)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131016;
@@ -24461,7 +24461,7 @@ void REGPARAM2 CPUFUNC(op_6b01_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 11)) goto didnt_jump;
+	if (!cctrue (11)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131017;
@@ -24498,7 +24498,7 @@ void REGPARAM2 CPUFUNC(op_6bff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 11)) goto didnt_jump;
+	if (!cctrue (11)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131018;
@@ -24523,7 +24523,7 @@ void REGPARAM2 CPUFUNC(op_6c00_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 12)) goto didnt_jump;
+	if (!cctrue (12)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131019;
@@ -24550,7 +24550,7 @@ void REGPARAM2 CPUFUNC(op_6c01_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 12)) goto didnt_jump;
+	if (!cctrue (12)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131020;
@@ -24587,7 +24587,7 @@ void REGPARAM2 CPUFUNC(op_6cff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 12)) goto didnt_jump;
+	if (!cctrue (12)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131021;
@@ -24612,7 +24612,7 @@ void REGPARAM2 CPUFUNC(op_6d00_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 13)) goto didnt_jump;
+	if (!cctrue (13)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131022;
@@ -24639,7 +24639,7 @@ void REGPARAM2 CPUFUNC(op_6d01_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 13)) goto didnt_jump;
+	if (!cctrue (13)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131023;
@@ -24676,7 +24676,7 @@ void REGPARAM2 CPUFUNC(op_6dff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 13)) goto didnt_jump;
+	if (!cctrue (13)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131024;
@@ -24701,7 +24701,7 @@ void REGPARAM2 CPUFUNC(op_6e00_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 14)) goto didnt_jump;
+	if (!cctrue (14)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131025;
@@ -24728,7 +24728,7 @@ void REGPARAM2 CPUFUNC(op_6e01_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 14)) goto didnt_jump;
+	if (!cctrue (14)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131026;
@@ -24765,7 +24765,7 @@ void REGPARAM2 CPUFUNC(op_6eff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 14)) goto didnt_jump;
+	if (!cctrue (14)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131027;
@@ -24790,7 +24790,7 @@ void REGPARAM2 CPUFUNC(op_6f00_13)(uae_u32 opcode)
 {
 {{	uae_s16 src = regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 15)) goto didnt_jump;
+	if (!cctrue (15)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131028;
@@ -24817,7 +24817,7 @@ void REGPARAM2 CPUFUNC(op_6f01_13)(uae_u32 opcode)
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 15)) goto didnt_jump;
+	if (!cctrue (15)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131029;
@@ -24854,7 +24854,7 @@ void REGPARAM2 CPUFUNC(op_6fff_13)(uae_u32 opcode)
 	src = get_word_ce000_prefetch (2) << 16;
 	src |= regs.irc;
 	do_cycles_ce000 (2);
-	if (!cctrue (regs.ccrflags, 15)) goto didnt_jump;
+	if (!cctrue (15)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_131030;

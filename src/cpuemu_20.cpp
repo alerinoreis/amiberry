@@ -17891,7 +17891,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_50fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 0)) { Exception (7); goto l_200946; }
+	if (cctrue (0)) { Exception (7); goto l_200946; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_200946: ;
@@ -17905,7 +17905,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_50fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 0)) { Exception (7); goto l_200947; }
+	if (cctrue (0)) { Exception (7); goto l_200947; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_200947: ;
@@ -17917,7 +17917,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_50fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 0)) { Exception (7); goto l_200948; }
+{	if (cctrue (0)) { Exception (7); goto l_200948; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_200948: ;
@@ -18656,7 +18656,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_51fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 1)) { Exception (7); goto l_200984; }
+	if (cctrue (1)) { Exception (7); goto l_200984; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_200984: ;
@@ -18670,7 +18670,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_51fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 1)) { Exception (7); goto l_200985; }
+	if (cctrue (1)) { Exception (7); goto l_200985; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_200985: ;
@@ -18682,7 +18682,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_51fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 1)) { Exception (7); goto l_200986; }
+{	if (cctrue (1)) { Exception (7); goto l_200986; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_200986: ;
@@ -18823,7 +18823,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_52fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 2)) { Exception (7); goto l_200996; }
+	if (cctrue (2)) { Exception (7); goto l_200996; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_200996: ;
@@ -18837,7 +18837,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_52fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 2)) { Exception (7); goto l_200997; }
+	if (cctrue (2)) { Exception (7); goto l_200997; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_200997: ;
@@ -18849,7 +18849,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_52fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 2)) { Exception (7); goto l_200998; }
+{	if (cctrue (2)) { Exception (7); goto l_200998; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_200998: ;
@@ -18990,7 +18990,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_53fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 3)) { Exception (7); goto l_201008; }
+	if (cctrue (3)) { Exception (7); goto l_201008; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201008: ;
@@ -19004,7 +19004,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_53fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 3)) { Exception (7); goto l_201009; }
+	if (cctrue (3)) { Exception (7); goto l_201009; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201009: ;
@@ -19016,7 +19016,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_53fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 3)) { Exception (7); goto l_201010; }
+{	if (cctrue (3)) { Exception (7); goto l_201010; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201010: ;
@@ -19157,7 +19157,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_54fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 4)) { Exception (7); goto l_201020; }
+	if (cctrue (4)) { Exception (7); goto l_201020; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201020: ;
@@ -19171,7 +19171,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_54fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 4)) { Exception (7); goto l_201021; }
+	if (cctrue (4)) { Exception (7); goto l_201021; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201021: ;
@@ -19183,7 +19183,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_54fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 4)) { Exception (7); goto l_201022; }
+{	if (cctrue (4)) { Exception (7); goto l_201022; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201022: ;
@@ -19324,7 +19324,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_55fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 5)) { Exception (7); goto l_201032; }
+	if (cctrue (5)) { Exception (7); goto l_201032; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201032: ;
@@ -19338,7 +19338,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_55fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 5)) { Exception (7); goto l_201033; }
+	if (cctrue (5)) { Exception (7); goto l_201033; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201033: ;
@@ -19350,7 +19350,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_55fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 5)) { Exception (7); goto l_201034; }
+{	if (cctrue (5)) { Exception (7); goto l_201034; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201034: ;
@@ -19491,7 +19491,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_56fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 6)) { Exception (7); goto l_201044; }
+	if (cctrue (6)) { Exception (7); goto l_201044; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201044: ;
@@ -19505,7 +19505,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_56fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 6)) { Exception (7); goto l_201045; }
+	if (cctrue (6)) { Exception (7); goto l_201045; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201045: ;
@@ -19517,7 +19517,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_56fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 6)) { Exception (7); goto l_201046; }
+{	if (cctrue (6)) { Exception (7); goto l_201046; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201046: ;
@@ -19658,7 +19658,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_57fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 7)) { Exception (7); goto l_201056; }
+	if (cctrue (7)) { Exception (7); goto l_201056; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201056: ;
@@ -19672,7 +19672,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_57fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 7)) { Exception (7); goto l_201057; }
+	if (cctrue (7)) { Exception (7); goto l_201057; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201057: ;
@@ -19684,7 +19684,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_57fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 7)) { Exception (7); goto l_201058; }
+{	if (cctrue (7)) { Exception (7); goto l_201058; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201058: ;
@@ -19825,7 +19825,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_58fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 8)) { Exception (7); goto l_201068; }
+	if (cctrue (8)) { Exception (7); goto l_201068; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201068: ;
@@ -19839,7 +19839,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_58fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 8)) { Exception (7); goto l_201069; }
+	if (cctrue (8)) { Exception (7); goto l_201069; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201069: ;
@@ -19851,7 +19851,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_58fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 8)) { Exception (7); goto l_201070; }
+{	if (cctrue (8)) { Exception (7); goto l_201070; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201070: ;
@@ -19992,7 +19992,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_59fa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 9)) { Exception (7); goto l_201080; }
+	if (cctrue (9)) { Exception (7); goto l_201080; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201080: ;
@@ -20006,7 +20006,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_59fb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 9)) { Exception (7); goto l_201081; }
+	if (cctrue (9)) { Exception (7); goto l_201081; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201081: ;
@@ -20018,7 +20018,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_59fc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 9)) { Exception (7); goto l_201082; }
+{	if (cctrue (9)) { Exception (7); goto l_201082; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201082: ;
@@ -20159,7 +20159,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_5afa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 10)) { Exception (7); goto l_201092; }
+	if (cctrue (10)) { Exception (7); goto l_201092; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201092: ;
@@ -20173,7 +20173,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_5afb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 10)) { Exception (7); goto l_201093; }
+	if (cctrue (10)) { Exception (7); goto l_201093; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201093: ;
@@ -20185,7 +20185,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_5afc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 10)) { Exception (7); goto l_201094; }
+{	if (cctrue (10)) { Exception (7); goto l_201094; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201094: ;
@@ -20326,7 +20326,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_5bfa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 11)) { Exception (7); goto l_201104; }
+	if (cctrue (11)) { Exception (7); goto l_201104; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201104: ;
@@ -20340,7 +20340,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_5bfb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 11)) { Exception (7); goto l_201105; }
+	if (cctrue (11)) { Exception (7); goto l_201105; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201105: ;
@@ -20352,7 +20352,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_5bfc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 11)) { Exception (7); goto l_201106; }
+{	if (cctrue (11)) { Exception (7); goto l_201106; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201106: ;
@@ -20493,7 +20493,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_5cfa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 12)) { Exception (7); goto l_201116; }
+	if (cctrue (12)) { Exception (7); goto l_201116; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201116: ;
@@ -20507,7 +20507,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_5cfb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 12)) { Exception (7); goto l_201117; }
+	if (cctrue (12)) { Exception (7); goto l_201117; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201117: ;
@@ -20519,7 +20519,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_5cfc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 12)) { Exception (7); goto l_201118; }
+{	if (cctrue (12)) { Exception (7); goto l_201118; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201118: ;
@@ -20660,7 +20660,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_5dfa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 13)) { Exception (7); goto l_201128; }
+	if (cctrue (13)) { Exception (7); goto l_201128; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201128: ;
@@ -20674,7 +20674,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_5dfb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 13)) { Exception (7); goto l_201129; }
+	if (cctrue (13)) { Exception (7); goto l_201129; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201129: ;
@@ -20686,7 +20686,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_5dfc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 13)) { Exception (7); goto l_201130; }
+{	if (cctrue (13)) { Exception (7); goto l_201130; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201130: ;
@@ -20827,7 +20827,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_5efa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 14)) { Exception (7); goto l_201140; }
+	if (cctrue (14)) { Exception (7); goto l_201140; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201140: ;
@@ -20841,7 +20841,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_5efb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 14)) { Exception (7); goto l_201141; }
+	if (cctrue (14)) { Exception (7); goto l_201141; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201141: ;
@@ -20853,7 +20853,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_5efc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 14)) { Exception (7); goto l_201142; }
+{	if (cctrue (14)) { Exception (7); goto l_201142; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201142: ;
@@ -20994,7 +20994,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_5ffa_20)(uae_u32 opcode)
 {
 {{	uae_s16 dummy = get_word_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 15)) { Exception (7); goto l_201152; }
+	if (cctrue (15)) { Exception (7); goto l_201152; }
 	regs.irc = get_word_020_prefetch (4);
 }}	m68k_incpci (4);
 l_201152: ;
@@ -21008,7 +21008,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_5ffb_20)(uae_u32 opcode)
 {
 {{	uae_s32 dummy;
 	dummy = get_long_020_prefetch (2);
-	if (cctrue (regs.ccrflags, 15)) { Exception (7); goto l_201153; }
+	if (cctrue (15)) { Exception (7); goto l_201153; }
 	regs.irc = get_word_020_prefetch (6);
 }}	m68k_incpci (6);
 l_201153: ;
@@ -21020,7 +21020,7 @@ return 12 * CYCLE_UNIT / 2;
 #ifndef CPUEMU_68000_ONLY
 uae_u32 REGPARAM2 CPUFUNC(op_5ffc_20)(uae_u32 opcode)
 {
-{	if (cctrue (regs.ccrflags, 15)) { Exception (7); goto l_201154; }
+{	if (cctrue (15)) { Exception (7); goto l_201154; }
 	regs.irc = get_word_020_prefetch (2);
 }	m68k_incpci (2);
 l_201154: ;
@@ -21032,7 +21032,7 @@ return 4 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6000_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 0)) goto didnt_jump;
+	if (!cctrue (0)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201155;
@@ -21052,7 +21052,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6001_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 0)) goto didnt_jump;
+	if (!cctrue (0)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201156;
@@ -21072,7 +21072,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_60ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 0)) goto didnt_jump;
+	if (!cctrue (0)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201157;
@@ -21141,7 +21141,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6200_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 2)) goto didnt_jump;
+	if (!cctrue (2)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201161;
@@ -21161,7 +21161,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6201_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 2)) goto didnt_jump;
+	if (!cctrue (2)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201162;
@@ -21181,7 +21181,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_62ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 2)) goto didnt_jump;
+	if (!cctrue (2)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201163;
@@ -21200,7 +21200,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6300_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 3)) goto didnt_jump;
+	if (!cctrue (3)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201164;
@@ -21220,7 +21220,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6301_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 3)) goto didnt_jump;
+	if (!cctrue (3)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201165;
@@ -21240,7 +21240,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_63ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 3)) goto didnt_jump;
+	if (!cctrue (3)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201166;
@@ -21262,7 +21262,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6400_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 4)) goto didnt_jump;
+	if (!cctrue (4)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201167;
@@ -21282,7 +21282,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6401_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 4)) goto didnt_jump;
+	if (!cctrue (4)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201168;
@@ -21302,7 +21302,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_64ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 4)) goto didnt_jump;
+	if (!cctrue (4)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201169;
@@ -21321,7 +21321,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6500_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 5)) goto didnt_jump;
+	if (!cctrue (5)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201170;
@@ -21341,7 +21341,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6501_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 5)) goto didnt_jump;
+	if (!cctrue (5)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201171;
@@ -21361,7 +21361,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_65ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 5)) goto didnt_jump;
+	if (!cctrue (5)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201172;
@@ -21380,7 +21380,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6600_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 6)) goto didnt_jump;
+	if (!cctrue (6)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201173;
@@ -21400,7 +21400,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6601_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 6)) goto didnt_jump;
+	if (!cctrue (6)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201174;
@@ -21420,7 +21420,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_66ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 6)) goto didnt_jump;
+	if (!cctrue (6)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201175;
@@ -21439,7 +21439,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6700_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 7)) goto didnt_jump;
+	if (!cctrue (7)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201176;
@@ -21459,7 +21459,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6701_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 7)) goto didnt_jump;
+	if (!cctrue (7)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201177;
@@ -21479,7 +21479,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_67ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 7)) goto didnt_jump;
+	if (!cctrue (7)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201178;
@@ -21498,7 +21498,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6800_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 8)) goto didnt_jump;
+	if (!cctrue (8)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201179;
@@ -21518,7 +21518,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6801_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 8)) goto didnt_jump;
+	if (!cctrue (8)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201180;
@@ -21538,7 +21538,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_68ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 8)) goto didnt_jump;
+	if (!cctrue (8)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201181;
@@ -21557,7 +21557,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6900_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 9)) goto didnt_jump;
+	if (!cctrue (9)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201182;
@@ -21577,7 +21577,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6901_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 9)) goto didnt_jump;
+	if (!cctrue (9)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201183;
@@ -21597,7 +21597,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_69ff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 9)) goto didnt_jump;
+	if (!cctrue (9)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201184;
@@ -21616,7 +21616,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6a00_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 10)) goto didnt_jump;
+	if (!cctrue (10)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201185;
@@ -21636,7 +21636,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6a01_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 10)) goto didnt_jump;
+	if (!cctrue (10)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201186;
@@ -21656,7 +21656,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6aff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 10)) goto didnt_jump;
+	if (!cctrue (10)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201187;
@@ -21675,7 +21675,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6b00_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 11)) goto didnt_jump;
+	if (!cctrue (11)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201188;
@@ -21695,7 +21695,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6b01_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 11)) goto didnt_jump;
+	if (!cctrue (11)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201189;
@@ -21715,7 +21715,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6bff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 11)) goto didnt_jump;
+	if (!cctrue (11)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201190;
@@ -21734,7 +21734,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6c00_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 12)) goto didnt_jump;
+	if (!cctrue (12)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201191;
@@ -21754,7 +21754,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6c01_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 12)) goto didnt_jump;
+	if (!cctrue (12)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201192;
@@ -21774,7 +21774,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6cff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 12)) goto didnt_jump;
+	if (!cctrue (12)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201193;
@@ -21793,7 +21793,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6d00_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 13)) goto didnt_jump;
+	if (!cctrue (13)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201194;
@@ -21813,7 +21813,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6d01_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 13)) goto didnt_jump;
+	if (!cctrue (13)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201195;
@@ -21833,7 +21833,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6dff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 13)) goto didnt_jump;
+	if (!cctrue (13)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201196;
@@ -21852,7 +21852,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6e00_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 14)) goto didnt_jump;
+	if (!cctrue (14)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201197;
@@ -21872,7 +21872,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6e01_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 14)) goto didnt_jump;
+	if (!cctrue (14)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201198;
@@ -21892,7 +21892,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6eff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 14)) goto didnt_jump;
+	if (!cctrue (14)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201199;
@@ -21911,7 +21911,7 @@ return 12 * CYCLE_UNIT / 2;
 uae_u32 REGPARAM2 CPUFUNC(op_6f00_20)(uae_u32 opcode)
 {
 {{	uae_s16 src = get_word_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 15)) goto didnt_jump;
+	if (!cctrue (15)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201200;
@@ -21931,7 +21931,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6f01_20)(uae_u32 opcode)
 {
 	uae_u32 srcreg = (uae_s32)(uae_s8)(opcode & 255);
 {{	uae_u32 src = srcreg;
-	if (!cctrue (regs.ccrflags, 15)) goto didnt_jump;
+	if (!cctrue (15)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201201;
@@ -21951,7 +21951,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_6fff_20)(uae_u32 opcode)
 {
 {{	uae_s32 src;
 	src = get_long_020_prefetch (2);
-	if (!cctrue (regs.ccrflags, 15)) goto didnt_jump;
+	if (!cctrue (15)) goto didnt_jump;
 	if (src & 1) {
 		exception3i (opcode, m68k_getpci () + 2 + (uae_s32)src);
 		goto l_201202;

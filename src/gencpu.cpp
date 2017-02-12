@@ -3906,8 +3906,8 @@ static void gen_opcode(unsigned long int opcode)
 			}
 		}
 		genamode (curi, amodes(curi->smode), "srcreg", wordsizes(curi->size), "src", 1, 0, GF_AA | (cpu_level < 2 ? GF_NOREFILL : 0));
-		addcycles000 (2);
-		printf ("\tif (!cctrue (regs.ccrflags, %d)) goto didnt_jump;\n", curi->cc);
+		addcycles000(2);
+		printf("\tif (!cctrue (%d)) goto didnt_jump;\n", curi->cc);
 		if (using_exception_3) {
 			printf("\tif (src & 1) {\n");
 			printf("\t\texception3i (opcode, %s + 2 + (uae_s32)src);\n", getpc);
@@ -4803,8 +4803,8 @@ static void gen_opcode(unsigned long int opcode)
 	case i_TRAPcc:
 		if (curi->smode != am_unknown && curi->smode != am_illg)
 			genamode (curi, amodes(curi->smode), "srcreg", wordsizes(curi->size), "dummy", 1, 0, 0);
-		fill_prefetch_0 ();
-		printf ("\tif (cctrue (regs.ccrflags, %d)) { Exception (7); goto %s; }\n", curi->cc, endlabelstr);
+		fill_prefetch_0();
+		printf("\tif (cctrue (%d)) { Exception (7); goto %s; }\n", curi->cc, endlabelstr);
 		need_endlabel = 1;
 		break;
 	case i_DIVL:
