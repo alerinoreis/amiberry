@@ -35,6 +35,7 @@
 #include "calc.h"
 #include "gfxboard.h"
 #include "luascript.h"
+#include <SDL.h>
 
 static int config_newfilesystem;
 static struct strlist *temp_lines;
@@ -5075,8 +5076,6 @@ void default_prefs(struct uae_prefs* p, int type)
 	p->avoid_cmov = 0;
 	p->comp_midopt = 0;
 	p->comp_lowopt = 0;
-
-	p->cachesize = DEFAULT_JIT_CACHE_SIZE;
 
 	for (i = 0; i < 10; i++)
 		p->optcount[i] = -1;

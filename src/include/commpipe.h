@@ -7,6 +7,7 @@
 */
 
 #pragma once
+
 typedef union {
 	int i;
 	uae_u32 u32;
@@ -33,7 +34,7 @@ typedef struct {
 STATIC_INLINE void init_comm_pipe(smp_comm_pipe *p, int size, int chunks)
 {
 	memset(p, 0, sizeof(*p));
-	p->data = (uae_pt *)malloc(size * sizeof(uae_pt));
+	p->data = static_cast<uae_pt *>(malloc(size * sizeof(uae_pt)));
 	p->size = size;
 	p->chunks = chunks;
 	p->rdp = p->wrp = 0;

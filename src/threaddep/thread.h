@@ -6,6 +6,7 @@
  * Copyright 1997, 2001 Bernd Schmidt
  */
 
+#pragma once
 #include "SDL.h"
 #include <SDL_thread.h>
 
@@ -26,13 +27,8 @@ STATIC_INLINE int uae_sem_init(uae_sem_t *sem, int dummy, int init)
 #define uae_sem_getvalue(PSEM) SDL_SemValue (*PSEM)
 
 #include "commpipe.h"
-
 typedef SDL_Thread *uae_thread_id;
 #define BAD_THREAD 0
-
-//void dbg_add_thread(uae_thread_id id, const char *name);
-//void dbg_rem_thread(uae_thread_id id);
-//void dbg_list_threads(void);
 
 STATIC_INLINE void uae_set_thread_priority (uae_thread_id *id, int pri)
 {
@@ -41,26 +37,25 @@ STATIC_INLINE void uae_set_thread_priority (uae_thread_id *id, int pri)
 STATIC_INLINE int uae_start_thread (const TCHAR *name, void *(*f) (void *), void *arg, uae_thread_id *foo)
 {
 //    uae_thread_id id = SDL_CreateThread ((int (*)(void *))f, arg);
-	uae_thread_id id = SDL_CreateThread((int(*)(void *))f, "StartThread", arg);
+	uae_thread_id id = SDL_CreateThread(reinterpret_cast<int(*)(void*)>(f), "StartThread", arg);
     if(foo != NULL)
         *foo = id;
-//  dbg_add_thread(id, name);
-    return (int)id;
+    return int(id);
 }
 
 STATIC_INLINE int uae_start_thread_fast (void *(*f) (void *), void *arg, uae_thread_id *foo)
 {
 //    uae_thread_id id = SDL_CreateThread ((int (*)(void *))f, arg);
-	uae_thread_id id = SDL_CreateThread((int(*)(void *))f, "StartThreadFast", arg);
+	uae_thread_id id = SDL_CreateThread(reinterpret_cast<int(*)(void*)>(f), "StartThreadFast", arg);
     if(foo != NULL)
         *foo = id;
 //  dbg_add_thread(id, "<fast>");
-    return (int)id;
+    return int(id);
 }
 
 STATIC_INLINE void uae_wait_thread (uae_thread_id thread)
 {
-    SDL_WaitThread (thread, (int*)0);
+    SDL_WaitThread (thread, static_cast<int*>(0));
 //  dbg_rem_thread(thread);
 }
 

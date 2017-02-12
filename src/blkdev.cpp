@@ -148,13 +148,13 @@ extern struct device_functions devicefunc_win32_ioctl;
 extern struct device_functions devicefunc_cdimage;
 
 static struct device_functions *devicetable[] = {
-	NULL,
+	nullptr,
 	&devicefunc_cdimage,
-#ifdef _WIN32
-	&devicefunc_win32_ioctl,
-	&devicefunc_win32_spti,
-#endif
-	NULL
+//#ifdef _WIN32
+//	&devicefunc_win32_ioctl,
+//	&devicefunc_win32_spti,
+//#endif
+	nullptr
 };
 static int driver_installed[6];
 
@@ -164,7 +164,7 @@ static void install_driver(int flags)
 		struct blkdevstate *st = &state[i];
 		st->scsiemu = false;
 		st->type = -1;
-		st->device_func = NULL;
+		st->device_func = nullptr;
 	}
 	if (flags > 0) {
 		state[0].device_func = devicetable[flags];
@@ -174,7 +174,7 @@ static void install_driver(int flags)
 		for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 			struct blkdevstate *st = &state[i];
 			st->scsiemu = false;
-			st->device_func = NULL;
+			st->device_func = nullptr;
 			switch (cdscsidevicetype[i])
 			{
 			case SCSI_UNIT_IMAGE:
@@ -186,13 +186,13 @@ static void install_driver(int flags)
 				st->scsiemu = true;
 				break;
 			case SCSI_UNIT_SPTI:
-				if (currprefs.win32_uaescsimode == UAESCSI_CDEMU) {
-					st->device_func = devicetable[SCSI_UNIT_IOCTL];
-					st->scsiemu = true;
-				}
-				else {
+				//if (currprefs.win32_uaescsimode == UAESCSI_CDEMU) {
+				//	st->device_func = devicetable[SCSI_UNIT_IOCTL];
+				//	st->scsiemu = true;
+				//}
+				//else {
 					st->device_func = devicetable[SCSI_UNIT_SPTI];
-				}
+				//}
 				break;
 			}
 		}
@@ -233,14 +233,14 @@ void blkdev_fix_prefs(struct uae_prefs *p)
 	}
 
 	for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
-		if (cdscsidevicetype[i] != SCSI_UNIT_DEFAULT && (currprefs.scsi == 0 || currprefs.win32_uaescsimode < UAESCSI_SPTI))
+		if (cdscsidevicetype[i] != SCSI_UNIT_DEFAULT && (currprefs.scsi == 0))
 			continue;
 		if (p->cdslots[i].inuse || p->cdslots[i].name[0]) {
 			TCHAR *name = p->cdslots[i].name;
 			if (_tcslen(name) == 3 && name[1] == ':' && name[2] == '\\') {
-				if (currprefs.scsi && (currprefs.win32_uaescsimode == UAESCSI_SPTI || currprefs.win32_uaescsimode == UAESCSI_SPTISCAN))
-					cdscsidevicetype[i] = SCSI_UNIT_SPTI;
-				else
+				//if (currprefs.scsi && (currprefs.win32_uaescsimode == UAESCSI_SPTI || currprefs.win32_uaescsimode == UAESCSI_SPTISCAN))
+				//	cdscsidevicetype[i] = SCSI_UNIT_SPTI;
+				//else
 					cdscsidevicetype[i] = SCSI_UNIT_IOCTL;
 			}
 			else {
@@ -248,9 +248,9 @@ void blkdev_fix_prefs(struct uae_prefs *p)
 			}
 		}
 		else if (currprefs.scsi) {
-			if (currprefs.win32_uaescsimode == UAESCSI_CDEMU)
-				cdscsidevicetype[i] = SCSI_UNIT_IOCTL;
-			else
+			//if (currprefs.win32_uaescsimode == UAESCSI_CDEMU)
+			//	cdscsidevicetype[i] = SCSI_UNIT_IOCTL;
+			//else
 				cdscsidevicetype[i] = SCSI_UNIT_SPTI;
 		}
 		else {
@@ -263,7 +263,7 @@ void blkdev_fix_prefs(struct uae_prefs *p)
 static bool getsem(int unitnum, bool dowait)
 {
 	struct blkdevstate *st = &state[unitnum];
-	if (st->sema == NULL)
+	if (st->sema == nullptr)
 		uae_sem_init(&st->sema, 0, 1);
 	bool gotit = false;
 	if (dowait) {
@@ -391,14 +391,14 @@ static int get_standard_cd_unit2(struct uae_prefs *p, cd_standard_unit csu)
 	for (int drive = 'C'; drive <= 'Z'; ++drive) {
 		TCHAR vol[100];
 		_stprintf(vol, _T("%c:\\"), drive);
-		int drivetype = GetDriveType(vol);
+		/*int drivetype = GetDriveType(vol);
 		if (drivetype == DRIVE_CDROM) {
 			if (sys_command_open_internal(unitnum, vol, csu)) {
 				if (getunitinfo(unitnum, drive, csu, &isaudio))
 					return unitnum;
 				sys_command_close(unitnum);
 			}
-		}
+		}*/
 	}
 	if (isaudio) {
 		TCHAR vol[100];
