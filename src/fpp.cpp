@@ -725,13 +725,13 @@ static bool fpu_isnan(fptype fp)
 }
 static bool fpu_isinfinity(fptype fp)
 {
-#ifdef _MSC_VER
-	return !_finite(fp);
-#elif defined(HAVE_ISINF)
-	return _isinf(fp);
-#else
-	return false;
-#endif
+//#ifdef _MSC_VER
+	return !finite(fp);
+//#elif defined(HAVE_ISINF)
+//	return _isinf(fp);
+//#else
+//	return false;
+//#endif
 }
 
 uae_u32 get_fpsr(void)

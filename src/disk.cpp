@@ -4000,7 +4000,7 @@ end:
 			writebuffer[0] == 0 && writebuffer[1] == 0 && writebuffer[2] == 0 && writebuffer[3] == 2 &&
 			writebuffer[508] == 0 && writebuffer[509] == 0 && writebuffer[510] == 0 && writebuffer[511] == 1) {
 			writebuffer[512 - 20 * 4 + 1 + writebuffer[512 - 20 * 4]] = 0;
-			TCHAR *n = au((const char*)(writebuffer + 512 - 20 * 4 + 1));
+			TCHAR *n = au(reinterpret_cast<const char*>(writebuffer + 512 - 20 * 4 + 1));
 			if (_tcslen(n) >= sizeof(di->diskname))
 				n[sizeof(di->diskname) - 1] = 0;
 			_tcscpy(di->diskname, n);

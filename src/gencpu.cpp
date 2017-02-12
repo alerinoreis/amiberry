@@ -3559,17 +3559,17 @@ static void gen_opcode(unsigned long int opcode)
 		did_prefetch = -1;
 		break;
 	case i_LPSTOP: /* 68060 */
-		printf ("\tuae_u16 sw = %s (2);\n", srcwi);
-		printf ("\tuae_u16 sr;\n");
-		printf ("\tif (sw != (0x100|0x80|0x40)) { Exception (4); return 4 * CYCLE_UNIT / 2; }\n");
-		printf ("\tsr = %s (4);\n", srcwi);
-		printf ("\tif (!(sr & 0x8000)) { Exception (8); return 4 * CYCLE_UNIT / 2; }\n");
-		printf ("\tregs.sr = sr;\n");
-		makefromsr ();
-		printf ("\tm68k_setstopped();\n");
+		printf("\tuae_u16 sw = %s (2);\n", srcwi);
+		printf("\tuae_u16 sr;\n");
+		printf("\tif (sw != (0x100|0x80|0x40)) { Exception (4); goto %s; }\n", endlabelstr);
+		printf("\tsr = %s (4);\n", srcwi);
+		printf("\tif (!(sr & 0x8000)) { Exception (8); goto %s; }\n", endlabelstr);
+		printf("\tregs.sr = sr;\n");
+		makefromsr();
+		printf("\tm68k_setstopped();\n");
 		m68k_pc_offset += 4;
-		sync_m68k_pc ();
-		fill_prefetch_full ();
+		sync_m68k_pc();
+		fill_prefetch_full();
 		break;
 	case i_RTE:
 		addop_ce020 (curi, 0);

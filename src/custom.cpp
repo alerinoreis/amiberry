@@ -9542,8 +9542,10 @@ static int dma_cycle(void)
 
 STATIC_INLINE void checknasty(int hpos, int vpos)
 {
+#ifdef DEBUGGER
 	if (blitter_nasty >= BLIT_NASTY && !(dmacon & DMA_BLITPRI))
 		record_dma_event(DMA_EVENT_BLITNASTY, hpos, vpos);
+#endif
 }
 
 static void sync_ce020(void)

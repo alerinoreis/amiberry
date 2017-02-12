@@ -9,8 +9,8 @@
 #define MMUDEBUGMISC 0
 
 //#ifdef _MSC_VER
-//#define unlikely(x) x
-//#define likely(x) x
+#define unlikely(x) x
+#define likely(x) x
 //#endif
 
 #ifdef __cplusplus

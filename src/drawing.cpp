@@ -3394,7 +3394,7 @@ static void pfield_draw_line(struct vidbuffer *vb, int lineno, int gfx_ypos, int
 				flush_screen(gfxvidinfo.inbuffer, 0, 0); /* vsync mode */
 		}
 
-		gui_flicker_led(-1, 0);
+		gui_flicker_led(-1, 0, 0);
 #ifdef AVIOUTPUT
 		if (!picasso_on)
 			frame_drawn();

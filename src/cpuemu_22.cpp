@@ -45518,9 +45518,9 @@ void REGPARAM2 CPUFUNC(op_f800_22)(uae_u32 opcode)
 {if (!regs.s) { Exception (8); goto l_221867; }
 {	uae_u16 sw = x_get_iword (2);
 	uae_u16 sr;
-	if (sw != (0x100|0x80|0x40)) { Exception (4); return 4 * CYCLE_UNIT / 2; }
+	if (sw != (0x100|0x80|0x40)) { Exception (4); goto l_221867; }
 	sr = x_get_iword (4);
-	if (!(sr & 0x8000)) { Exception (8); return 4 * CYCLE_UNIT / 2; }
+	if (!(sr & 0x8000)) { Exception (8); goto l_221867; }
 	regs.sr = sr;
 	MakeFromSR();
 	regs.ipl_pin = intlev ();
