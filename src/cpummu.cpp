@@ -1,39 +1,37 @@
 /*
- * cpummu.cpp -  MMU emulation
- *
- * Copyright (c) 2001-2004 Milan Jurik of ARAnyM dev team (see AUTHORS)
- * 
- * Inspired by UAE MMU patch
- *
- * This file is part of the ARAnyM project which builds a new and powerful
- * TOS/FreeMiNT compatible virtual machine running on almost any hardware.
- *
- * ARAnyM is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * ARAnyM is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+* cpummu.cpp -  MMU emulation
+*
+* Copyright (c) 2001-2004 Milan Jurik of ARAnyM dev team (see AUTHORS)
+*
+* Inspired by UAE MMU patch
+*
+* This file is part of the ARAnyM project which builds a new and powerful
+* TOS/FreeMiNT compatible virtual machine running on almost any hardware.
+*
+* ARAnyM is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* ARAnyM is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with ARAnyM; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 
 
 #include "sysconfig.h"
 #include "sysdeps.h"
 
 #include "options.h"
-#include "include/memory.h"
+#include "memory.h"
 #include "newcpu.h"
 #include "cpummu.h"
 #include "debug.h"
-
-#define MMUDUMP 0
 
 #define DBG_MMU_VERBOSE	1
 #define DBG_MMU_SANITY	1
@@ -42,6 +40,7 @@
 #endif
 
 #ifdef FULLMMU
+
 
 uae_u32 mmu_is_super;
 uae_u32 mmu_tagmask, mmu_pagemask, mmu_pagemaski;
@@ -63,20 +62,21 @@ uae_u32 mmu040_move16[4];
 static void mmu_dump_ttr(const TCHAR * label, uae_u32 ttr)
 {
 	DUNUSED(label);
-#if MMUDEBUG > 0
 	uae_u32 from_addr, to_addr;
 
 	from_addr = ttr & MMU_TTR_LOGICAL_BASE;
 	to_addr = (ttr & MMU_TTR_LOGICAL_MASK) << 8;
 
-	write_log(_T("%s: [%08x] %08x - %08x enabled=%d supervisor=%d wp=%d cm=%02d\n"),
-			label, ttr,
-			from_addr, to_addr,
-			ttr & MMU_TTR_BIT_ENABLED ? 1 : 0,
-			(ttr & (MMU_TTR_BIT_SFIELD_ENABLED | MMU_TTR_BIT_SFIELD_SUPER)) >> MMU_TTR_SFIELD_SHIFT,
-			ttr & MMU_TTR_BIT_WRITE_PROTECT ? 1 : 0,
-			(ttr & MMU_TTR_CACHE_MASK) >> MMU_TTR_CACHE_SHIFT
-		  );
+
+#if MMUDEBUG > 0
+	write_log(_T("%s: [%08lx] %08lx - %08lx enabled=%d supervisor=%d wp=%d cm=%02d\n"),
+		label, ttr,
+		from_addr, to_addr,
+		ttr & MMU_TTR_BIT_ENABLED ? 1 : 0,
+		(ttr & (MMU_TTR_BIT_SFIELD_ENABLED | MMU_TTR_BIT_SFIELD_SUPER)) >> MMU_TTR_SFIELD_SHIFT,
+		ttr & MMU_TTR_BIT_WRITE_PROTECT ? 1 : 0,
+		(ttr & MMU_TTR_CACHE_MASK) >> MMU_TTR_CACHE_SHIFT
+	);
 #endif
 }
 
@@ -102,76 +102,13 @@ void mmu_make_transparent_region(uaecptr baseaddr, uae_u32 size, int datamode)
 #endif
 }
 
-void mmu_tt_modified (void)
+void mmu_tt_modified(void)
 {
 	mmu_ttr_enabled = ((regs.dtt0 | regs.dtt1 | regs.itt0 | regs.itt1) & MMU_TTR_BIT_ENABLED) != 0;
 }
 
 
-#if MMUDUMP
-
-/* This dump output makes much more sense than old one */
-
-#define LEVELA_SIZE 7
-#define LEVELB_SIZE 7
-#define LEVELC_SIZE 6
-#define PAGE_SIZE 12 // = 1 << 12 = 4096
-
-#define LEVELA_VAL(x) ((((uae_u32)(x)) >> (32 - (LEVELA_SIZE                            ))) & ((1 << LEVELA_SIZE) - 1))
-#define LEVELB_VAL(x) ((((uae_u32)(x)) >> (32 - (LEVELA_SIZE + LEVELB_SIZE              ))) & ((1 << LEVELB_SIZE) - 1))
-#define LEVELC_VAL(x) ((((uae_u32)(x)) >> (32 - (LEVELA_SIZE + LEVELB_SIZE + LEVELC_SIZE))) & ((1 << LEVELC_SIZE) - 1))
-
-#define LEVELA(root, x) (get_long(root + LEVELA_VAL(x) * 4))
-#define LEVELB(a, x) (get_long((((uae_u32)a) & ~((1 << (LEVELB_SIZE + 2)) - 1)) + LEVELB_VAL(x) * 4))
-#define LEVELC(b, x) (get_long((((uae_u32)b) & ~((1 << (LEVELC_SIZE + 2)) - 1)) + LEVELC_VAL(x) * 4))
-
-#define ISINVALID(x) ((((ULONG)x) & 3) == 0)
-
-static uae_u32 getdesc(uae_u32 root, uae_u32 addr)
-{
-	ULONG desc;
-
-	desc = LEVELA(root, addr);
-	if (ISINVALID(desc))
-		return desc;
-	desc = LEVELB(desc, addr);
-	if (ISINVALID(desc))
-		return desc;
-	desc = LEVELC(desc, addr);
-	return desc;
-}
-static void mmu_dump_table(const char * label, uaecptr root_ptr)
-{
-	ULONG i;
-	ULONG startaddr;
-	ULONG odesc;
-	ULONG totalpages;
-	ULONG pagemask = (1 << PAGE_SIZE) - 1;
-
-	console_out_f(_T("MMU dump start. Root = %08x\n"), root_ptr);
-	totalpages = 1 << (32 - PAGE_SIZE);
-	startaddr = 0;
-	odesc = getdesc(root_ptr, startaddr);
-	for (i = 0; i <= totalpages; i++) {
-		ULONG addr = i << PAGE_SIZE;
-		ULONG desc = 0;
-		if (i < totalpages)
-			desc = getdesc(root_ptr, addr);
-		if ((desc & pagemask) != (odesc & pagemask) || i == totalpages) {
-			uae_u8 cm, sp;
-			cm = (odesc >> 5) & 3;
-			sp = (odesc >> 7) & 1;
-			console_out_f(_T("%08x - %08x: %08x WP=%d S=%d CM=%d (%08x)\n"),
-				startaddr, addr - 1, odesc & ~((1 << PAGE_SIZE) - 1),
-				(odesc & 4) ? 1 : 0, sp, cm, odesc);
-			startaddr = addr;
-			odesc = desc;
-		}
-	}
-	console_out_f(_T("MMU dump end\n"));
-}			
-
-#else
+#if 0
 /* {{{ mmu_dump_table */
 static void mmu_dump_table(const char * label, uaecptr root_ptr)
 {
@@ -187,7 +124,7 @@ static void mmu_dump_table(const char * label, uaecptr root_ptr)
 	uaecptr ptr_des_addr, page_addr,
 		root_log, ptr_log, page_log;
 
-	console_out_f(_T("%s: root=%x\n"), label, root_ptr);
+	write_log(_T("%s: root=%lx\n", label, root_ptr);
 
 	for (root_idx = 0; root_idx < ROOT_TABLE_SIZE; root_idx++) {
 		root_des = phys_get_long(root_ptr + root_idx);
@@ -195,11 +132,11 @@ static void mmu_dump_table(const char * label, uaecptr root_ptr)
 		if ((root_des & 2) == 0)
 			continue;	/* invalid */
 
-		console_out_f(_T("ROOT: %03d U=%d W=%d UDT=%02d\n"), root_idx,
-				root_des & 8 ? 1 : 0,
-				root_des & 4 ? 1 : 0,
-				root_des & 3
-			  );
+		write_log(_T("ROOT: %03d U=%d W=%d UDT=%02d\n", root_idx,
+			root_des & 8 ? 1 : 0,
+			root_des & 4 ? 1 : 0,
+			root_des & 3
+		);
 
 		root_log = root_idx << ROOT_INDEX_SHIFT;
 
@@ -228,61 +165,63 @@ static void mmu_dump_table(const char * label, uaecptr root_ptr)
 				page_log = ptr_log | (page_idx << 2);		// ??? PAGE_INDEX_SHIFT
 
 				switch (page_des & 3) {
-					case 0: /* invalid */
-						continue;
-					case 1: case 3: /* resident */
-					case 2: /* indirect */
-						if (n_pages_used == -1 || page_info[n_pages_used].match != page_des) {
-							/* use the next entry */
-							n_pages_used++;
+				case 0: /* invalid */
+					continue;
+				case 1: case 3: /* resident */
+				case 2: /* indirect */
+					if (n_pages_used == -1 || page_info[n_pages_used].match != page_des) {
+						/* use the next entry */
+						n_pages_used++;
 
-							page_info[n_pages_used].match = page_des;
-							page_info[n_pages_used].n_pages = 1;
-							page_info[n_pages_used].start_idx = page_idx;
-							page_info[n_pages_used].log = page_log;
-						} else {
-							page_info[n_pages_used].n_pages++;
-						}
-						break;
+						page_info[n_pages_used].match = page_des;
+						page_info[n_pages_used].n_pages = 1;
+						page_info[n_pages_used].start_idx = page_idx;
+						page_info[n_pages_used].log = page_log;
+					}
+					else {
+						page_info[n_pages_used].n_pages++;
+					}
+					break;
 				}
 			}
 
 			if (n_pages_used == -1)
 				continue;
 
-			console_out_f(_T(" PTR: %03d U=%d W=%d UDT=%02d\n"), ptr_idx,
+			write_log(_T(" PTR: %03d U=%d W=%d UDT=%02d\n", ptr_idx,
 				ptr_des & 8 ? 1 : 0,
 				ptr_des & 4 ? 1 : 0,
 				ptr_des & 3
-			  );
+			);
 
 
 			for (page_idx = 0; page_idx <= n_pages_used; page_idx++) {
 				page_des = page_info[page_idx].match;
 
 				if ((page_des & MMU_PDT_MASK) == 2) {
-					console_out_f(_T("  PAGE: %03d-%03d log=%08x INDIRECT --> addr=%08x\n"),
-							page_info[page_idx].start_idx,
-							page_info[page_idx].start_idx + page_info[page_idx].n_pages - 1,
-							page_info[page_idx].log,
-							page_des & MMU_PAGE_INDIRECT_MASK
-						  );
+					write_log(_T("  PAGE: %03d-%03d log=%08lx INDIRECT --> addr=%08lx\n",
+						page_info[page_idx].start_idx,
+						page_info[page_idx].start_idx + page_info[page_idx].n_pages - 1,
+						page_info[page_idx].log,
+						page_des & MMU_PAGE_INDIRECT_MASK
+					);
 
-				} else {
-					console_out_f(_T("  PAGE: %03d-%03d log=%08x addr=%08x UR=%02d G=%d U1/0=%d S=%d CM=%d M=%d U=%d W=%d\n"),
-							page_info[page_idx].start_idx,
-							page_info[page_idx].start_idx + page_info[page_idx].n_pages - 1,
-							page_info[page_idx].log,
-							page_des & (mmu_pagesize_8k ? MMU_PAGE_ADDR_MASK_8 : MMU_PAGE_ADDR_MASK_4),
-							(page_des & (mmu_pagesize_8k ? MMU_PAGE_UR_MASK_8 : MMU_PAGE_UR_MASK_4)) >> MMU_PAGE_UR_SHIFT,
-							page_des & MMU_DES_GLOBAL ? 1 : 0,
-							(page_des & MMU_TTR_UX_MASK) >> MMU_TTR_UX_SHIFT,
-							page_des & MMU_DES_SUPER ? 1 : 0,
-							(page_des & MMU_TTR_CACHE_MASK) >> MMU_TTR_CACHE_SHIFT,
-							page_des & MMU_DES_MODIFIED ? 1 : 0,
-							page_des & MMU_DES_USED ? 1 : 0,
-							page_des & MMU_DES_WP ? 1 : 0
-						  );
+				}
+				else {
+					write_log(_T("  PAGE: %03d-%03d log=%08lx addr=%08lx UR=%02d G=%d U1/0=%d S=%d CM=%d M=%d U=%d W=%d\n",
+						page_info[page_idx].start_idx,
+						page_info[page_idx].start_idx + page_info[page_idx].n_pages - 1,
+						page_info[page_idx].log,
+						page_des & (mmu_pagesize_8k ? MMU_PAGE_ADDR_MASK_8 : MMU_PAGE_ADDR_MASK_4),
+						(page_des & (mmu_pagesize_8k ? MMU_PAGE_UR_MASK_8 : MMU_PAGE_UR_MASK_4)) >> MMU_PAGE_UR_SHIFT,
+						page_des & MMU_DES_GLOBAL ? 1 : 0,
+						(page_des & MMU_TTR_UX_MASK) >> MMU_TTR_UX_SHIFT,
+						page_des & MMU_DES_SUPER ? 1 : 0,
+						(page_des & MMU_TTR_CACHE_MASK) >> MMU_TTR_CACHE_SHIFT,
+						page_des & MMU_DES_MODIFIED ? 1 : 0,
+						page_des & MMU_DES_USED ? 1 : 0,
+						page_des & MMU_DES_WP ? 1 : 0
+					);
 				}
 			}
 		}
@@ -293,7 +232,7 @@ static void mmu_dump_table(const char * label, uaecptr root_ptr)
 #endif
 
 /* {{{ mmu_dump_atc */
-static void mmu_dump_atc(void)
+void mmu_dump_atc(void)
 {
 
 }
@@ -308,8 +247,8 @@ void mmu_dump_tables(void)
 	mmu_dump_ttr(_T("ITT0"), regs.itt0);
 	mmu_dump_ttr(_T("ITT1"), regs.itt1);
 	mmu_dump_atc();
-#if MMUDUMP
-	mmu_dump_table("SRP", regs.srp);
+#if MMUDEBUG
+	// mmu_dump_table("SRP", regs.srp);
 #endif
 }
 /* }}} */
@@ -321,7 +260,7 @@ static ALWAYS_INLINE int mmu_get_fc(bool super, bool data)
 	return (super ? 4 : 0) | (data ? 1 : 2);
 }
 
-void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32 status, bool nonmmu)
+void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32 status)
 {
 	if (currprefs.mmu_model == 68040) {
 		uae_u16 ssw = 0;
@@ -334,7 +273,7 @@ void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32
 			if ((fc2 & 3) != 3)
 				fc2 &= ~2;
 #if MMUDEBUGMISC > 0
-			write_log (_T("040 MMU MOVES fc=%d -> %d\n"), fc, fc2);
+			write_log(_T("040 MMU MOVES fc=%d -> %d\n"), fc, fc2);
 #endif
 			fc = fc2;
 		}
@@ -359,7 +298,7 @@ void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32
 			ssw |= MMU_SSW_RW;
 
 		if (size == 16) { // MOVE16
-			ssw |= MMU_SSW_SIZE_CL;
+			ssw |= MMU_SSW_SIZE_L; // ?? maybe MMU_SSW_SIZE_CL?
 			ssw |= MMU_SSW_TT0;
 			regs.mmu_effective_addr &= ~15;
 			if (write) {
@@ -368,7 +307,7 @@ void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32
 				// wb2 = cacheline size writeback
 				regs.wb2_status = 0x80 | MMU_SSW_SIZE_CL | (ssw & 0x1f);
 				regs.wb2_address = regs.mmu_effective_addr;
-				write_log (_T("040 MMU MOVE16 WRITE FAULT!\n"));
+				write_log(_T("040 MMU MOVE16 WRITE FAULT!\n"));
 			}
 		}
 
@@ -377,26 +316,25 @@ void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32
 			regs.mmu_effective_addr = mmu040_movem_ea;
 			mmu040_movem = 0;
 #if MMUDEBUGMISC > 0
-			write_log (_T("040 MMU_SSW_CM EA=%08X\n"), mmu040_movem_ea);
+			write_log(_T("040 MMU_SSW_CM EA=%08X\n"), mmu040_movem_ea);
 #endif
 		}
 		if (locked_rmw_cycle) {
-			ssw |= MMU_SSW_LK;
-			ssw &= ~MMU_SSW_RW;
+			ssw |= MMU_SSW_LK | MMU_SSW_RW;
 			locked_rmw_cycle = false;
 #if MMUDEBUGMISC > 0
-			write_log (_T("040 MMU_SSW_LK!\n"));
+			write_log(_T("040 MMU_SSW_LK!\n"));
 #endif
 		}
 
-		if (!nonmmu)
-			ssw |= MMU_SSW_ATC;
+		ssw |= MMU_SSW_ATC;
 		regs.mmu_ssw = ssw;
 
 #if MMUDEBUG > 0
 		write_log(_T("BF: fc=%d w=%d logical=%08x ssw=%04x PC=%08x INS=%04X\n"), fc, write, addr, ssw, m68k_getpc(), mmu_opcode);
 #endif
-	} else {
+	}
+	else {
 		uae_u32 fslw = 0;
 
 		fslw |= write ? MMU_FSLW_W : MMU_FSLW_R;
@@ -426,17 +364,18 @@ void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32
 			addr = regs.instruction_pc;
 			if (mmu060_state == 0) {
 				fslw |= MMU_FSLW_IO; // opword fetch
-			} else {
+			}
+			else {
 				fslw |= MMU_FSLW_IO | MMU_FSLW_MA; // extension word
 			}
 		}
 		if (rmw) {
-			fslw |=  MMU_FSLW_W | MMU_FSLW_R;
+			fslw |= MMU_FSLW_W | MMU_FSLW_R;
 		}
 		if (locked_rmw_cycle) {
 			fslw |= MMU_FSLW_LK;
 			locked_rmw_cycle = false;
-			write_log (_T("060 MMU_FSLW_LK!\n"));
+			write_log(_T("060 MMU_FSLW_LK!\n"));
 		}
 		fslw |= status;
 		regs.mmu_fslw = fslw;
@@ -450,11 +389,11 @@ void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32
 	regs.mmu_fault_addr = addr;
 
 #if 0
-	if (m68k_getpc () == 0x0004B0AC) {
-		write_log (_T("*"));
+	if (m68k_getpc() == 0x0004B0AC) {
+		write_log(_T("*"));
 #if 0
 		extern void activate_debugger(void);
-		activate_debugger ();
+		activate_debugger();
 #endif
 	}
 #endif
@@ -469,13 +408,13 @@ void mmu_bus_error_ttr_write_fault(uaecptr addr, bool super, bool data, uae_u32 
 		status |= MMU_FSLW_TTR;
 	}
 	regs.wb3_data = val;
-	mmu_bus_error(addr, mmu_get_fc (super, data), true, size, false, status, false);
+	mmu_bus_error(addr, mmu_get_fc(super, data), true, size, false, status);
 }
 
 
 /*
- * Update the atc line for a given address by doing a mmu lookup.
- */
+* Update the atc line for a given address by doing a mmu lookup.
+*/
 static uaecptr mmu_fill_atc(uaecptr addr, bool super, bool data, bool write, struct mmu_atc_line *l, uae_u32 *status)
 {
 	uae_u32 desc;
@@ -496,30 +435,32 @@ static uaecptr mmu_fill_atc(uaecptr addr, bool super, bool data, bool write, str
 		*status = MMU_FSLW_TWE;
 		// goto fail;
 	} ENDTRY
-	if ((desc & 1) && (!super && desc & MMU_MMUSR_S)) {
-		*status |= MMU_FSLW_SP;
+		if ((desc & 1) && (!super && desc & MMU_MMUSR_S)) {
+			*status |= MMU_FSLW_SP;
 #if MMUDEBUG > 1
-		write_log (_T("MMU: supervisor protected %x\n"), addr);
+			write_log(_T("MMU: supervisor protected %x\n"), addr);
 #endif
-		l->valid = 0;
-		l->global = 0;
-	} else if ((desc & 1) == 0) {
-		l->valid = 0;
-		l->global = 0;
-	} else {
-		l->valid = 1;
-		l->phys = desc & mmu_pagemaski;
-		l->global = (desc & MMU_MMUSR_G) != 0;
-		l->modified = (desc & MMU_MMUSR_M) != 0;
-		l->write_protect = (desc & MMU_MMUSR_W) != 0;
-	}
+			l->valid = 0;
+			l->global = 0;
+		}
+		else if ((desc & 1) == 0) {
+			l->valid = 0;
+			l->global = 0;
+		}
+		else {
+			l->valid = 1;
+			l->phys = desc & mmu_pagemaski;
+			l->global = (desc & MMU_MMUSR_G) != 0;
+			l->modified = (desc & MMU_MMUSR_M) != 0;
+			l->write_protect = (desc & MMU_MMUSR_W) != 0;
+		}
 
-	return desc;
+		return desc;
 }
 
 static ALWAYS_INLINE bool mmu_fill_atc_try(uaecptr addr, bool super, bool data, bool write, struct mmu_atc_line *l1, uae_u32 *status)
 {
-	mmu_fill_atc(addr,super,data,write,l1, status);
+	mmu_fill_atc(addr, super, data, write, l1, status);
 	if (!(l1->valid)) {
 #if MMUDEBUG > 2
 		write_log(_T("MMU: non-resident page (%x,%x)!\n"), addr, regs.pc);
@@ -530,7 +471,7 @@ static ALWAYS_INLINE bool mmu_fill_atc_try(uaecptr addr, bool super, bool data, 
 		if (l1->write_protect) {
 			*status |= MMU_FSLW_WP;
 #if MMUDEBUG > 0
-			write_log(_T("MMU: write protected %x by atc \n"), addr);
+			write_log(_T("MMU: write protected %lx by atc \n"), addr);
 #endif
 			mmu_dump_atc();
 			goto fail;
@@ -556,19 +497,19 @@ uaecptr REGPARAM2 mmu_translate(uaecptr addr, bool super, bool data, bool write)
 #if MMUDEBUG > 2
 		write_log(_T("[MMU] mmu_translate error"));
 #endif
-		mmu_bus_error(addr, mmu_get_fc(super, data), write, 0, false, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), write, 0, false, status);
 		return 0;
 	}
 
-    return l->phys | (addr & mmu_pagemask);
+	return l->phys | (addr & mmu_pagemask);
 
 }
 
 /*
- * Lookup the address by walking the page table and updating
- * the page descriptors accordingly. Returns the found descriptor
- * or produces a bus error.
- */
+* Lookup the address by walking the page table and updating
+* the page descriptors accordingly. Returns the found descriptor
+* or produces a bus error.
+*/
 static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool write, uae_u32 *status)
 {
 	uae_u32 desc, desc_addr, wp;
@@ -583,8 +524,8 @@ static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool wri
 	desc = phys_get_long(desc_addr);
 	if ((desc & 2) == 0) {
 #if MMUDEBUG > 1
-		write_log(_T("MMU: invalid root descriptor %s for %x desc at %x desc=%x\n"), super ? _T("srp"):_T("urp"),
-				addr, desc_addr, desc);
+		write_log(_T("MMU: invalid root descriptor %s for %x desc at %x desc=%x\n"), super ? _T("srp") : _T("urp"),
+			addr, desc_addr, desc);
 #endif
 		*status |= MMU_FSLW_PTA;
 		return 0;
@@ -600,8 +541,8 @@ static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool wri
 	desc = phys_get_long(desc_addr);
 	if ((desc & 2) == 0) {
 #if MMUDEBUG > 1
-		write_log(_T("MMU: invalid ptr descriptor %s for %x desc at %x desc=%x\n"), super ? _T("srp"):_T("urp"), 
-				addr, desc_addr, desc);
+		write_log(_T("MMU: invalid ptr descriptor %s for %x desc at %x desc=%x\n"), super ? _T("srp") : _T("urp"),
+			addr, desc_addr, desc);
 #endif
 		*status |= MMU_FSLW_PTB;
 		return 0;
@@ -614,7 +555,8 @@ static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool wri
 	if (mmu_pagesize_8k) {
 		i = (addr >> 11) & 0x7c;
 		desc_addr = (desc & MMU_PTR_PAGE_ADDR_MASK_8) + i;
-	} else {
+	}
+	else {
 		i = (addr >> 10) & 0xfc;
 		desc_addr = (desc & MMU_PTR_PAGE_ADDR_MASK_4) + i;
 	}
@@ -627,14 +569,15 @@ static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool wri
 	}
 	if ((desc & 1) == 0) {
 #if MMUDEBUG > 2
-		write_log(_T("MMU: invalid page descriptor log=%0x desc=%08x @%08x\n"), addr, desc, desc_addr);
+		write_log(_T("MMU: invalid page descriptor log=%0lx desc=%08x @%08x\n"), addr, desc, desc_addr);
 #endif
 		if ((desc & 3) == 2) {
 			*status |= MMU_FSLW_IL;
 #if MMUDEBUG > 1
-			write_log(_T("MMU: double indirect descriptor log=%0x desc=%08x @%08x\n"), addr, desc, desc_addr);
+			write_log(_T("MMU: double indirect descriptor log=%0lx desc=%08x @%08x\n"), addr, desc, desc_addr);
 #endif	
-		} else {
+		}
+		else {
 			*status |= MMU_FSLW_PF;
 		}
 		return desc;
@@ -647,12 +590,14 @@ static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool wri
 				desc |= MMU_DES_USED;
 				phys_put_long(desc_addr, desc);
 			}
-		} else if ((desc & (MMU_DES_USED|MMU_DES_MODIFIED)) !=
-				   (MMU_DES_USED|MMU_DES_MODIFIED)) {
-			desc |= MMU_DES_USED|MMU_DES_MODIFIED;
+		}
+		else if ((desc & (MMU_DES_USED | MMU_DES_MODIFIED)) !=
+			(MMU_DES_USED | MMU_DES_MODIFIED)) {
+			desc |= MMU_DES_USED | MMU_DES_MODIFIED;
 			phys_put_long(desc_addr, desc);
 		}
-	} else {
+	}
+	else {
 		if ((desc & MMU_DES_USED) == 0) {
 			desc |= MMU_DES_USED;
 			phys_put_long(desc_addr, desc);
@@ -664,7 +609,7 @@ static uaecptr REGPARAM2 mmu_lookup_pagetable(uaecptr addr, bool super, bool wri
 static void misalignednotfirst(uaecptr addr)
 {
 #if MMUDEBUGMISC > 0
-	write_log (_T("misalignednotfirst %08x -> %08x %08X\n"), regs.mmu_fault_addr, addr, regs.instruction_pc);
+	write_log(_T("misalignednotfirst %08x -> %08x %08X\n"), regs.mmu_fault_addr, addr, regs.instruction_pc);
 #endif
 	regs.mmu_fault_addr = addr;
 	regs.mmu_fslw |= MMU_FSLW_MA;
@@ -675,7 +620,7 @@ static void misalignednotfirstcheck(uaecptr addr)
 {
 	if (regs.mmu_fault_addr == addr)
 		return;
-	misalignednotfirst (addr);
+	misalignednotfirst(addr);
 }
 
 uae_u16 REGPARAM2 mmu_get_word_unaligned(uaecptr addr, bool data, bool rmw)
@@ -693,7 +638,7 @@ uae_u16 REGPARAM2 mmu_get_word_unaligned(uaecptr addr, bool data, bool rmw)
 		misalignednotfirst(addr);
 		THROW_AGAIN(prb);
 	} ENDTRY
-	return res;
+		return res;
 }
 
 uae_u32 REGPARAM2 mmu_get_long_unaligned(uaecptr addr, bool data, bool rmw)
@@ -712,7 +657,8 @@ uae_u32 REGPARAM2 mmu_get_long_unaligned(uaecptr addr, bool data, bool rmw)
 			misalignednotfirst(addr);
 			THROW_AGAIN(prb);
 		} ENDTRY
-	} else {
+	}
+	else {
 		res = (uae_u32)mmu_get_byte(addr, data, sz_long, rmw) << 8;
 		SAVE_EXCEPTION;
 		TRY(prb) {
@@ -730,27 +676,7 @@ uae_u32 REGPARAM2 mmu_get_long_unaligned(uaecptr addr, bool data, bool rmw)
 	return res;
 }
 
-uae_u32 REGPARAM2 mmu_get_ilong_unaligned(uaecptr addr)
-{
-	uae_u32 res;
-
-	if (likely(!(addr & 1))) {
-		res = (uae_u32)mmu_get_iword(addr, sz_long) << 16;
-		SAVE_EXCEPTION;
-		TRY(prb) {
-			res |= mmu_get_iword(addr + 2, sz_long);
-			RESTORE_EXCEPTION;
-		}
-		CATCH(prb) {
-			RESTORE_EXCEPTION;
-			misalignednotfirst(addr);
-			THROW_AGAIN(prb);
-		} ENDTRY
-	}
-	return res;
-}
-
-static uae_u16 REGPARAM2 mmu_get_lrmw_word_unaligned(uaecptr addr)
+uae_u16 REGPARAM2 mmu_get_lrmw_word_unaligned(uaecptr addr)
 {
 	uae_u16 res;
 
@@ -765,10 +691,10 @@ static uae_u16 REGPARAM2 mmu_get_lrmw_word_unaligned(uaecptr addr)
 		misalignednotfirst(addr);
 		THROW_AGAIN(prb);
 	} ENDTRY
-	return res;
+		return res;
 }
 
-static uae_u32 REGPARAM2 mmu_get_lrmw_long_unaligned(uaecptr addr)
+uae_u32 REGPARAM2 mmu_get_lrmw_long_unaligned(uaecptr addr)
 {
 	uae_u32 res;
 
@@ -784,7 +710,8 @@ static uae_u32 REGPARAM2 mmu_get_lrmw_long_unaligned(uaecptr addr)
 			misalignednotfirst(addr);
 			THROW_AGAIN(prb);
 		} ENDTRY
-	} else {
+	}
+	else {
 		res = (uae_u32)mmu_get_user_byte(addr, regs.s != 0, true, true, sz_long) << 8;
 		SAVE_EXCEPTION;
 		TRY(prb) {
@@ -802,56 +729,36 @@ static uae_u32 REGPARAM2 mmu_get_lrmw_long_unaligned(uaecptr addr)
 	return res;
 }
 uae_u8 REGPARAM2 mmu_get_byte_slow(uaecptr addr, bool super, bool data,
-						 int size, bool rmw, struct mmu_atc_line *cl)
+	int size, bool rmw, struct mmu_atc_line *cl)
 {
 	uae_u32 status;
 	if (!mmu_fill_atc_try(addr, super, data, 0, cl, &status)) {
-		mmu_bus_error(addr, mmu_get_fc(super, data), 0, size, rmw, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), 0, size, rmw, status);
 		return 0;
 	}
-	return x_phys_get_byte(mmu_get_real_address(addr, cl));
+	return phys_get_byte(mmu_get_real_address(addr, cl));
 }
 
 uae_u16 REGPARAM2 mmu_get_word_slow(uaecptr addr, bool super, bool data,
-						  int size, bool rmw, struct mmu_atc_line *cl)
+	int size, bool rmw, struct mmu_atc_line *cl)
 {
 	uae_u32 status;
 	if (!mmu_fill_atc_try(addr, super, data, 0, cl, &status)) {
-		mmu_bus_error(addr, mmu_get_fc(super, data), 0, size, rmw, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), 0, size, rmw, status);
 		return 0;
 	}
-	return x_phys_get_word(mmu_get_real_address(addr, cl));
-}
-uae_u16 REGPARAM2 mmu_get_iword_slow(uaecptr addr, bool super,
-	int size, struct mmu_atc_line *cl)
-{
-	uae_u32 status;
-	if (!mmu_fill_atc_try(addr, super, false, 0, cl, &status)) {
-		mmu_bus_error(addr, mmu_get_fc(super, false), 0, size, false, status, false);
-		return 0;
-	}
-	return x_phys_get_iword(mmu_get_real_address(addr, cl));
+	return phys_get_word(mmu_get_real_address(addr, cl));
 }
 
 uae_u32 REGPARAM2 mmu_get_long_slow(uaecptr addr, bool super, bool data,
-						  int size, bool rmw, struct mmu_atc_line *cl)
+	int size, bool rmw, struct mmu_atc_line *cl)
 {
 	uae_u32 status;
 	if (!mmu_fill_atc_try(addr, super, data, 0, cl, &status)) {
-		mmu_bus_error(addr, mmu_get_fc(super, data), 0, size, rmw, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), 0, size, rmw, status);
 		return 0;
 	}
-	return x_phys_get_long(mmu_get_real_address(addr, cl));
-}
-uae_u32 REGPARAM2 mmu_get_ilong_slow(uaecptr addr, bool super,
-	int size, struct mmu_atc_line *cl)
-{
-	uae_u32 status;
-	if (!mmu_fill_atc_try(addr, super, false, 0, cl, &status)) {
-		mmu_bus_error(addr, mmu_get_fc(super, false), 0, size, false, status, false);
-		return 0;
-	}
-	return x_phys_get_ilong(mmu_get_real_address(addr, cl));
+	return phys_get_long(mmu_get_real_address(addr, cl));
 }
 
 void REGPARAM2 mmu_put_long_unaligned(uaecptr addr, uae_u32 val, bool data, bool rmw)
@@ -861,7 +768,8 @@ void REGPARAM2 mmu_put_long_unaligned(uaecptr addr, uae_u32 val, bool data, bool
 		if (likely(!(addr & 1))) {
 			mmu_put_word(addr, val >> 16, data, sz_long, rmw);
 			mmu_put_word(addr + 2, val, data, sz_long, rmw);
-		} else {
+		}
+		else {
 			mmu_put_byte(addr, val >> 24, data, sz_long, rmw);
 			mmu_put_byte(addr + 1, val >> 16, data, sz_long, rmw);
 			mmu_put_byte(addr + 2, val >> 8, data, sz_long, rmw);
@@ -894,39 +802,39 @@ void REGPARAM2 mmu_put_word_unaligned(uaecptr addr, uae_u16 val, bool data, bool
 }
 
 void REGPARAM2 mmu_put_byte_slow(uaecptr addr, uae_u8 val, bool super, bool data,
-								 int size, bool rmw, struct mmu_atc_line *cl)
+	int size, bool rmw, struct mmu_atc_line *cl)
 {
 	uae_u32 status;
 	if (!mmu_fill_atc_try(addr, super, data, 1, cl, &status)) {
 		regs.wb3_data = val;
-		mmu_bus_error(addr, mmu_get_fc(super, data), 1, size, rmw, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), 1, size, rmw, status);
 		return;
 	}
-	x_phys_put_byte(mmu_get_real_address(addr, cl), val);
+	phys_put_byte(mmu_get_real_address(addr, cl), val);
 }
 
 void REGPARAM2 mmu_put_word_slow(uaecptr addr, uae_u16 val, bool super, bool data,
-								 int size, bool rmw, struct mmu_atc_line *cl)
+	int size, bool rmw, struct mmu_atc_line *cl)
 {
 	uae_u32 status;
 	if (!mmu_fill_atc_try(addr, super, data, 1, cl, &status)) {
 		regs.wb3_data = val;
-		mmu_bus_error(addr, mmu_get_fc(super, data), 1, size, rmw, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), 1, size, rmw, status);
 		return;
 	}
-	x_phys_put_word(mmu_get_real_address(addr, cl), val);
+	phys_put_word(mmu_get_real_address(addr, cl), val);
 }
 
 void REGPARAM2 mmu_put_long_slow(uaecptr addr, uae_u32 val, bool super, bool data,
-								 int size, bool rmw, struct mmu_atc_line *cl)
+	int size, bool rmw, struct mmu_atc_line *cl)
 {
 	uae_u32 status;
 	if (!mmu_fill_atc_try(addr, super, data, 1, cl, &status)) {
 		regs.wb3_data = val;
-		mmu_bus_error(addr, mmu_get_fc(super, data), 1, size, rmw, status, false);
+		mmu_bus_error(addr, mmu_get_fc(super, data), 1, size, rmw, status);
 		return;
 	}
-	x_phys_put_long(mmu_get_real_address(addr, cl), val);
+	phys_put_long(mmu_get_real_address(addr, cl), val);
 }
 
 uae_u32 REGPARAM2 sfc_get_long(uaecptr addr)
@@ -938,7 +846,8 @@ uae_u32 REGPARAM2 sfc_get_long(uaecptr addr)
 	ismoves = true;
 	if (likely(!is_unaligned(addr, 4))) {
 		res = mmu_get_user_long(addr, super, data, false, sz_long);
-	} else {
+	}
+	else {
 		if (likely(!(addr & 1))) {
 			res = (uae_u32)mmu_get_user_word(addr, super, data, false, sz_long) << 16;
 			SAVE_EXCEPTION;
@@ -951,7 +860,8 @@ uae_u32 REGPARAM2 sfc_get_long(uaecptr addr)
 				misalignednotfirst(addr);
 				THROW_AGAIN(prb);
 			} ENDTRY
-		} else {
+		}
+		else {
 			res = (uae_u32)mmu_get_user_byte(addr, super, data, false, sz_long) << 8;
 			SAVE_EXCEPTION;
 			TRY(prb) {
@@ -981,7 +891,8 @@ uae_u16 REGPARAM2 sfc_get_word(uaecptr addr)
 	ismoves = true;
 	if (likely(!is_unaligned(addr, 2))) {
 		res = mmu_get_user_word(addr, super, data, false, sz_word);
-	} else {
+	}
+	else {
 		res = (uae_u16)mmu_get_user_byte(addr, super, data, false, sz_word) << 8;
 		SAVE_EXCEPTION;
 		TRY(prb) {
@@ -1003,7 +914,7 @@ uae_u8 REGPARAM2 sfc_get_byte(uaecptr addr)
 	bool super = (regs.sfc & 4) != 0;
 	bool data = true;
 	uae_u8 res;
-	
+
 	ismoves = true;
 	res = mmu_get_user_byte(addr, super, data, false, sz_byte);
 	ismoves = false;
@@ -1023,7 +934,8 @@ void REGPARAM2 dfc_put_long(uaecptr addr, uae_u32 val)
 		else if (likely(!(addr & 1))) {
 			mmu_put_user_word(addr, val >> 16, super, data, sz_long);
 			mmu_put_user_word(addr + 2, val, super, data, sz_long);
-		} else {
+		}
+		else {
 			mmu_put_user_byte(addr, val >> 24, super, data, sz_long);
 			mmu_put_user_byte(addr + 1, val >> 16, super, data, sz_long);
 			mmu_put_user_byte(addr + 2, val >> 8, super, data, sz_long);
@@ -1037,7 +949,7 @@ void REGPARAM2 dfc_put_long(uaecptr addr, uae_u32 val)
 		misalignednotfirstcheck(addr);
 		THROW_AGAIN(prb);
 	} ENDTRY
-	ismoves = false;
+		ismoves = false;
 }
 
 void REGPARAM2 dfc_put_word(uaecptr addr, uae_u16 val)
@@ -1062,7 +974,7 @@ void REGPARAM2 dfc_put_word(uaecptr addr, uae_u16 val)
 		misalignednotfirstcheck(addr);
 		THROW_AGAIN(prb);
 	} ENDTRY
-	ismoves = false;
+		ismoves = false;
 }
 
 void REGPARAM2 dfc_put_byte(uaecptr addr, uae_u8 val)
@@ -1081,7 +993,7 @@ void REGPARAM2 dfc_put_byte(uaecptr addr, uae_u8 val)
 		regs.wb3_data = val;
 		THROW_AGAIN(prb);
 	} ENDTRY
-	ismoves = false;
+		ismoves = false;
 }
 
 void mmu_get_move16(uaecptr addr, uae_u32 *v, bool data, int size)
@@ -1091,10 +1003,10 @@ void mmu_get_move16(uaecptr addr, uae_u32 *v, bool data, int size)
 	for (int i = 0; i < 4; i++) {
 		uaecptr addr2 = addr + i * 4;
 		//                                       addr,super,data
-		if ((!regs.mmu_enabled) || (mmu_match_ttr(addr2,regs.s != 0,data,false)!=TTR_NO_MATCH))
-			v[i] = x_phys_get_long(addr2);
+		if ((!regs.mmu_enabled) || (mmu_match_ttr(addr2, regs.s != 0, data, false) != TTR_NO_MATCH))
+			v[i] = phys_get_long(addr2);
 		else if (likely(mmu_lookup(addr2, data, false, &cl)))
-			v[i] = x_phys_get_long(mmu_get_real_address(addr2, cl));
+			v[i] = phys_get_long(mmu_get_real_address(addr2, cl));
 		else
 			v[i] = mmu_get_long_slow(addr2, regs.s != 0, data, size, false, cl);
 	}
@@ -1107,10 +1019,10 @@ void mmu_put_move16(uaecptr addr, uae_u32 *val, bool data, int size)
 	for (int i = 0; i < 4; i++) {
 		uaecptr addr2 = addr + i * 4;
 		//                                        addr,super,data
-		if ((!regs.mmu_enabled) || (mmu_match_ttr_write(addr2,regs.s != 0,data,val[i],size,false)==TTR_OK_MATCH))
-			x_phys_put_long(addr2,val[i]);
+		if ((!regs.mmu_enabled) || (mmu_match_ttr_write(addr2, regs.s != 0, data, val[i], size, false) == TTR_OK_MATCH))
+			phys_put_long(addr2, val[i]);
 		else if (likely(mmu_lookup(addr2, data, true, &cl)))
-			x_phys_put_long(mmu_get_real_address(addr2, cl), val[i]);
+			phys_put_long(mmu_get_real_address(addr2, cl), val[i]);
 		else
 			mmu_put_long_slow(addr2, val[i], regs.s != 0, data, size, false, cl);
 	}
@@ -1132,13 +1044,14 @@ void REGPARAM2 mmu_op_real(uae_u32 opcode, uae_u16 extra)
 
 		if (opcode & 16) {
 #if MMUINSDEBUG > 1
-			write_log(_T("pflusha(%u,%u) PC=%08x\n"), glob, regs.dfc, m68k_getpc ());
+			write_log(_T("pflusha(%u,%u) PC=%08x\n"), glob, regs.dfc, m68k_getpc());
 #endif
 			mmu_flush_atc_all(glob);
-		} else {
+		}
+		else {
 			addr = m68k_areg(regs, regno);
 #if MMUINSDEBUG > 1
-			write_log(_T("pflush(%u,%u,%x) PC=%08x\n"), glob, regs.dfc, addr, m68k_getpc ());
+			write_log(_T("pflush(%u,%u,%x) PC=%08x\n"), glob, regs.dfc, addr, m68k_getpc());
 #endif
 			mmu_flush_atc(addr, super, glob);
 		}
@@ -1146,7 +1059,8 @@ void REGPARAM2 mmu_op_real(uae_u32 opcode, uae_u16 extra)
 #ifdef USE_JIT
 		flush_icache(0);
 #endif
-	} else if ((opcode & 0x0FD8) == 0x0548) { // PTEST (68040)
+	}
+	else if ((opcode & 0x0FD8) == 0x0548) { // PTEST (68040)
 		bool write;
 		int regno;
 		uae_u32 addr;
@@ -1164,17 +1078,17 @@ void REGPARAM2 mmu_op_real(uae_u32 opcode, uae_u16 extra)
 			uae_u32 desc;
 			bool data = (regs.dfc & 3) != 2;
 
-			if (mmu_match_ttr(addr,super,data, false)!=TTR_NO_MATCH) {
+			if (mmu_match_ttr(addr, super, data, false) != TTR_NO_MATCH)
 				regs.mmusr = MMU_MMUSR_T | MMU_MMUSR_R;
-			} else {
+			else {
 				uae_u32 status;
 				mmu_user_lookup(addr, super, data, write, &l);
 				desc = mmu_fill_atc(addr, super, data, write, l, &status);
-				if (!(l->valid)) {
+				if (!(l->valid))
 					regs.mmusr = MMU_MMUSR_B;
-				} else {
-					regs.mmusr = desc & (~0xfff|MMU_MMUSR_G|MMU_MMUSR_Ux|MMU_MMUSR_S|
-										 MMU_MMUSR_CM|MMU_MMUSR_M|MMU_MMUSR_W);
+				else {
+					regs.mmusr = desc & (~0xfff | MMU_MMUSR_G | MMU_MMUSR_Ux | MMU_MMUSR_S |
+						MMU_MMUSR_CM | MMU_MMUSR_M | MMU_MMUSR_W);
 					regs.mmusr |= MMU_MMUSR_R;
 				}
 			}
@@ -1182,113 +1096,86 @@ void REGPARAM2 mmu_op_real(uae_u32 opcode, uae_u16 extra)
 		CATCH(prb) {
 			regs.mmusr = MMU_MMUSR_B;
 		} ENDTRY
-		RESTORE_EXCEPTION;
+			RESTORE_EXCEPTION;
 #if MMUINSDEBUG > 0
 		write_log(_T("PTEST result: mmusr %08x\n"), regs.mmusr);
 #endif
-	} else if ((opcode & 0xFFB8) == 0xF588) { // PLPA (68060)
+	}
+	else if ((opcode & 0xFFB8) == 0xF588) { // PLPA (68060)
 		int write = (opcode & 0x40) == 0;
 		int regno = opcode & 7;
-		uae_u32 addr = m68k_areg (regs, regno);
+		uae_u32 addr = m68k_areg(regs, regno);
 		bool data = (regs.dfc & 3) != 2;
 
 #if MMUINSDEBUG > 0
 		write_log(_T("PLPA%c param: %08x\n"), write ? 'W' : 'R', addr);
 #endif
-		if (mmu_match_ttr(addr,super,data,false)==TTR_NO_MATCH) {
-			m68k_areg (regs, regno) = mmu_translate (addr, super, data, write != 0);
+		if (mmu_match_ttr(addr, super, data, false) == TTR_NO_MATCH) {
+			m68k_areg(regs, regno) = mmu_translate(addr, super, data, write != 0);
 		}
 #if MMUINSDEBUG > 0
-		write_log(_T("PLPA%c result: %08x\n"), write ? 'W' : 'R', m68k_areg (regs, regno));
+		write_log(_T("PLPA%c result: %08x\n"), write ? 'W' : 'R', m68k_areg(regs, regno));
 #endif
-	} else {
-		op_illg (opcode);
+	}
+	else {
+		op_illg(opcode);
 	}
 }
 
 // fixme : global parameter?
 void REGPARAM2 mmu_flush_atc(uaecptr addr, bool super, bool global)
 {
-	int way,type,index;
+	int way, type, index;
 
 	uaecptr tag = ((super ? 0x80000000 : 0) | (addr >> 1)) & mmu_tagmask;
 	if (mmu_pagesize_8k)
-		index=(addr & 0x0001E000)>>13;
+		index = (addr & 0x0001E000) >> 13;
 	else
-		index=(addr & 0x0000F000)>>12;
-	for (type=0;type<ATC_TYPE;type++) {
-		for (way=0;way<ATC_WAYS;way++) {
+		index = (addr & 0x0000F000) >> 12;
+	for (type = 0; type<ATC_TYPE; type++) {
+		for (way = 0; way<ATC_WAYS; way++) {
 			if (!global && mmu_atc_array[type][way][index].global)
 				continue;
 			// if we have this 
 			if ((tag == mmu_atc_array[type][way][index].tag) && (mmu_atc_array[type][way][index].valid)) {
-				mmu_atc_array[type][way][index].valid=false;
-			}
-		}
-	}	
-}
-
-void REGPARAM2 mmu_flush_atc_all(bool global)
-{
-	unsigned int way,slot,type;
-	for (type=0;type<ATC_TYPE;type++) {
-		for (way=0;way<ATC_WAYS;way++) {
-			for (slot=0;slot<ATC_SLOTS;slot++) {
-				if (!global && mmu_atc_array[type][way][slot].global)
-					continue;
-				mmu_atc_array[type][way][slot].valid=false;
+				mmu_atc_array[type][way][index].valid = false;
 			}
 		}
 	}
 }
 
-void REGPARAM2 mmu_set_funcs(void)
+void REGPARAM2 mmu_flush_atc_all(bool global)
 {
-	if (currprefs.mmu_model != 68040 && currprefs.mmu_model != 68060)
-		return;
-	if (currprefs.cpu_memory_cycle_exact || currprefs.cpu_compatible) {
-		x_phys_get_iword = get_word_icache040;
-		x_phys_get_ilong = get_long_icache040;
-		x_phys_get_byte = get_byte_cache_040;
-		x_phys_get_word = get_word_cache_040;
-		x_phys_get_long = get_long_cache_040;
-		x_phys_put_byte = put_byte_cache_040;
-		x_phys_put_word = put_word_cache_040;
-		x_phys_put_long = put_long_cache_040;
-	} else {
-		x_phys_get_iword = phys_get_word;
-		x_phys_get_ilong = phys_get_long;
-		x_phys_get_byte = phys_get_byte;
-		x_phys_get_word = phys_get_word;
-		x_phys_get_long = phys_get_long;
-		x_phys_put_byte = phys_put_byte;
-		x_phys_put_word = phys_put_word;
-		x_phys_put_long = phys_put_long;
+	unsigned int way, slot, type;
+	for (type = 0; type<ATC_TYPE; type++) {
+		for (way = 0; way<ATC_WAYS; way++) {
+			for (slot = 0; slot<ATC_SLOTS; slot++) {
+				if (!global && mmu_atc_array[type][way][slot].global)
+					continue;
+				mmu_atc_array[type][way][slot].valid = false;
+			}
+		}
 	}
 }
 
 void REGPARAM2 mmu_reset(void)
 {
 	mmu_flush_atc_all(true);
-	mmu_set_funcs();
 }
+
 
 void REGPARAM2 mmu_set_tc(uae_u16 tc)
 {
 	regs.mmu_enabled = (tc & 0x8000) != 0;
 	mmu_pagesize_8k = (tc & 0x4000) != 0;
-	mmu_tagmask  = mmu_pagesize_8k ? 0xFFFF0000 : 0xFFFF8000;
+	mmu_tagmask = mmu_pagesize_8k ? 0xFFFF0000 : 0xFFFF8000;
 	mmu_pagemask = mmu_pagesize_8k ? 0x00001FFF : 0x00000FFF;
 	mmu_pagemaski = ~mmu_pagemask;
 	regs.mmu_page_size = mmu_pagesize_8k ? 8192 : 4096;
 
 	mmu_flush_atc_all(true);
 
-	write_log(_T("%d MMU: enabled=%d page8k=%d PC=%08x\n"), currprefs.mmu_model, regs.mmu_enabled, mmu_pagesize_8k, m68k_getpc());
-#if MMUDUMP
-	if (regs.mmu_enabled)
-		mmu_dump_tables();
-#endif
+	write_log(_T("%d MMU: enabled=%d page8k=%d\n"), currprefs.mmu_model, regs.mmu_enabled, mmu_pagesize_8k);
 }
 
 void REGPARAM2 mmu_set_super(bool super)
@@ -1296,81 +1183,84 @@ void REGPARAM2 mmu_set_super(bool super)
 	mmu_is_super = super ? 0x80000000 : 0;
 }
 
-void m68k_do_rte_mmu040 (uaecptr a7)
+void m68k_do_rte_mmu040(uaecptr a7)
 {
-	uae_u16 ssr = get_word_mmu040 (a7 + 8 + 4);
+	uae_u16 ssr = get_word_mmu040(a7 + 8 + 4);
 	if (ssr & MMU_SSW_CT) {
 		uaecptr src_a7 = a7 + 8 - 8;
 		uaecptr dst_a7 = a7 + 8 + 52;
-		put_word_mmu040 (dst_a7 + 0, get_word_mmu040 (src_a7 + 0));
-		put_long_mmu040 (dst_a7 + 2, get_long_mmu040 (src_a7 + 2));
+		put_word_mmu040(dst_a7 + 0, get_word_mmu040(src_a7 + 0));
+		put_long_mmu040(dst_a7 + 2, get_long_mmu040(src_a7 + 2));
 		// skip this word
-		put_long_mmu040 (dst_a7 + 8, get_long_mmu040 (src_a7 + 8));
+		put_long_mmu040(dst_a7 + 8, get_long_mmu040(src_a7 + 8));
 	}
 	if (ssr & MMU_SSW_CM) {
 		mmu040_movem = 1;
-		mmu040_movem_ea = get_long_mmu040 (a7 + 8);
+		mmu040_movem_ea = get_long_mmu040(a7 + 8);
 #if MMUDEBUGMISC > 0
-		write_log (_T("MMU restarted MOVEM EA=%08X\n"), mmu040_movem_ea);
+		write_log(_T("MMU restarted MOVEM EA=%08X\n"), mmu040_movem_ea);
 #endif
 	}
 }
 
-void m68k_do_rte_mmu060 (uaecptr a7)
+void m68k_do_rte_mmu060(uaecptr a7)
 {
 #if 0
 	mmu060_state = 2;
 #endif
 }
 
-void flush_mmu040 (uaecptr addr, int n)
+void flush_mmu040(uaecptr addr, int n)
 {
 }
-void m68k_do_rts_mmu040 (void)
+void m68k_do_rts_mmu040(void)
 {
-	uaecptr stack = m68k_areg (regs, 7);
-	uaecptr newpc = get_long_mmu040 (stack);
-	m68k_areg (regs, 7) += 4;
-	m68k_setpc (newpc);
+	uaecptr stack = m68k_areg(regs, 7);
+	uaecptr newpc = get_long_mmu040(stack);
+	m68k_areg(regs, 7) += 4;
+	m68k_setpc(newpc);
 }
-void m68k_do_bsr_mmu040 (uaecptr oldpc, uae_s32 offset)
+void m68k_do_bsr_mmu040(uaecptr oldpc, uae_s32 offset)
 {
-	uaecptr newstack = m68k_areg (regs, 7) - 4;
-	put_long_mmu040 (newstack, oldpc);
-	m68k_areg (regs, 7) -= 4;
-	m68k_incpci (offset);
-}
-
-void flush_mmu060 (uaecptr addr, int n)
-{
-}
-void m68k_do_rts_mmu060 (void)
-{
-	uaecptr stack = m68k_areg (regs, 7);
-	uaecptr newpc = get_long_mmu060 (stack);
-	m68k_areg (regs, 7) += 4;
-	m68k_setpc (newpc);
-}
-void m68k_do_bsr_mmu060 (uaecptr oldpc, uae_s32 offset)
-{
-	uaecptr newstack = m68k_areg (regs, 7) - 4;
-	put_long_mmu060 (newstack, oldpc);
-	m68k_areg (regs, 7) -= 4;
-	m68k_incpci (offset);
+	uaecptr newstack = m68k_areg(regs, 7) - 4;
+	put_long_mmu040(newstack, oldpc);
+	m68k_areg(regs, 7) -= 4;
+	m68k_incpci(offset);
 }
 
-void uae_mmu_put_lrmw (uaecptr addr, uae_u32 v, int size, int type)
+void flush_mmu060(uaecptr addr, int n)
+{
+}
+void m68k_do_rts_mmu060(void)
+{
+	uaecptr stack = m68k_areg(regs, 7);
+	uaecptr newpc = get_long_mmu060(stack);
+	m68k_areg(regs, 7) += 4;
+	m68k_setpc(newpc);
+}
+void m68k_do_bsr_mmu060(uaecptr oldpc, uae_s32 offset)
+{
+	uaecptr newstack = m68k_areg(regs, 7) - 4;
+	put_long_mmu060(newstack, oldpc);
+	m68k_areg(regs, 7) -= 4;
+	m68k_incpci(offset);
+}
+
+void uae_mmu_put_lrmw(uaecptr addr, uae_u32 v, int size, int type)
 {
 	locked_rmw_cycle = true;
 	if (size == sz_byte) {
 		mmu_put_byte(addr, v, true, sz_byte, true);
-	} else if (size == sz_word) {
+	}
+	else if (size == sz_word) {
 		if (unlikely(is_unaligned(addr, 2))) {
 			mmu_put_word_unaligned(addr, v, true, true);
-		} else {
+		}
+		else {
 			mmu_put_word(addr, v, true, sz_word, true);
 		}
-	} else {
+	}
+	else {
 		if (unlikely(is_unaligned(addr, 4)))
 			mmu_put_long_unaligned(addr, v, true, true);
 		else
@@ -1378,19 +1268,22 @@ void uae_mmu_put_lrmw (uaecptr addr, uae_u32 v, int size, int type)
 	}
 	locked_rmw_cycle = false;
 }
-uae_u32 uae_mmu_get_lrmw (uaecptr addr, int size, int type)
+uae_u32 uae_mmu_get_lrmw(uaecptr addr, int size, int type)
 {
 	uae_u32 v;
 	locked_rmw_cycle = true;
 	if (size == sz_byte) {
 		v = mmu_get_user_byte(addr, regs.s != 0, true, true, sz_byte);
-	} else if (size == sz_word) {
+	}
+	else if (size == sz_word) {
 		if (unlikely(is_unaligned(addr, 2))) {
 			v = mmu_get_lrmw_word_unaligned(addr);
-		} else {
+		}
+		else {
 			v = mmu_get_user_word(addr, regs.s != 0, true, true, sz_word);
 		}
-	} else {
+	}
+	else {
 		if (unlikely(is_unaligned(addr, 4)))
 			v = mmu_get_lrmw_long_unaligned(addr);
 		else
@@ -1400,7 +1293,7 @@ uae_u32 uae_mmu_get_lrmw (uaecptr addr, int size, int type)
 	return v;
 }
 
-uae_u32 REGPARAM2 mmu060_get_rmw_bitfield (uae_u32 src, uae_u32 bdata[2], uae_s32 offset, int width)
+uae_u32 REGPARAM2 mmu060_get_rmw_bitfield(uae_u32 src, uae_u32 bdata[2], uae_s32 offset, int width)
 {
 	uae_u32 tmp1, tmp2, res, mask;
 
@@ -1408,31 +1301,31 @@ uae_u32 REGPARAM2 mmu060_get_rmw_bitfield (uae_u32 src, uae_u32 bdata[2], uae_s3
 	mask = 0xffffffffu << (32 - width);
 	switch ((offset + width + 7) >> 3) {
 	case 1:
-		tmp1 = get_rmw_byte_mmu060 (src);
+		tmp1 = get_rmw_byte_mmu060(src);
 		res = tmp1 << (24 + offset);
 		bdata[0] = tmp1 & ~(mask >> (24 + offset));
 		break;
 	case 2:
-		tmp1 = get_rmw_word_mmu060 (src);
+		tmp1 = get_rmw_word_mmu060(src);
 		res = tmp1 << (16 + offset);
 		bdata[0] = tmp1 & ~(mask >> (16 + offset));
 		break;
 	case 3:
-		tmp1 = get_rmw_word_mmu060 (src);
-		tmp2 = get_rmw_byte_mmu060 (src + 2);
+		tmp1 = get_rmw_word_mmu060(src);
+		tmp2 = get_rmw_byte_mmu060(src + 2);
 		res = tmp1 << (16 + offset);
 		bdata[0] = tmp1 & ~(mask >> (16 + offset));
 		res |= tmp2 << (8 + offset);
 		bdata[1] = tmp2 & ~(mask >> (8 + offset));
 		break;
 	case 4:
-		tmp1 = get_rmw_long_mmu060 (src);
+		tmp1 = get_rmw_long_mmu060(src);
 		res = tmp1 << offset;
 		bdata[0] = tmp1 & ~(mask >> offset);
 		break;
 	case 5:
-		tmp1 = get_rmw_long_mmu060 (src);
-		tmp2 = get_rmw_byte_mmu060 (src + 4);
+		tmp1 = get_rmw_long_mmu060(src);
+		tmp2 = get_rmw_byte_mmu060(src + 4);
 		res = tmp1 << offset;
 		bdata[0] = tmp1 & ~(mask >> offset);
 		res |= tmp2 >> (8 - offset);
@@ -1440,36 +1333,36 @@ uae_u32 REGPARAM2 mmu060_get_rmw_bitfield (uae_u32 src, uae_u32 bdata[2], uae_s3
 		break;
 	default:
 		/* Panic? */
-		write_log (_T("x_get_bitfield() can't happen %d\n"), (offset + width + 7) >> 3);
+		write_log(_T("x_get_bitfield() can't happen %d\n"), (offset + width + 7) >> 3);
 		res = 0;
 		break;
 	}
 	return res;
 }
 
-void REGPARAM2 mmu060_put_rmw_bitfield (uae_u32 dst, uae_u32 bdata[2], uae_u32 val, uae_s32 offset, int width)
+void REGPARAM2 mmu060_put_rmw_bitfield(uae_u32 dst, uae_u32 bdata[2], uae_u32 val, uae_s32 offset, int width)
 {
 	offset = (offset & 7) + width;
 	switch ((offset + 7) >> 3) {
 	case 1:
-		put_rmw_byte_mmu060 (dst, bdata[0] | (val << (8 - offset)));
+		put_rmw_byte_mmu060(dst, bdata[0] | (val << (8 - offset)));
 		break;
 	case 2:
-		put_rmw_word_mmu060 (dst, bdata[0] | (val << (16 - offset)));
+		put_rmw_word_mmu060(dst, bdata[0] | (val << (16 - offset)));
 		break;
 	case 3:
-		put_rmw_word_mmu060 (dst, bdata[0] | (val >> (offset - 16)));
-		put_rmw_byte_mmu060 (dst + 2, bdata[1] | (val << (24 - offset)));
+		put_rmw_word_mmu060(dst, bdata[0] | (val >> (offset - 16)));
+		put_rmw_byte_mmu060(dst + 2, bdata[1] | (val << (24 - offset)));
 		break;
 	case 4:
-		put_rmw_long_mmu060 (dst, bdata[0] | (val << (32 - offset)));
+		put_rmw_long_mmu060(dst, bdata[0] | (val << (32 - offset)));
 		break;
 	case 5:
-		put_rmw_long_mmu060 (dst, bdata[0] | (val >> (offset - 32)));
-		put_rmw_byte_mmu060 (dst + 4, bdata[1] | (val << (40 - offset)));
+		put_rmw_long_mmu060(dst, bdata[0] | (val >> (offset - 32)));
+		put_rmw_byte_mmu060(dst + 4, bdata[1] | (val << (40 - offset)));
 		break;
 	default:
-		write_log (_T("x_put_bitfield() can't happen %d\n"), (offset + 7) >> 3);
+		write_log(_T("x_put_bitfield() can't happen %d\n"), (offset + 7) >> 3);
 		break;
 	}
 }
@@ -1479,34 +1372,35 @@ void REGPARAM2 mmu060_put_rmw_bitfield (uae_u32 dst, uae_u32 bdata[2], uae_u32 v
 jmp_buf __exbuf;
 int     __exvalue;
 #define MAX_TRY_STACK 256
-static int s_try_stack_size=0;
+static int s_try_stack_size = 0;
 static jmp_buf s_try_stack[MAX_TRY_STACK];
 jmp_buf* __poptry(void) {
 	if (s_try_stack_size>0) {
-        s_try_stack_size--;
-        if (s_try_stack_size == 0)
-            return NULL;
-        memcpy(&__exbuf,&s_try_stack[s_try_stack_size-1],sizeof(jmp_buf));
-        // fprintf(stderr,"pop jmpbuf=%08x\n",s_try_stack[s_try_stack_size][0]);
-        return &s_try_stack[s_try_stack_size-1];
-    }
+		s_try_stack_size--;
+		if (s_try_stack_size == 0)
+			return NULL;
+		memcpy(&__exbuf, &s_try_stack[s_try_stack_size - 1], sizeof(jmp_buf));
+		// fprintf(stderr,"pop jmpbuf=%08x\n",s_try_stack[s_try_stack_size][0]);
+		return &s_try_stack[s_try_stack_size - 1];
+	}
 	else {
-		fprintf(stderr,"try stack underflow...\n");
-	    // return (NULL);
+		fprintf(stderr, "try stack underflow...\n");
+		// return (NULL);
 		abort();
 	}
 }
 void __pushtry(jmp_buf* j) {
 	if (s_try_stack_size<MAX_TRY_STACK) {
 		// fprintf(stderr,"push jmpbuf=%08x\n",(*j)[0]);
-		memcpy(&s_try_stack[s_try_stack_size],j,sizeof(jmp_buf));
+		memcpy(&s_try_stack[s_try_stack_size], j, sizeof(jmp_buf));
 		s_try_stack_size++;
-	} else {
-		fprintf(stderr,"try stack overflow...\n");
+	}
+	else {
+		fprintf(stderr, "try stack overflow...\n");
 		abort();
 	}
 }
-int __is_catched(void) {return (s_try_stack_size>0); }
+int __is_catched(void) { return (s_try_stack_size>0); }
 #endif
 
 #else
@@ -1516,9 +1410,11 @@ void mmu_op(uae_u32 opcode, uae_u16 /*extra*/)
 	if ((opcode & 0xFE0) == 0x0500) {
 		/* PFLUSH instruction */
 		flush_internals();
-	} else if ((opcode & 0x0FD8) == 0x548) {
+	}
+	else if ((opcode & 0x0FD8) == 0x548) {
 		/* PTEST instruction */
-	} else
+	}
+	else
 		op_illg(opcode);
 }
 

@@ -2,14 +2,16 @@
 #ifndef MMU_COMMON_H
 #define MMU_COMMON_H
 
+#include "include/memory.h"
+
 #define MMUDEBUG 0
 #define MMUINSDEBUG 0
 #define MMUDEBUGMISC 0
 
-#ifdef _MSC_VER
-#define unlikely(x) x
-#define likely(x) x
-#endif
+//#ifdef _MSC_VER
+//#define unlikely(x) x
+//#define likely(x) x
+//#endif
 
 #ifdef __cplusplus
 struct m68k_exception {

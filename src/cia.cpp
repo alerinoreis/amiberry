@@ -2049,7 +2049,7 @@ void rtc_hardreset(void)
 {
 	rtc_delayed_write = 0;
 	if (currprefs.cs_rtc == 1 || currprefs.cs_rtc == 3) { /* MSM6242B */
-		clock_bank.name = currprefs.cs_rtc == 1 ? _T("Battery backed up clock (MSM6242B)") : _T("Battery backed up clock A2000 (MSM6242B)");
+		clock_bank.name = currprefs.cs_rtc == 1 ? static_cast<TCHAR*>("Battery backed up clock (MSM6242B)") : static_cast<TCHAR*>("Battery backed up clock A2000 (MSM6242B)");
 		clock_control_d = 0x1;
 		clock_control_e = 0;
 		clock_control_f = 0x4; /* 24/12 */
