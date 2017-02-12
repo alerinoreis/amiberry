@@ -1,16 +1,18 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
- /*
-  * UAE - The Un*x Amiga Emulator
-  *
-  * Events
-  * These are best for low-frequency events. Having too many of them,
-  * or using them for events that occur too frequently, can cause massive
-  * slowdown.
-  *
-  * Copyright 1995-1998 Bernd Schmidt
-  */
+/*
+* UAE - The Un*x Amiga Emulator
+*
+* Events
+* These are best for low-frequency events. Having too many of them,
+* or using them for events that occur too frequently, can cause massive
+* slowdown.
+*
+* Copyright 1995-1998 Bernd Schmidt
+*/
+
+#undef EVENT_DEBUG
 
 #include "machdep/rpt.h"
 
@@ -36,26 +38,21 @@ extern int is_syncline, is_syncline_end;
 typedef void(*evfunc)(void);
 typedef void(*evfunc2)(uae_u32);
 
-typedef void (*do_cycles_func)(unsigned long);
-extern do_cycles_func do_cycles;
-void do_cycles_cpu_fastest (unsigned long cycles_to_add);
-void do_cycles_cpu_norm (unsigned long cycles_to_add);
-
 typedef unsigned long int evt;
 
 struct ev
 {
-    bool active;
-    evt evtime, oldcycles;
-    evfunc handler;
+	bool active;
+	evt evtime, oldcycles;
+	evfunc handler;
 };
 
 struct ev2
 {
-    bool active;
-    evt evtime;
-    uae_u32 data;
-    evfunc2 handler;
+	bool active;
+	evt evtime;
+	uae_u32 data;
+	evfunc2 handler;
 };
 
 enum {
@@ -127,7 +124,7 @@ extern int current_hpos(void);
 STATIC_INLINE bool cycles_in_range(unsigned long endcycles)
 {
 	signed long c = get_cycles();
-	return static_cast<signed long>(endcycles) - c > 0;
+	return (signed long)endcycles - c > 0;
 }
 
 extern void MISC_handler(void);

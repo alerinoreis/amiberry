@@ -120,19 +120,19 @@ class ROMButtonActionListener : public gcn::ActionListener
 public:
 	void action(const gcn::ActionEvent& actionEvent)
 	{
-		char tmp[MAX_PATH];
+		char tmp[PATH_MAX];
 		const char* filter[] = {".rom", "\0"};
 
 		if (actionEvent.getSource() == cmdMainROM)
 		{
-			strncpy(tmp, currentDir, MAX_PATH);
+			strncpy(tmp, currentDir, PATH_MAX);
 			if (SelectFile("Select System ROM", tmp, filter))
 			{
 				AvailableROM* newrom;
 				newrom = new AvailableROM();
 				extractFileName(tmp, newrom->Name);
 				removeFileExtension(newrom->Name);
-				strncpy(newrom->Path, tmp, MAX_PATH);
+				strncpy(newrom->Path, tmp, PATH_MAX);
 				newrom->ROMType = ROMTYPE_KICK;
 				lstAvailableROMs.push_back(newrom);
 				strncpy(changed_prefs.romfile, tmp, sizeof(changed_prefs.romfile));
@@ -142,14 +142,14 @@ public:
 		}
 		else if (actionEvent.getSource() == cmdExtROM)
 		{
-			strncpy(tmp, currentDir, MAX_PATH);
+			strncpy(tmp, currentDir, PATH_MAX);
 			if (SelectFile("Select Extended ROM", tmp, filter))
 			{
 				AvailableROM* newrom;
 				newrom = new AvailableROM();
 				extractFileName(tmp, newrom->Name);
 				removeFileExtension(newrom->Name);
-				strncpy(newrom->Path, tmp, MAX_PATH);
+				strncpy(newrom->Path, tmp, PATH_MAX);
 				newrom->ROMType = ROMTYPE_EXTCDTV;
 				lstAvailableROMs.push_back(newrom);
 				strncpy(changed_prefs.romextfile, tmp, sizeof(changed_prefs.romextfile));

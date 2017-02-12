@@ -7,9 +7,9 @@
   */
 
 #pragma once
-extern int gui_init(void);
-extern int gui_update(void);
-extern void gui_exit(void);
+extern int gui_init();
+extern int gui_update();
+extern void gui_exit();
 extern void gui_led(int, int);
 extern void gui_filename(int, const TCHAR *);
 extern void gui_fps(int fps, int idle, int color);
@@ -86,9 +86,10 @@ extern void ClearAvailableROMList(void);
 
 #include <vector>
 #include <string>
+
 typedef struct {
-	char Name[MAX_PATH];
-	char Path[MAX_PATH];
+	char Name[PATH_MAX];
+	char Path[PATH_MAX];
 	int ROMType;
 } AvailableROM;
 extern std::vector<AvailableROM*> lstAvailableROMs;
@@ -131,7 +132,3 @@ typedef enum {
 	NUMSG_KICKREPNO,
 	NUMSG_KS68030PLUS
 } notify_user_msg;
-
-#ifdef WITH_LOGGING
-extern void ShowLiveInfo(char *msg);
-#endif

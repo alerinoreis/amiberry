@@ -7,6 +7,7 @@
  * Copyright 1996 Alessandro Bissacco
  */
 
+#pragma once
 struct blitop
 {
     const char *s;

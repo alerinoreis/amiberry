@@ -16,6 +16,7 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /* Space usage statistics for a filesystem.  Blocks are 512-byte. */
+#pragma once
 struct fs_usage
 {
     unsigned long fsu_blocks;		/* Total blocks. */

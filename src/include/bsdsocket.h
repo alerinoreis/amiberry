@@ -9,6 +9,7 @@
 
 #pragma once
 #define BSD_TRACING_ENABLED 0
+#include "thread.h"
 
 extern int log_bsd;
 
@@ -93,7 +94,6 @@ struct socketbase
     uae_u32 timeout;
     uae_u32 sigmp;
 //#endif
-	TrapContext* context;
 };
 
 #define LIBRARY_SIZEOF 36

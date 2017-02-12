@@ -28,20 +28,20 @@
 
 uae_u32 get_copper_address(int copno);
 
-extern int custom_init(void);
-extern void custom_prepare(void);
+extern int custom_init();
+extern void custom_prepare();
 extern void custom_reset(bool hardreset, bool keyboardreset);
-extern int intlev(void);
-extern void dumpcustom(void);
+extern int intlev();
+extern void dumpcustom();
 
-extern void do_disk(void);
-extern void do_copper(void);
+extern void do_disk();
+extern void do_copper();
 
-extern void notice_new_xcolors(void);
-extern void notice_screen_contents_lost(void);
-extern void init_row_map(void);
-extern void init_hz_full(void);
-extern void init_custom(void);
+extern void notice_new_xcolors();
+extern void notice_screen_contents_lost();
+extern void init_row_map();
+extern void init_hz_full();
+extern void init_custom();
 
 extern bool picasso_requested_on;
 extern bool picasso_on;
@@ -91,7 +91,7 @@ extern void INTREQ(uae_u16);
 extern bool INTREQ_0(uae_u16);
 extern void INTREQ_f(uae_u16);
 extern void send_interrupt(int num, int delay);
-extern uae_u16 INTREQR(void);
+extern uae_u16 INTREQR();
 
 /* maximums for statically allocated tables */
 #ifdef UAE_MINI
@@ -218,7 +218,7 @@ STATIC_INLINE int GET_PLANES(uae_u16 bplcon0)
 	return (bplcon0 >> 12) & 7; // normal planes bits
 }
 
-extern void fpscounter_reset(void);
+extern void fpscounter_reset();
 extern unsigned long idletime;
 extern int lightpen_x, lightpen_y, lightpen_cx, lightpen_cy, lightpen_active, lightpen_enabled;
 
@@ -230,9 +230,9 @@ void customhack_put(struct customhack *ch, uae_u16 v, int hpos);
 uae_u16 customhack_get(struct customhack *ch, int hpos);
 extern void alloc_cycle_ext(int, int);
 extern void alloc_cycle_blitter(int hpos, uaecptr *ptr, int);
-extern bool ispal(void);
-extern int current_maxvpos(void);
-extern struct chipset_refresh *get_chipset_refresh(void);
-extern void compute_framesync(void);
+extern bool ispal();
+extern int current_maxvpos();
+extern struct chipset_refresh *get_chipset_refresh();
+extern void compute_framesync();
 
 #endif /* CUSTOM_H */

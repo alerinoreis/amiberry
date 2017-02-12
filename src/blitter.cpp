@@ -360,8 +360,10 @@ STATIC_INLINE int canblit(int hpos)
 
 static void markidlecycle(int hpos)
 {
+#ifdef DEBUGGER
 	if (debug_dma)
 		record_dma_event(DMA_EVENT_BLITSTARTFINISH, hpos, vpos);
+#endif
 }
 
 static void reset_channel_mods(void)
@@ -413,8 +415,10 @@ static void blitter_interrupt(int hpos, int done)
 		return;
 	blit_interrupt = 1;
 	send_interrupt(6, 4 * CYCLE_UNIT);
+#ifdef DEBUGGER
 	if (debug_dma)
 		record_dma_event(DMA_EVENT_BLITIRQ, hpos, vpos);
+#endif
 }
 
 static void blitter_done(int hpos)
@@ -437,7 +441,9 @@ STATIC_INLINE void chipmem_agnus_wput2(uaecptr addr, uae_u32 w)
 	//last_custom_value1 = w; blitter writes are not stored
 	if (!(log_blitter & 4)) {
 		chipmem_wput_indirect(addr, w);
+#ifdef DEBUGGER
 		debug_wputpeekdma_chipram(addr, w, MW_MASK_BLITTER_D, 0x000);
+#endif
 	}
 }
 
@@ -650,7 +656,9 @@ STATIC_INLINE void blitter_read(void)
 		if (!dmaen(DMA_BLITTER))
 			return;
 		blt_info.bltcdat = chipmem_wget_indirect(bltcpt);
+#ifdef DEBUGGER
 		debug_wgetpeekdma_chipram(bltcpt, blt_info.bltcdat, MW_MASK_BLITTER_C, 0x070);
+#endif
 		last_custom_value1 = blt_info.bltcdat;
 	}
 	bltstate = BLT_work;
@@ -666,7 +674,9 @@ STATIC_INLINE void blitter_write(void)
 			return;
 		//last_custom_value1 = blt_info.bltddat; blitter writes are not stored
 		chipmem_wput_indirect(bltdpt, blt_info.bltddat);
+#ifdef DEBUGGER
 		debug_wputpeekdma_chipram(bltdpt, blt_info.bltddat, MW_MASK_BLITTER_D, 0x000);
+#endif
 	}
 	bltstate = BLT_next;
 }
@@ -909,7 +919,9 @@ void blitter_handler(uae_u32 data)
 					/* "free" blitter in immediate mode if it has been "stuck" ~3 frames
 					* fixes some JIT game incompatibilities
 					*/
+#ifdef DEBUGGER
 		debugtest(DEBUGTEST_BLITTER, _T("force-unstuck!\n"));
+#endif
 	}
 	blitter_stuck = 0;
 	if (blit_slowdown > 0 && !currprefs.immediate_blits) {
@@ -1313,8 +1325,10 @@ static void blit_bltset(int con)
 
 	if (blitline) {
 		if (blt_info.hblitsize != 2) {
+#ifdef DEBUGGER
 			debugtest(DEBUGTEST_BLITTER, _T("weird blt_info.hblitsize in linemode: %d vsize=%d\n"),
 				blt_info.hblitsize, blt_info.vblitsize);
+#endif
 			if (log_blitter & 16)
 				activate_debugger();
 		}
@@ -1325,19 +1339,25 @@ static void blit_bltset(int con)
 			blitfc = !!(bltcon1 & 0x4);
 			blitife = !!(bltcon1 & 0x8);
 			if ((bltcon1 & 0x18) == 0x18) {
+#ifdef DEBUGGER
 				debugtest(DEBUGTEST_BLITTER, _T("weird fill mode\n"));
+#endif
 				blitife = 0;
 			}
 		}
 		if (blitfill && !blitdesc) {
+#ifdef DEBUGGER
 			debugtest(DEBUGTEST_BLITTER, _T("fill without desc\n"));
+#endif
 			if (log_blitter & 16)
 				activate_debugger();
 		}
 		blit_diag = blitfill && blit_cycle_diagram_fill[blit_ch][0] ? blit_cycle_diagram_fill[blit_ch] : blit_cycle_diagram[blit_ch];
 	}
 	if ((bltcon1 & 0x80) && (currprefs.chipset_mask & CSMASK_ECS_AGNUS)) {
+#ifdef DEBUGGER
 		debugtest(DEBUGTEST_BLITTER, _T("ECS BLTCON1 DOFF-bit set\n"));
+#endif
 		if (log_blitter & 16)
 			activate_debugger();
 	}
@@ -1677,7 +1697,9 @@ void maybe_blit(int hpos, int hack)
 
 	if (warned && dmaen(DMA_BLITTER) && blt_info.got_cycle) {
 		warned--;
+#ifdef DEBUGGER
 		debugtest(DEBUGTEST_BLITTER, _T("program does not wait for blitter tc=%d\n"), blit_cyclecounter);
+#endif
 		if (log_blitter)
 			warned = 0;
 		if (log_blitter & 2) {
@@ -1776,8 +1798,10 @@ void blitter_reset(void)
 
 void restore_blitter_finish(void)
 {
+#ifdef DEBUGGER
 	record_dma_reset();
 	record_dma_reset();
+#endif
 	if (blt_statefile_type == 0) {
 		blit_interrupt = 1;
 		if (bltstate == BLT_init) {

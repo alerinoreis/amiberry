@@ -1,3 +1,4 @@
+#pragma once
 extern blitter_func blitdofast_0;
 extern blitter_func blitdofast_desc_0;
 extern blitter_func blitdofast_a;

@@ -10,6 +10,7 @@
 
 #pragma once
 #include "sysdeps.h"
+#include <cmath>
 #ifndef HAVE_to_single
 STATIC_INLINE double to_single (uae_u32 value)
 {
@@ -61,8 +62,8 @@ STATIC_INLINE double to_exten(uae_u32 wrd1, uae_u32 wrd2, uae_u32 wrd3)
 
     if ((wrd1 & 0x7fff0000) == 0 && wrd2 == 0 && wrd3 == 0)
         return 0.0;
-    frac = (double) wrd2 / 2147483648.0 +
-           (double) wrd3 / 9223372036854775808.0;
+    frac = double(wrd2) / 2147483648.0 +
+           double(wrd3) / 9223372036854775808.0;
     if (wrd1 & 0x80000000)
         frac = -frac;
     return ldexp (frac, ((wrd1 >> 16) & 0x7fff) - 16383);
@@ -99,8 +100,8 @@ STATIC_INLINE void from_exten(double src, uae_u32 * wrd1, uae_u32 * wrd2, uae_u3
         expon++;
     }
     *wrd1 |= (((expon + 16383 - 1) & 0x7fff) << 16);
-    *wrd2 = (uae_u32) (frac * 4294967296.0);
-    *wrd3 = (uae_u32) (frac * 18446744073709551616.0 - *wrd2 * 4294967296.0);
+    *wrd2 = uae_u32(frac * 4294967296.0);
+    *wrd3 = uae_u32(frac * 18446744073709551616.0 - *wrd2 * 4294967296.0);
 }
 #endif
 

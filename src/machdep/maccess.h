@@ -11,7 +11,7 @@
 
 #ifdef ARMV6_ASSEMBLY
 
-STATIC_INLINE uae_u16 do_get_mem_word(uae_u16 *_GCCRES_ a)
+STATIC_INLINE uae_u16 do_get_mem_word(uae_u16 *a)
 {
     uae_u16 v;
     __asm__ (
@@ -57,7 +57,7 @@ static __inline__ uint8_t do_get_mem_byte(uint8_t *a)
 }
 
 #ifdef ARMV6_ASSEMBLY
-STATIC_INLINE void do_put_mem_word(uae_u16 *_GCCRES_ a, uae_u16 v)
+STATIC_INLINE void do_put_mem_word(uae_u16 *a, uae_u16 v)
 {
     __asm__ (
         "rev16 r2, %[v] \n\t"
@@ -75,7 +75,7 @@ static __inline__ void do_put_mem_word(uint16_t *a, uint16_t v)
 #endif
 
 #ifdef ARMV6_ASSEMBLY
-STATIC_INLINE void do_put_mem_long(uae_u32 *_GCCRES_ a, uae_u32 v)
+STATIC_INLINE void do_put_mem_long(uae_u32 *a, uae_u32 v)
 {
     __asm__ (
         "rev r2, %[v] \n\t"

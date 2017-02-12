@@ -399,7 +399,7 @@ static bool CheckKickstart(struct uae_prefs* p)
 // In this procedure, we use changed_prefs
 int loadconfig_old(struct uae_prefs* p, const char* orgpath)
 {
-	char path[MAX_PATH];
+	char path[PATH_MAX];
 	int cpu_level;
 
 	strcpy(path, orgpath);
@@ -476,10 +476,7 @@ int loadconfig_old(struct uae_prefs* p, const char* orgpath)
 			p->chipset_refreshrate = 60;
 		else
 			p->chipset_refreshrate = 50;
-		fscanf(f, "mainMenu_cpuSpeed=%d\n", &p->pandora_cpu_speed);
 		fscanf(f, "presetModeId=%d\n", &presetModeId);
-		fscanf(f, "moveX=%d\n", &p->pandora_horizontal_offset);
-		fscanf(f, "moveY=%d\n", &p->pandora_vertical_offset);
 		fscanf(f, "displayedLines=%d\n", &p->gfx_size.height);
 		fscanf(f, "screenWidth=%d\n", &p->gfx_size_fs.width);
 		fscanf(f, "cutLeft=%d\n", &dummy);

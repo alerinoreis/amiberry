@@ -10,14 +10,16 @@
 
 #include "rtgmodes.h"
 
+#define MAX_DISPLAYS 10
+
 struct ScreenResolution
 {
     uae_u32 width;  /* in pixels */
     uae_u32 height; /* in pixels */
 };
 
-#define MAX_PICASSO_MODES 100
-#define MAX_REFRESH_RATES 10
+#define MAX_PICASSO_MODES 300
+#define MAX_REFRESH_RATES 100
 
 #define REFRESH_RATE_RAW 1
 #define REFRESH_RATE_LACE 2
@@ -45,7 +47,7 @@ typedef struct _RECT
   uae_s32 bottom;
 } RECT;
 
-#define MAX_DISPLAYS 4
+
 struct MultiDisplay {
 	bool primary;
 	//GUID ddguid;
@@ -56,6 +58,7 @@ struct MultiDisplay {
 	RECT rect;
 };
 extern struct MultiDisplay Displays[MAX_DISPLAYS];
+
 extern int GetSurfacePixelFormat(void);
 
 #ifdef PICASSO96

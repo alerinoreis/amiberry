@@ -1,3 +1,4 @@
+#pragma once
 extern uae_u32 get_crc32 (void *p, int size);
 extern uae_u16 get_crc16 (void *p, int size);
 extern uae_u32 get_crc32_val (uae_u8 v, uae_u32 crc);

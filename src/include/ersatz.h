@@ -6,6 +6,7 @@
  * (c) 1995 Bernd Schmidt
  */
 
+#pragma once
 extern void init_ersatz_rom (uae_u8 *data);
 extern void ersatz_chipcopy (void);
 extern void ersatz_perform (uae_u16);

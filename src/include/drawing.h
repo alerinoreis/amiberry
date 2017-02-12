@@ -1,8 +1,8 @@
 /*
- * Data used for communication between custom.c and drawing.c.
- * 
- * Copyright 1996-1998 Bernd Schmidt
- */
+* Data used for communication between custom.c and drawing.c.
+*
+* Copyright 1996-1998 Bernd Schmidt
+*/
 
 #pragma once
 #define SMART_UPDATE 1
@@ -21,19 +21,28 @@
 #define AMIGA_WIDTH_MAX (752 / 2)
 #define AMIGA_HEIGHT_MAX (576 / 2)
 
+//#define NEWHSYNC
+
+#ifdef NEWHSYNC
+#define DIW_DDF_OFFSET 9
+/* this many cycles starting from hpos=0 are visible on right border */
+#define HBLANK_OFFSET 13
+#define DISPLAY_LEFT_SHIFT 0x40
+#else
 /* According to the HRM, pixel data spends a couple of cycles somewhere in the chips
-   before it appears on-screen.  */
+before it appears on-screen. (TW: display emulation now does this automatically)  */
 #define DIW_DDF_OFFSET 1
 /* this many cycles starting from hpos=0 are visible on right border */
 #define HBLANK_OFFSET 9
 /* We ignore that many lores pixels at the start of the display. These are
- * invisible anyway due to hardware DDF limits. */
+* invisible anyway due to hardware DDF limits. */
 #define DISPLAY_LEFT_SHIFT 0x38
+#endif
 
-#define PIXEL_XPOS(HPOS) (((HPOS)*2 - DISPLAY_LEFT_SHIFT + DIW_DDF_OFFSET - 1) )
+#define PIXEL_XPOS(HPOS) (((HPOS)*2 - DISPLAY_LEFT_SHIFT + DIW_DDF_OFFSET - 1) << lores_shift)
 
 #define min_diwlastword (0)
-#define max_diwlastword (PIXEL_XPOS(0x1d4>> 1))
+#define max_diwlastword (PIXEL_XPOS(0x1d4 >> 1))
 
 extern int lores_factor, lores_shift, interlace_seen;
 extern bool aga_mode, direct_rgb;
@@ -305,4 +314,3 @@ STATIC_INLINE void toggle_inhibit_frame(int bit)
 {
 	inhibit_frame ^= 1 << bit;
 }
-

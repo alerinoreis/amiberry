@@ -103,7 +103,7 @@ struct amigascsi
 
 typedef int(*check_bus_func)(int flags);
 typedef int(*open_bus_func)(int flags);
-typedef void(*close_bus_func)(void);
+typedef void(*close_bus_func)();
 typedef int(*open_device_func)(int, const TCHAR*, int);
 typedef void(*close_device_func)(int);
 typedef struct device_info* (*info_device_func)(int, struct device_info*, int, int);
@@ -156,7 +156,7 @@ struct device_functions {
 };
 
 extern int device_func_init(int flags);
-extern void device_func_reset(void);
+extern void device_func_reset();
 extern int sys_command_open(int unitnum);
 extern void sys_command_close(int unitnum);
 extern int sys_command_isopen(int unitnum);
@@ -196,7 +196,7 @@ extern int scsi_cd_emulate(int unitnum,
 	int *sense_len,
 	bool atapi);
 
-extern void blkdev_vsync(void);
+extern void blkdev_vsync();
 
 extern int msf2lsn(int msf);
 extern int lsn2msf(int lsn);
@@ -216,7 +216,7 @@ extern int get_standard_cd_unit(enum cd_standard_unit csu);
 extern void close_standard_cd_unit(int);
 extern void blkdev_cd_change(int unitnum, const TCHAR *name);
 
-extern void blkdev_entergui(void);
-extern void blkdev_exitgui(void);
+extern void blkdev_entergui();
+extern void blkdev_exitgui();
 
 #endif /* BLKDEV_H */

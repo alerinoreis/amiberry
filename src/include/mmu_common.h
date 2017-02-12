@@ -1,22 +1,20 @@
-#ifndef UAE_MMU_COMMON_H
-#define UAE_MMU_COMMON_H
 
-//#include "uae/types.h"
-//#include "uae/likely.h"
-#ifdef RASPBERRY
-//#include "uae/inline.h"
-#include "include/memory.h"
-#include "newcpu.h"
-#endif
+#ifndef MMU_COMMON_H
+#define MMU_COMMON_H
 
 #define MMUDEBUG 0
 #define MMUINSDEBUG 0
 #define MMUDEBUGMISC 0
 
+#ifdef _MSC_VER
+#define unlikely(x) x
+#define likely(x) x
+#endif
+
 #ifdef __cplusplus
 struct m68k_exception {
 	int prb;
-	m68k_exception (int exc) : prb (exc) {}
+	m68k_exception(int exc) : prb(exc) {}
 	operator int() { return prb; }
 };
 #define SAVE_EXCEPTION
@@ -33,9 +31,9 @@ extern jmp_buf __exbuf;
 extern int     __exvalue;
 #define TRY(DUMMY)       __exvalue=setjmp(__exbuf);       \
                   if (__exvalue==0) { __pushtry(&__exbuf);
-#define CATCH(x)  __poptry(); } else {m68k_exception x=__exvalue; 
+#define CATCH(x)  __poptry(); } else { fprintf(stderr,"Gotcha! %d %s in %d\n",__exvalue,__FILE__,__LINE__);
 #define ENDTRY    __poptry();}
-#define THROW(x) if (__is_catched()) {longjmp(__exbuf,x);}
+#define THROW(x) if (__is_catched()) {fprintf(stderr,"Longjumping %s in %d\n",__FILE__,__LINE__);longjmp(__exbuf,x);}
 #define THROW_AGAIN(var) if (__is_catched()) longjmp(*__poptry(),__exvalue)
 #define SAVE_EXCEPTION
 #define RESTORE_EXCEPTION
@@ -115,47 +113,38 @@ typedef  int m68k_exception;
 #if 1
 static ALWAYS_INLINE bool is_unaligned(uaecptr addr, int size)
 {
-    return unlikely((addr & (size - 1)) && (addr ^ (addr + size - 1)) & regs.mmu_page_size);
+	return unlikely((addr & (size - 1)) && (addr ^ (addr + size - 1)) & regs.mmu_page_size);
 }
 #else
 static ALWAYS_INLINE bool is_unaligned(uaecptr addr, int size)
 {
-    return (addr & (size - 1));
+	return (addr & (size - 1));
 }
 #endif
 
 static ALWAYS_INLINE void phys_put_long(uaecptr addr, uae_u32 l)
 {
-    longput(addr, l);
+	longput(addr, l);
 }
 static ALWAYS_INLINE void phys_put_word(uaecptr addr, uae_u32 w)
 {
-    wordput(addr, w);
+	wordput(addr, w);
 }
 static ALWAYS_INLINE void phys_put_byte(uaecptr addr, uae_u32 b)
 {
-    byteput(addr, b);
+	byteput(addr, b);
 }
 static ALWAYS_INLINE uae_u32 phys_get_long(uaecptr addr)
 {
-    return longget (addr);
+	return longget(addr);
 }
 static ALWAYS_INLINE uae_u32 phys_get_word(uaecptr addr)
 {
-    return wordget (addr);
+	return wordget(addr);
 }
 static ALWAYS_INLINE uae_u32 phys_get_byte(uaecptr addr)
 {
-    return byteget (addr);
+	return byteget(addr);
 }
 
-extern uae_u32(*x_phys_get_iword)(uaecptr);
-extern uae_u32(*x_phys_get_ilong)(uaecptr);
-extern uae_u32(*x_phys_get_byte)(uaecptr);
-extern uae_u32(*x_phys_get_word)(uaecptr);
-extern uae_u32(*x_phys_get_long)(uaecptr);
-extern void(*x_phys_put_byte)(uaecptr, uae_u32);
-extern void(*x_phys_put_word)(uaecptr, uae_u32);
-extern void(*x_phys_put_long)(uaecptr, uae_u32);
-
-#endif /* UAE_MMU_COMMON_H */
+#endif

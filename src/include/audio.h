@@ -8,10 +8,10 @@
 
 #define PERIOD_MAX ULONG_MAX
 
-extern void aud0_handler (void);
-extern void aud1_handler (void);
-extern void aud2_handler (void);
-extern void aud3_handler (void);
+extern void aud0_handler ();
+extern void aud1_handler ();
+extern void aud2_handler ();
+extern void aud3_handler ();
 
 extern void AUDxDAT(int nr, uae_u16 value);
 extern void AUDxDAT(int nr, uae_u16 value, uaecptr addr);
@@ -21,22 +21,26 @@ extern void AUDxLCH(int nr, uae_u16 value);
 extern void AUDxLCL(int nr, uae_u16 value);
 extern void AUDxLEN(int nr, uae_u16 value);
 
-extern uae_u16 audio_dmal (void);
-extern void audio_state_machine (void);
+extern uae_u16 audio_dmal ();
+extern void audio_state_machine ();
 extern uaecptr audio_getpt(int nr, bool reset);
 
-extern int init_audio (void);
-extern void audio_reset (void);
-extern void update_audio (void);
-extern void audio_evhandler (void);
-extern void audio_hsync (void);
-extern void audio_update_adkmasks (void);
+extern int init_audio ();
+extern void audio_reset ();
+extern void update_audio ();
+extern void audio_evhandler ();
+extern void audio_hsync ();
+extern void audio_update_adkmasks ();
 extern void update_sound (double clk);
-extern void led_filter_audio (void);
-extern void set_audio(void);
-extern int audio_activate(void);
-extern void audio_deactivate(void);
-extern void audio_vsync(void);
+extern void led_filter_audio ();
+extern void set_audio();
+extern int audio_activate();
+extern void audio_deactivate();
+extern void audio_vsync();
+
+extern void audio_sampleripper(int);
+extern int sampleripper_enabled;
+extern void write_wavheader(struct zfile *wavfile, uae_u32 size, uae_u32 freq);
 
 enum {
 	SND_MONO, SND_STEREO, SND_4CH_CLONEDSTEREO, SND_4CH, SND_6CH_CLONEDSTEREO, SND_6CH, SND_NONE
