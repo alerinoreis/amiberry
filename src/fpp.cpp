@@ -98,24 +98,24 @@ static uae_u32 dhex_1e128[] = { 0xF9301D32, 0x5A827748 };
 static uae_u32 dhex_1e256[] = { 0x7F73BF3C, 0x75154FDD };
 static uae_u32 dhex_inf[] = { 0x00000000, 0x7ff00000 };
 static uae_u32 dhex_nan[] = { 0xffffffff, 0x7fffffff };
-static double *fp_pi = (double *)dhex_pi;
-static double *fp_exp_1 = (double *)dhex_exp_1;
-static double *fp_l2_e = (double *)dhex_l2_e;
-static double *fp_ln_2 = (double *)dhex_ln_2;
-static double *fp_ln_10 = (double *)dhex_ln_10;
-static double *fp_l10_2 = (double *)dhex_l10_2;
-static double *fp_l10_e = (double *)dhex_l10_e;
-static double *fp_1e16 = (double *)dhex_1e16;
-static double *fp_1e32 = (double *)dhex_1e32;
-static double *fp_1e64 = (double *)dhex_1e64;
-static double *fp_1e128 = (double *)dhex_1e128;
-static double *fp_1e256 = (double *)dhex_1e256;
-static double *fp_1e512 = (double *)dhex_inf;
-static double *fp_1e1024 = (double *)dhex_inf;
-static double *fp_1e2048 = (double *)dhex_inf;
-static double *fp_1e4096 = (double *)dhex_inf;
-static double *fp_inf = (double *)dhex_inf;
-static double *fp_nan = (double *)dhex_nan;
+static double *fp_pi = reinterpret_cast<double *>(dhex_pi);
+static double *fp_exp_1 = reinterpret_cast<double *>(dhex_exp_1);
+static double *fp_l2_e = reinterpret_cast<double *>(dhex_l2_e);
+static double *fp_ln_2 = reinterpret_cast<double *>(dhex_ln_2);
+static double *fp_ln_10 = reinterpret_cast<double *>(dhex_ln_10);
+static double *fp_l10_2 = reinterpret_cast<double *>(dhex_l10_2);
+static double *fp_l10_e = reinterpret_cast<double *>(dhex_l10_e);
+static double *fp_1e16 = reinterpret_cast<double *>(dhex_1e16);
+static double *fp_1e32 = reinterpret_cast<double *>(dhex_1e32);
+static double *fp_1e64 = reinterpret_cast<double *>(dhex_1e64);
+static double *fp_1e128 = reinterpret_cast<double *>(dhex_1e128);
+static double *fp_1e256 = reinterpret_cast<double *>(dhex_1e256);
+static double *fp_1e512 = reinterpret_cast<double *>(dhex_inf);
+static double *fp_1e1024 = reinterpret_cast<double *>(dhex_inf);
+static double *fp_1e2048 = reinterpret_cast<double *>(dhex_inf);
+static double *fp_1e4096 = reinterpret_cast<double *>(dhex_inf);
+static double *fp_inf = reinterpret_cast<double *>(dhex_inf);
+static double *fp_nan = reinterpret_cast<double *>(dhex_nan);
 #endif
 double fp_1e8 = 1.0e8;
 float  fp_1e0 = 1, fp_1e1 = 10, fp_1e2 = 100, fp_1e4 = 10000;
@@ -221,19 +221,19 @@ bool fpu_get_constant(fpdata *fp, int cr)
 		f = *fp_ln_10;
 		break;
 	case 0x32:
-		f = (fptype)fp_1e0;
+		f = fptype(fp_1e0);
 		break;
 	case 0x33:
-		f = (fptype)fp_1e1;
+		f = fptype(fp_1e1);
 		break;
 	case 0x34:
-		f = (fptype)fp_1e2;
+		f = fptype(fp_1e2);
 		break;
 	case 0x35:
-		f = (fptype)fp_1e4;
+		f = fptype(fp_1e4);
 		break;
 	case 0x36:
-		f = (fptype)fp_1e8;
+		f = fptype(fp_1e8);
 		break;
 	case 0x37:
 		f = *fp_1e16;
@@ -694,20 +694,20 @@ STATIC_INLINE tointtype toint(fptype src, fptype minval, fptype maxval)
 	}
 #else /* no X86_MSVC */
 	{
-		int result = (int)src;
+		int result = int(src);
 		switch (regs.fpcr & 0x30)
 		{
 		case FPCR_ROUND_ZERO:
-			result = (int)fp_round_to_zero(src);
+			result = int(fp_round_to_zero(src));
 			break;
 		case FPCR_ROUND_MINF:
-			result = (int)fp_round_to_minus_infinity(src);
+			result = int(fp_round_to_minus_infinity(src));
 			break;
 		case FPCR_ROUND_NEAR:
 			result = fp_round_to_nearest(src);
 			break;
 		case FPCR_ROUND_PINF:
-			result = (int)fp_round_to_plus_infinity(src);
+			result = int(fp_round_to_plus_infinity(src));
 			break;
 		}
 		return result;
@@ -1038,13 +1038,13 @@ static int get_fp_value(uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr oldp
 		switch (size)
 		{
 		case 6:
-			src->fp = (fptype)(uae_s8)m68k_dreg(regs, reg);
+			src->fp = fptype(uae_s8(m68k_dreg(regs, reg)));
 			break;
 		case 4:
-			src->fp = (fptype)(uae_s16)m68k_dreg(regs, reg);
+			src->fp = fptype(uae_s16(m68k_dreg(regs, reg)));
 			break;
 		case 0:
-			src->fp = (fptype)(uae_s32)m68k_dreg(regs, reg);
+			src->fp = fptype(uae_s32(m68k_dreg(regs, reg)));
 			break;
 		case 1:
 			src->fp = to_single(m68k_dreg(regs, reg));
@@ -1077,7 +1077,7 @@ static int get_fp_value(uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr oldp
 		ad = m68k_areg(regs, reg);
 		break;
 	case 5:
-		ad = m68k_areg(regs, reg) + (uae_s32)(uae_s16)x_cp_next_iword();
+		ad = m68k_areg(regs, reg) + uae_s32(uae_s16(x_cp_next_iword()));
 		break;
 	case 6:
 		ad = x_cp_get_disp_ea_020(m68k_areg(regs, reg), 0);
@@ -1086,14 +1086,14 @@ static int get_fp_value(uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr oldp
 		switch (reg)
 		{
 		case 0: // (xxx).W
-			ad = (uae_s32)(uae_s16)x_cp_next_iword();
+			ad = uae_s32(uae_s16(x_cp_next_iword()));
 			break;
 		case 1: // (xxx).L
 			ad = x_cp_next_ilong();
 			break;
 		case 2: // (d16,PC)
 			ad = m68k_getpc();
-			ad += (uae_s32)(uae_s16)x_cp_next_iword();
+			ad += uae_s32(uae_s16(x_cp_next_iword()));
 			break;
 		case 3: // (d8,PC,Xn)+
 			ad = x_cp_get_disp_ea_020(m68k_getpc(), 0);
@@ -1140,7 +1140,7 @@ static int get_fp_value(uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr oldp
 	switch (size)
 	{
 	case 0:
-		src->fp = (fptype)(uae_s32)(doext ? exts[0] : x_cp_get_long(ad));
+		src->fp = fptype(uae_s32(doext ? exts[0] : x_cp_get_long(ad)));
 		break;
 	case 1:
 		src->fp = to_single((doext ? exts[0] : x_cp_get_long(ad)));

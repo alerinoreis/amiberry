@@ -761,14 +761,14 @@ static uae_u32 gfxboard_lget_vram(uaecptr addr, int bs)
 	else {
 		uae_u8 *m = vram + addr;
 		if (bs < 0) {
-			v = (*((uae_u16*)(m + 0))) << 16;
-			v |= (*((uae_u16*)(m + 2))) << 0;
+			v = (*reinterpret_cast<uae_u16*>(m + 0)) << 16;
+			v |= (*reinterpret_cast<uae_u16*>(m + 2)) << 0;
 		}
 		else if (bs > 0) {
-			v = *((uae_u32*)m);
+			v = *reinterpret_cast<uae_u32*>(m);
 		}
 		else {
-			v = do_get_mem_long((uae_u32*)m);
+			v = do_get_mem_long(reinterpret_cast<uae_u32*>(m));
 		}
 	}
 #if MEMLOGR
@@ -797,9 +797,9 @@ static uae_u16 gfxboard_wget_vram(uaecptr addr, int bs)
 	else {
 		uae_u8 *m = vram + addr;
 		if (bs)
-			v = *((uae_u16*)m);
+			v = *reinterpret_cast<uae_u16*>(m);
 		else
-			v = do_get_mem_word((uae_u16*)m);
+			v = do_get_mem_word(reinterpret_cast<uae_u16*>(m));
 	}
 #if MEMLOGR
 #if MEMLOGINDIRECT
@@ -867,14 +867,14 @@ static void gfxboard_lput_vram(uaecptr addr, uae_u32 l, int bs)
 	else {
 		uae_u8 *m = vram + addr;
 		if (bs < 0) {
-			*((uae_u16*)(m + 0)) = l >> 16;
-			*((uae_u16*)(m + 2)) = l >> 0;
+			*reinterpret_cast<uae_u16*>(m + 0) = l >> 16;
+			*reinterpret_cast<uae_u16*>(m + 2) = l >> 0;
 		}
 		else if (bs > 0) {
-			*((uae_u32*)m) = l;
+			*reinterpret_cast<uae_u32*>(m) = l;
 		}
 		else {
-			do_put_mem_long((uae_u32*)m, l);
+			do_put_mem_long(reinterpret_cast<uae_u32*>(m), l);
 		}
 	}
 }
@@ -1849,7 +1849,7 @@ static void REGPARAM2 gfxboards_wput_regs(uaecptr addr, uae_u32 v)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
-	uae_u16 w = (uae_u16)v;
+	uae_u16 w = uae_u16(v);
 	addr &= p4_special_mask;
 	if (addr >= 0x400000 || (p4z2 && !(picassoiv_bank & PICASSOIV_BANK_MAPRAM) && (picassoiv_bank & PICASSOIV_BANK_UNMAPFLASH) && ((addr >= 0x800 && addr < 0xc00) || (addr >= 0x1000 && addr < 0x2000)))) {
 		uae_u32 addr2 = addr & 0xffff;

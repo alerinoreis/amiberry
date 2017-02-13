@@ -802,7 +802,7 @@ static void initialize_mountinfo(void)
 	nr = nr_units();
 	cd_unit_offset = nr;
 	cd_unit_number = 0;
-	if (currprefs.scsi && currprefs.win32_automount_cddrives) {
+	if (currprefs.scsi ) { //&& currprefs.win32_automount_cddrives) {
 		uae_u32 mask = scsi_get_cd_drive_mask();
 		for (int i = 0; i < 32; i++) {
 			if (mask & (1 << i)) {
@@ -1807,7 +1807,7 @@ int filesys_media_change(const TCHAR *rootdir, int inserted, struct uaedev_confi
 	if (nr >= 0)
 		ui = &mountinfo.ui[nr];
 	/* only configured drives have automount support if automount is disabled */
-	if (!currprefs.win32_automount_removable && (!ui || !ui->configureddrive) && (inserted == 0 || inserted == 1))
+	if ((!ui || !ui->configureddrive) && (inserted == 0 || inserted == 1))
 		return 0;
 	if (nr < 0 && !inserted)
 		return 0;
@@ -7899,10 +7899,6 @@ void filesys_install_code(void)
 	b = a + bootrom_header + 3 * 4 - 4;
 	filesys_initcode = a + dlg(b) + bootrom_header - 4;
 }
-
-#ifdef _WIN32
-#include "od-win32/win32_filesys.cpp"
-#endif
 
 static uae_u8 *restore_filesys_hardfile(UnitInfo *ui, uae_u8 *src)
 {

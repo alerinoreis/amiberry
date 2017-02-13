@@ -59,5 +59,10 @@ STATIC_INLINE void uae_wait_thread (uae_thread_id thread)
 //  dbg_rem_thread(thread);
 }
 
+STATIC_INLINE void uae_end_thread(uae_thread_id *thread)
+{
+	SDL_DetachThread(*thread);
+}
+
 /* Do nothing; thread exits if thread function returns.  */
 #define UAE_THREAD_EXIT do {} while (0)

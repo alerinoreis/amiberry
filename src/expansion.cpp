@@ -271,7 +271,9 @@ static void expamem_init_last(void)
 {
 	expamem_init_clear2();
 	write_log(_T("Memory map after autoconfig:\n"));
+#ifdef DEBUGGER
 	memory_map_dump();
+#endif
 }
 
 void expamem_next(void)
@@ -1210,8 +1212,8 @@ static uaecptr check_boot_rom(void)
 		return b;
 	if (currprefs.rtgmem_size)
 		return b;
-	if (currprefs.win32_automount_removable)
-		return b;
+	//if (currprefs.win32_automount_removable)
+	//	return b;
 	if (currprefs.chipmem_size > 2 * 1024 * 1024)
 		return b;
 	if (currprefs.z3chipmem_size)
