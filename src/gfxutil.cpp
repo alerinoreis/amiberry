@@ -123,7 +123,7 @@ static float video_gamma(float value, float gamma, float bri, float con)
 		return 0.0f;
 
 	factor = pow(255.0f, 1.0f - gamma);
-	ret = (float)(factor * pow(value, gamma));
+	ret = float(factor * pow(value, gamma));
 
 	if (ret < 0.0f)
 		ret = 0.0f;
@@ -134,23 +134,23 @@ static float video_gamma(float value, float gamma, float bri, float con)
 static uae_u32 gamma[256 * 3];
 static int lf, hf;
 
-static void video_calc_gammatable(void)
+static void video_calc_gammatable()
 {
 	int i;
 	float bri, con, gam, v;
 	uae_u32 vi;
 
-	bri = ((float)(currprefs.gfx_luminance)) * (128.0f / 1000.0f);
-	con = ((float)(currprefs.gfx_contrast + 1000)) / 1000.0f;
-	gam = ((float)(1000 - currprefs.gfx_gamma)) / 1000.0f;
+	bri = float(currprefs.gfx_luminance) * (128.0f / 1000.0f);
+	con = float(currprefs.gfx_contrast + 1000) / 1000.0f;
+	gam = float(1000 - currprefs.gfx_gamma) / 1000.0f;
 
 	lf = 64 * currprefs.gf[picasso_on].gfx_filter_blur / 1000;
 	hf = 256 - lf * 2;
 
 	for (i = 0; i < (256 * 3); i++) {
-		v = video_gamma((float)(i - 256), gam, bri, con);
+		v = video_gamma(float(i - 256), gam, bri, con);
 
-		vi = (uae_u32)v;
+		vi = uae_u32(v);
 		if (vi > 255)
 			vi = 255;
 
@@ -163,21 +163,21 @@ static void video_calc_gammatable(void)
 
 static uae_u32 limit256(double v)
 {
-	v = v * (double)(currprefs.gf[picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[picasso_on].gfx_filter_luminance / 10.0;
+	v = v * double(currprefs.gf[picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[picasso_on].gfx_filter_luminance / 10.0;
 	if (v < 0)
 		v = 0;
 	if (v > 255)
 		v = 255;
-	return ((uae_u32)v) & 0xff;
+	return uae_u32(v) & 0xff;
 }
 static uae_u32 limit256rb(double v)
 {
-	v *= (double)(currprefs.gf[picasso_on].gfx_filter_saturation + 1000) / 1000.0;
+	v *= double(currprefs.gf[picasso_on].gfx_filter_saturation + 1000) / 1000.0;
 	if (v < -128)
 		v = -128;
 	if (v > 127)
 		v = 127;
-	return ((uae_u32)v) & 0xff;
+	return uae_u32(v) & 0xff;
 }
 static double get_y(int r, int g, int b)
 {

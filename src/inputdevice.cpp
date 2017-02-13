@@ -2509,9 +2509,11 @@ static int handle_custom_event(const TCHAR *custom)
 		else if (!_tcsicmp(p, _T("do_config_check"))) {
 			set_config_changed();
 		}
+#ifdef DEBUGGER
 		else if (!_tcsnicmp(p, _T("dbg "), 4)) {
 			debug_parser(p + 4, NULL, -1);
 		}
+#endif
 		else if (!_tcsnicmp(p, _T("kbr "), 4)) {
 			inject_events(p + 4);
 		}
@@ -2818,7 +2820,7 @@ static bool inputdevice_handle_inputcode2(int code, int state)
 
 	if (code == 0)
 		goto end;
-	if (needcputrace(code) && can_cpu_tracer() == true && is_cpu_tracer() == false && !input_play && !input_record && !debugging) {
+	if (needcputrace(code) && can_cpu_tracer() == true && is_cpu_tracer() == false && !input_play && !input_record) {
 		if (set_cpu_tracer(true)) {
 			tracer_enable = 1;
 			return true; // wait for next frame
@@ -3139,7 +3141,7 @@ static int handle_input_event(int nr, int state, int max, int autofire, bool can
 
 #ifdef _WIN32
 	// ignore normal GUI event if forced gui key is in use
-	if (currprefs.win32_guikey >= 0 && nr == INPUTEVENT_SPC_ENTERGUI)
+	if (currprefs.key_for_menu >= 0 && nr == INPUTEVENT_SPC_ENTERGUI)
 		return 0;
 #endif
 
@@ -3166,7 +3168,7 @@ static int handle_input_event(int nr, int state, int max, int autofire, bool can
 	}
 
 	if ((inputdevice_logging & 1) || input_record || input_play)
-		write_log(_T("STATE=%05d MAX=%05d AF=%d QUAL=%06x '%s' \n"), state, max, autofire, (uae_u32)(qualifiers >> 32), ie->name);
+		write_log(_T("STATE=%05d MAX=%05d AF=%d QUAL=%06x '%s' \n"), state, max, autofire, uae_u32(qualifiers >> 32), ie->name);
 	if (autofire) {
 		if (state)
 			queue_input_event(nr, NULL, state, max, currprefs.input_autofire_linecnt, 1);
@@ -5404,11 +5406,13 @@ static void compatibility_copy(struct uae_prefs *prefs, bool gameports)
 			}
 		}
 	}
+#ifdef ARCADIA
 	if (arcadia_bios) {
 		setcompakb(prefs, keyboard_default_kbmaps[KBR_DEFAULT_MAP_ARCADIA], ip_arcadia, 0, 0);
 		if (JSEM_ISXARCADE1(i, prefs) || JSEM_ISXARCADE2(i, prefs))
 			setcompakb(prefs, keyboard_default_kbmaps[KBR_DEFAULT_MAP_ARCADIA_XA], ip_arcadiaxa, JSEM_ISXARCADE2(i, prefs) ? 1 : 0, prefs->jports[i].autofire);
 	}
+#endif
 	if (0 && currprefs.cs_cdtvcd) {
 		setcompakb(prefs, keyboard_default_kbmaps[KBR_DEFAULT_MAP_CDTV], ip_mediacdtv, 0, 0);
 	}

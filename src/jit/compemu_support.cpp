@@ -17,7 +17,7 @@
 #include "compemu.h"
 
 
-#define NATMEM_OFFSETX (uae_u32)NATMEM_OFFSET
+#define NATMEM_OFFSETX (uae_u32)natmem_offset
 
 // %%% BRIAN KING WAS HERE %%%
 extern bool canbang;
@@ -29,6 +29,35 @@ compop_func *nfcompfunctbl[65536];
 compop_func *nfcpufunctbl[65536];
 #endif
 uae_u8* comp_pc_p;
+
+// gb-- Extra data for Basilisk II/JIT
+#ifdef JIT_DEBUG
+static int JITDebug = 0;	// Enable runtime disassemblers through mon?
+#else
+const int	JITDebug = 0;	  // Don't use JIT debug mode at all
+#endif
+#if USE_INLINING
+static int follow_const_jumps = 1;		// Flag: translation through constant jumps	
+#else
+const int	follow_const_jumps = 0;
+#endif
+
+static uae_u32 current_cache_size = 0;		// Cache grows upwards: how much has been consumed already
+
+STATIC_INLINE bool is_const_jump(uae_u32 opcode)
+{
+	return prop[opcode].is_const_jump;
+}
+
+STATIC_INLINE bool may_trap(uae_u32 opcode)
+{
+	return (prop[opcode].cflow & fl_trap);
+}
+
+STATIC_INLINE unsigned int cft_map(unsigned int f)
+{
+	return f;
+}
 
 uae_u8* start_pc_p;
 uae_u32 start_pc;
@@ -192,7 +221,7 @@ STATIC_INLINE void remove_from_cl_list(blockinfo* bi)
 	if (cache_tags[cl + 1].bi)
 		cache_tags[cl].handler = cache_tags[cl + 1].bi->handler_to_use;
 	else
-		cache_tags[cl].handler = (cpuop_func*)popall_execute_normal;
+		cache_tags[cl].handler = static_cast<cpuop_func*>(popall_execute_normal);
 }
 
 STATIC_INLINE void remove_from_list(blockinfo* bi)
@@ -269,7 +298,7 @@ STATIC_INLINE void remove_deps(blockinfo* bi)
 
 STATIC_INLINE void adjust_jmpdep(dependency* d, void* a)
 {
-	*(d->jmp_off) = (uae_u32)a - ((uae_u32)d->jmp_off + 4);
+	*(d->jmp_off) = uae_u32(a) - (uae_u32(d->jmp_off) + 4);
 }
 
 /********************************************************************
@@ -292,7 +321,7 @@ STATIC_INLINE void set_dhtu(blockinfo* bi, void* dh)
 			}
 			x = x->next;
 		}
-		bi->direct_handler_to_use = (cpuop_func*)dh;
+		bi->direct_handler_to_use = static_cast<cpuop_func*>(dh);
 	}
 }
 
@@ -303,7 +332,7 @@ STATIC_INLINE void invalidate_block(blockinfo* bi)
 	bi->optlevel = 0;
 	bi->count = currprefs.optcount[0] - 1;
 	bi->handler = NULL;
-	bi->handler_to_use = (cpuop_func*)popall_execute_normal;
+	bi->handler_to_use = static_cast<cpuop_func*>(popall_execute_normal);
 	bi->direct_handler = NULL;
 	set_dhtu(bi, bi->direct_pen);
 	bi->needed_flags = 0xff;
@@ -411,7 +440,7 @@ STATIC_INLINE void alloc_blockinfos(void)
 	for (i = 0; i<MAX_HOLD_BI; i++) {
 		if (hold_bi[i])
 			return;
-		bi = hold_bi[i] = (blockinfo*)current_compile_p;
+		bi = hold_bi[i] = reinterpret_cast<blockinfo*>(current_compile_p);
 		current_compile_p += sizeof(blockinfo);
 
 		prepare_block(bi);
@@ -543,7 +572,9 @@ bool check_prefs_changed_comp(void)
 ********************************************************************/
 
 //#include "compemu_optimizer.c"
-#include "compemu_optimizer_x86.cpp"
+//#include "compemu_optimizer_x86.cpp"
+#define lopt_emit_all()
+#define empty_low_optimizer()
 
 /********************************************************************
 * Functions to emit data into memory, and other general support    *
@@ -562,20 +593,24 @@ STATIC_INLINE void emit_byte(uae_u8 x)
 
 STATIC_INLINE void emit_word(uae_u16 x)
 {
-	*((uae_u16*)target) = x;
+	*reinterpret_cast<uae_u16*>(target) = x;
 	target += 2;
 }
 
 STATIC_INLINE void emit_long(uae_u32 x)
 {
-	*((uae_u32*)target) = x;
+	*reinterpret_cast<uae_u32*>(target) = x;
 	target += 4;
 }
 
 STATIC_INLINE uae_u32 reverse32(uae_u32 oldv)
 {
+#ifdef RASPBERRY
+	return do_byteswap_32(oldv);
+#else
 	return ((oldv >> 24) & 0xff) | ((oldv >> 8) & 0xff00) |
 		((oldv << 8) & 0xff0000) | ((oldv << 24) & 0xff000000);
+#endif
 }
 
 
@@ -596,12 +631,102 @@ STATIC_INLINE uae_u8* get_target(void)
 	return get_target_noopt();
 }
 
+/********************************************************************
+* New version of data buffer: interleave data and code             *
+********************************************************************/
+#if defined(CPU_arm) && !defined(ARMV6T2)
+
+#define DATA_BUFFER_SIZE 768             // Enlarge POPALLSPACE_SIZE if this value is greater than 768
+#define DATA_BUFFER_MAXOFFSET 4096 - 32  // max range between emit of data and use of data
+static uae_u8* data_writepos = 0;
+static uae_u8* data_endpos = 0;
+#ifdef DEBUG_DATA_BUFFER
+static uae_u32 data_wasted = 0;
+static uae_u32 data_buffers_used = 0;
+#endif
+
+static uae_s32 data_natmem_pos = 0;
+
+STATIC_INLINE void compemu_raw_branch(IMM d);
+
+STATIC_INLINE void data_check_end(uae_s32 n, uae_s32 codesize)
+{
+	if (data_writepos + n > data_endpos || get_target_noopt() + codesize - data_writepos > DATA_BUFFER_MAXOFFSET)
+	{
+		// Start new buffer
+#ifdef DEBUG_DATA_BUFFER
+		if (data_writepos < data_endpos)
+			data_wasted += data_endpos - data_writepos;
+		data_buffers_used++;
+#endif
+		compemu_raw_branch(DATA_BUFFER_SIZE);
+		data_writepos = get_target_noopt();
+		data_endpos = data_writepos + DATA_BUFFER_SIZE;
+		set_target(get_target_noopt() + DATA_BUFFER_SIZE);
+
+		data_natmem_pos = 0;
+	}
+}
+
+STATIC_INLINE uae_s32 data_word_offs(uae_u16 x)
+{
+	data_check_end(4, 4);
+	*((uae_u16*)data_writepos) = x;
+	data_writepos += 2;
+	*((uae_u16*)data_writepos) = 0;
+	data_writepos += 2;
+	return (uae_s32)data_writepos - (uae_s32)get_target_noopt() - 12;
+}
+
+STATIC_INLINE uae_s32 data_long(uae_u32 x, uae_s32 codesize)
+{
+	data_check_end(4, codesize);
+	*((uae_u32*)data_writepos) = x;
+	data_writepos += 4;
+	return (uae_s32)data_writepos - 4;
+}
+
+STATIC_INLINE uae_s32 data_long_offs(uae_u32 x)
+{
+	data_check_end(4, 4);
+	*((uae_u32*)data_writepos) = x;
+	data_writepos += 4;
+	return (uae_s32)data_writepos - (uae_s32)get_target_noopt() - 12;
+}
+
+STATIC_INLINE uae_s32 get_data_offset(uae_s32 t)
+{
+	return t - (uae_s32)get_target_noopt() - 8;
+}
+
+STATIC_INLINE uae_s32 get_data_natmem(void)
+{
+	if (data_natmem_pos == 0 || (uae_s32)get_target_noopt() - data_natmem_pos >= DATA_BUFFER_MAXOFFSET)
+	{
+		data_natmem_pos = data_long(NATMEM_OFFSETX, 4);
+	}
+	return get_data_offset(data_natmem_pos);
+}
+
+STATIC_INLINE void reset_data_buffer(void)
+{
+	data_writepos = 0;
+	data_endpos = 0;
+}
+
+#endif
 
 /********************************************************************
 * Getting the information about the target CPU                     *
 ********************************************************************/
 
+STATIC_INLINE void clobber_flags(void);
+
+#if defined(CPU_arm) 
+#include "codegen_arm.cpp"
+#else
 #include "compemu_raw_x86.cpp"
+#endif
 
 
 /********************************************************************
