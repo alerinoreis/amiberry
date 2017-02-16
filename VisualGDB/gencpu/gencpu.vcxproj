@@ -31,7 +31,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;../../src/jit;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -44,7 +44,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;../../src/jit;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -60,9 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cpudefs.cpp" />
-    <ClCompile Include="..\..\src\gencpu.cpp" />
+    <ClCompile Include="..\..\src\jit\gencpu.cpp" />
+    <ClCompile Include="..\..\src\jit\readcpu.cpp" />
     <ClCompile Include="..\..\src\osdep\charset.cpp" />
-    <ClCompile Include="..\..\src\readcpu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Readme.txt" />

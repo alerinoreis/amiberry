@@ -31,7 +31,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;../../src/jit;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;AMIBERRY;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -44,7 +44,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <ClCompile>
       <CPPLanguageStandard>GNUPP14</CPPLanguageStandard>
-      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SysGCC\raspberry\lib\gcc\arm-linux-gnueabihf\4.9\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\include\c++\4.9;C:\SysGCC\raspberry\arm-linux-gnueabihf\include;C:\SysGCC\raspberry\arm-linux-gnueabihf\sysroot\usr\include;../../src/include;../../src;../../src/osdep;../../src/jit;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;AMIBERRY;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -59,10 +59,10 @@
     <None Include="build68k-Release.vgdbsettings" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\build68k.cpp" />
+    <Text Include="Readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Readme.txt" />
+    <ClCompile Include="..\..\src\jit\build68k.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -27,13 +27,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\jit\gencomp_arm.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\cpudefs.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\readcpu.cpp">
+    <ClCompile Include="..\..\src\jit\compiler\gencomp_arm.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\readcpu.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
   </ItemGroup>

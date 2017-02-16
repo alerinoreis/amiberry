@@ -30,13 +30,13 @@
     <ClCompile Include="..\..\src\cpudefs.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\gencpu.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\readcpu.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\osdep\charset.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\gencpu.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\readcpu.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
   </ItemGroup>

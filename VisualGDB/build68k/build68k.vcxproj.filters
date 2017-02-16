@@ -27,11 +27,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\build68k.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
+    <Text Include="Readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Readme.txt" />
+    <ClCompile Include="..\..\src\jit\build68k.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

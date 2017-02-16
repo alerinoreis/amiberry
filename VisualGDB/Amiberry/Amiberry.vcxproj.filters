@@ -134,6 +134,18 @@
     <Filter Include="Header files\qemu">
       <UniqueIdentifier>{b2e89778-efe0-49b7-a33e-e609a029bc43}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source files\jit\fpu">
+      <UniqueIdentifier>{5e3f52e0-ba93-4604-8178-861136d5e53a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\jit\compiler">
+      <UniqueIdentifier>{410bd17d-dcd7-4bd3-9e10-a45d53d2c0c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header files\jit\fpu">
+      <UniqueIdentifier>{d912c367-4198-49ad-b0c2-4a5d1029dc9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header files\jit\compiler">
+      <UniqueIdentifier>{3a3711a8-34df-44d4-986c-f15a4d1719de}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Amiberry-Debug.vgdbsettings">
@@ -267,9 +279,6 @@
     <ClCompile Include="..\..\src\newcpu_common.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\readcpu.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\rommgr.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
@@ -293,18 +302,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\zfile_archive.cpp">
       <Filter>Source files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\jit\compemu.cpp">
-      <Filter>Source files\jit</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\jit\compemu_fpp.cpp">
-      <Filter>Source files\jit</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\jit\compemu_support.cpp">
-      <Filter>Source files\jit</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\jit\compstbl.cpp">
-      <Filter>Source files\jit</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\archivers\7z\7zBuf.cpp">
       <Filter>Source files\archivers\7z</Filter>
@@ -585,12 +582,6 @@
     <ClCompile Include="..\..\src\cpuemu_33.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\cpummu.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cpummu30.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\qemuvga\cirrus_vga.cpp">
       <Filter>Source files\qemu</Filter>
     </ClCompile>
@@ -602,6 +593,45 @@
     </ClCompile>
     <ClCompile Include="..\..\src\qemuvga\vga.cpp">
       <Filter>Source files\qemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\exceptions.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\flags.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\fpu_ieee.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\fpu_mpfr.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\fpu_uae.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\mathlib.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\fpu\rounding.cpp">
+      <Filter>Source files\jit\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\compiler\compemu.cpp">
+      <Filter>Source files\jit\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\compiler\compemu_fpp.cpp">
+      <Filter>Source files\jit\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\compiler\compemu_support.cpp">
+      <Filter>Source files\jit\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\cpummu.cpp">
+      <Filter>Source files\jit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\newcpu.cpp">
+      <Filter>Source files\jit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\jit\readcpu.cpp">
+      <Filter>Source files\jit</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -697,9 +727,6 @@
       <Filter>Header files\include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\include\cpu_prefetch.h">
-      <Filter>Header files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\include\cputbl.h">
       <Filter>Header files\include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\include\crc32.h">
@@ -837,21 +864,6 @@
     <ClInclude Include="..\..\src\include\zfile.h">
       <Filter>Header files\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\jit\codegen_arm.h">
-      <Filter>Header files\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\jit\compemu.h">
-      <Filter>Header files\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\jit\compemu_midfunc_arm.h">
-      <Filter>Header files\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\jit\compemu_midfunc_arm2.h">
-      <Filter>Header files\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\jit\comptbl.h">
-      <Filter>Header files\jit</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\archivers\7z\7zBuf.h">
       <Filter>Header files\archivers\7z</Filter>
     </ClInclude>
@@ -986,9 +998,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\threaddep\thread.h">
       <Filter>Header files\threaddep</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\machdep\m68k.h">
-      <Filter>Header files\machdep</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\machdep\maccess.h">
       <Filter>Header files\machdep</Filter>
@@ -1191,12 +1200,6 @@
     <ClInclude Include="..\..\src\guisan\include\guisan\widgets\window.hpp">
       <Filter>Header files\guisan\include\guisan\widgets</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\include\cpummu.h">
-      <Filter>Header files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\include\cpummu030.h">
-      <Filter>Header files\include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\include\mmu_common.h">
       <Filter>Header files\include</Filter>
     </ClInclude>
@@ -1229,6 +1232,78 @@
     </ClInclude>
     <ClInclude Include="..\..\src\qemuvga\vga_template.h">
       <Filter>Header files\qemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\core.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\exceptions.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\flags.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\fpu.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\fpu_ieee.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\fpu_uae.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\impl.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\mathlib.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\rounding.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\fpu\types.h">
+      <Filter>Header files\jit\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\compiler\codegen_arm.h">
+      <Filter>Header files\jit\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\compiler\compemu.h">
+      <Filter>Header files\jit\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\compiler\compemu_midfunc_arm.h">
+      <Filter>Header files\jit\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\compiler\comptbl.h">
+      <Filter>Header files\jit\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\compiler\flags_arm.h">
+      <Filter>Header files\jit\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\cpu_emulation.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\cpummu.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\m68k.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\newcpu.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\noflags.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\readcpu.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\registers.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\spcflags.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\cputbl.h">
+      <Filter>Header files\jit</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
