@@ -1,12 +1,14 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
-#include "options.h"
+#include "m68k.h"
 #include "memory.h"
 #include "custom.h"
 #include "events.h"
 #include "newcpu.h"
-#include "cpu_prefetch.h"
+#include "compiler/compemu.h"
+#include "fpu/fpu.h"
 #include "cputbl.h"
+#include "cpu_emulation.h"
 #define CPUFUNC(x) x##_ff
 #define SET_CFLG_ALWAYS(x) SET_CFLG(x)
 #define SET_NFLG_ALWAYS(x) SET_NFLG(x)
@@ -631,7 +633,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_0108_11)(uae_u32 opcode)
 	uae_u32 srcreg = (opcode & 7);
 	uae_u32 dstreg = (opcode >> 9) & 7;
 {	uaecptr memp = m68k_areg (regs, srcreg) + (uae_s32)(uae_s16)get_word_prefetch (4);
-{	uae_u16 val = ((get_byte_prefetch (memp) & 0xff) << 8) + (get_byte_prefetch (memp + 2) & 0xff);
+{	uae_u16 val = (get_byte_prefetch (memp) << 8) + get_byte_prefetch (memp + 2);
 	regs.ir = regs.irc;
 	get_word_prefetch (6);
 	m68k_dreg (regs, dstreg) = (m68k_dreg (regs, dstreg) & ~0xffff) | ((val) & 0xffff);
@@ -833,8 +835,8 @@ uae_u32 REGPARAM2 CPUFUNC(op_0148_11)(uae_u32 opcode)
 	uae_u32 srcreg = (opcode & 7);
 	uae_u32 dstreg = (opcode >> 9) & 7;
 {	uaecptr memp = m68k_areg (regs, srcreg) + (uae_s32)(uae_s16)get_word_prefetch (4);
-{	uae_u32 val = ((get_byte_prefetch (memp) & 0xff) << 24) + ((get_byte_prefetch (memp + 2) & 0xff) << 16)
-              + ((get_byte_prefetch (memp + 4) & 0xff) << 8) + (get_byte_prefetch (memp + 6) & 0xff);
+{	uae_u32 val = (get_byte_prefetch (memp) << 24) + (get_byte_prefetch (memp + 2) << 16)
+              + (get_byte_prefetch (memp + 4) << 8) + get_byte_prefetch (memp + 6);
 	regs.ir = regs.irc;
 	get_word_prefetch (6);
 	m68k_dreg (regs, dstreg) = (val);
@@ -13366,7 +13368,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40d0_11)(uae_u32 opcode)
 }}}}	m68k_incpci (2);
 l_110553: ;
 return 8 * CYCLE_UNIT / 2;
-} /* 12 (1/2) */
+} /* 8 (1/1) */
 
 /* MVSR2.W (An)+ */
 uae_u32 REGPARAM2 CPUFUNC(op_40d8_11)(uae_u32 opcode)
@@ -13388,7 +13390,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40d8_11)(uae_u32 opcode)
 }}}}	m68k_incpci (2);
 l_110554: ;
 return 8 * CYCLE_UNIT / 2;
-} /* 12 (1/2) */
+} /* 8 (1/1) */
 
 /* MVSR2.W -(An) */
 uae_u32 REGPARAM2 CPUFUNC(op_40e0_11)(uae_u32 opcode)
@@ -13410,7 +13412,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40e0_11)(uae_u32 opcode)
 }}}}	m68k_incpci (2);
 l_110555: ;
 return 10 * CYCLE_UNIT / 2;
-} /* 12 (1/2) */
+} /* 8 (1/1) */
 
 /* MVSR2.W (d16,An) */
 uae_u32 REGPARAM2 CPUFUNC(op_40e8_11)(uae_u32 opcode)
@@ -13431,7 +13433,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40e8_11)(uae_u32 opcode)
 }}}}	m68k_incpci (4);
 l_110556: ;
 return 12 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* MVSR2.W (d8,An,Xn) */
 uae_u32 REGPARAM2 CPUFUNC(op_40f0_11)(uae_u32 opcode)
@@ -13452,7 +13454,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40f0_11)(uae_u32 opcode)
 }}}}	m68k_incpci (4);
 l_110557: ;
 return 14 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* MVSR2.W (xxx).W */
 uae_u32 REGPARAM2 CPUFUNC(op_40f8_11)(uae_u32 opcode)
@@ -13472,7 +13474,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40f8_11)(uae_u32 opcode)
 }}}}	m68k_incpci (4);
 l_110558: ;
 return 12 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* MVSR2.W (xxx).L */
 uae_u32 REGPARAM2 CPUFUNC(op_40f9_11)(uae_u32 opcode)
@@ -13493,7 +13495,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40f9_11)(uae_u32 opcode)
 }}}}	m68k_incpci (6);
 l_110559: ;
 return 16 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* CHK.W Dn,Dn */
 uae_u32 REGPARAM2 CPUFUNC(op_4180_11)(uae_u32 opcode)
@@ -30842,8 +30844,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_c100_11)(uae_u32 opcode)
 	uae_u16 newv_hi = (src & 0xF0) + (dst & 0xF0);
 	uae_u16 newv, tmp_newv;
 	int cflg;
-	newv = tmp_newv = newv_hi + newv_lo;
-	if (newv_lo > 9) { newv += 6; }
+	newv = tmp_newv = newv_hi + newv_lo;	if (newv_lo > 9) { newv += 6; }
 	cflg = (newv & 0x3F0) > 0x90;
 	if (cflg) newv += 0x60;
 	SET_CFLG (cflg);
@@ -30875,8 +30876,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_c108_11)(uae_u32 opcode)
 	uae_u16 newv_hi = (src & 0xF0) + (dst & 0xF0);
 	uae_u16 newv, tmp_newv;
 	int cflg;
-	newv = tmp_newv = newv_hi + newv_lo;
-	if (newv_lo > 9) { newv += 6; }
+	newv = tmp_newv = newv_hi + newv_lo;	if (newv_lo > 9) { newv += 6; }
 	cflg = (newv & 0x3F0) > 0x90;
 	if (cflg) newv += 0x60;
 	SET_CFLG (cflg);
@@ -37024,7 +37024,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40d0_12)(uae_u32 opcode)
 }}}	m68k_incpci (2);
 l_120002: ;
 return 8 * CYCLE_UNIT / 2;
-} /* 12 (1/2) */
+} /* 8 (1/1) */
 
 /* MVSR2.W (An)+ */
 uae_u32 REGPARAM2 CPUFUNC(op_40d8_12)(uae_u32 opcode)
@@ -37045,7 +37045,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40d8_12)(uae_u32 opcode)
 }}}	m68k_incpci (2);
 l_120003: ;
 return 8 * CYCLE_UNIT / 2;
-} /* 12 (1/2) */
+} /* 8 (1/1) */
 
 /* MVSR2.W -(An) */
 uae_u32 REGPARAM2 CPUFUNC(op_40e0_12)(uae_u32 opcode)
@@ -37066,7 +37066,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40e0_12)(uae_u32 opcode)
 }}}	m68k_incpci (2);
 l_120004: ;
 return 10 * CYCLE_UNIT / 2;
-} /* 12 (1/2) */
+} /* 8 (1/1) */
 
 /* MVSR2.W (d16,An) */
 uae_u32 REGPARAM2 CPUFUNC(op_40e8_12)(uae_u32 opcode)
@@ -37086,7 +37086,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40e8_12)(uae_u32 opcode)
 }}}	m68k_incpci (4);
 l_120005: ;
 return 12 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* MVSR2.W (d8,An,Xn) */
 uae_u32 REGPARAM2 CPUFUNC(op_40f0_12)(uae_u32 opcode)
@@ -37106,7 +37106,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40f0_12)(uae_u32 opcode)
 }}}	m68k_incpci (4);
 l_120006: ;
 return 14 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* MVSR2.W (xxx).W */
 uae_u32 REGPARAM2 CPUFUNC(op_40f8_12)(uae_u32 opcode)
@@ -37125,7 +37125,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40f8_12)(uae_u32 opcode)
 }}}	m68k_incpci (4);
 l_120007: ;
 return 12 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* MVSR2.W (xxx).L */
 uae_u32 REGPARAM2 CPUFUNC(op_40f9_12)(uae_u32 opcode)
@@ -37145,7 +37145,7 @@ uae_u32 REGPARAM2 CPUFUNC(op_40f9_12)(uae_u32 opcode)
 }}}	m68k_incpci (6);
 l_120008: ;
 return 16 * CYCLE_UNIT / 2;
-} /* 16 (2/2) */
+} /* 12 (2/1) */
 
 /* CLR.B Dn */
 uae_u32 REGPARAM2 CPUFUNC(op_4200_12)(uae_u32 opcode)
