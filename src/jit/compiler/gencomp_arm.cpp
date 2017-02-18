@@ -1,6 +1,9 @@
 /*
  *  compiler/gencomp.c - MC680x0 compilation generator
  *
+ *	Updated for Amiberry, copyright 2017
+ *		Dimitris Panokostas
+ *		
  *  Based on work Copyright 1995, 1996 Bernd Schmidt
  *  Changes for UAE-JIT Copyright 2000 Bernd Meyer
  *
@@ -34,17 +37,18 @@
  *
  */
 
+#include "sysconfig.h"
 #include "sysdeps.h"
+#include <ctype.h>
+
 #include "readcpu.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <ctype.h>
-#undef abort
 
+#undef abort
 
 #define BOOL_TYPE		"int"
 #define failure			global_failure=1
@@ -135,7 +139,7 @@ read_counts(void)
 	file = fopen("frequent.68k", "r");
 	if (file)
 	{
-		assert(fscanf (file, "Total: %lu\n", &total) == 1);
+		fscanf(file, "Total: %lu\n", &total);
 		while (fscanf(file, "%lx: %lu %s\n", &opcode, &count, name) == 3)
 		{
 			opcode_next_clev[nr] = 4;
@@ -152,7 +156,7 @@ read_counts(void)
 		if (table68k[opcode].handler == -1 && table68k[opcode].mnemo != i_ILLG
 			&& counts[opcode] == 0)
 		{
-			opcode_next_clev[nr] = 4;
+			opcode_next_clev[nr] = 5;
 			opcode_last_postfix[nr] = -1;
 			opcode_map[nr++] = opcode;
 			counts[opcode] = count;
@@ -185,6 +189,47 @@ finish_braces(void)
 {
 	while (n_braces > 0)
 		close_brace();
+}
+
+static void
+pop_braces(int to)
+{
+	while (n_braces > to)
+		close_brace();
+}
+
+static int
+bit_size(int size)
+{
+	switch (size)
+	{
+	case sz_byte:
+		return 8;
+	case sz_word:
+		return 16;
+	case sz_long:
+		return 32;
+	default:
+		abort();
+	}
+	return 0;
+}
+
+static const char*
+bit_mask(int size)
+{
+	switch (size)
+	{
+	case sz_byte:
+		return "0xff";
+	case sz_word:
+		return "0xffff";
+	case sz_long:
+		return "0xffffffff";
+	default:
+		abort();
+	}
+	return 0;
 }
 
 static inline void gen_update_next_handler(void)
@@ -259,7 +304,6 @@ gen_nextibyte(void)
 	return buffer;
 }
 
-#ifdef USE_JIT_FPU
 static void
 swap_opcode (void)
 {
@@ -267,7 +311,6 @@ swap_opcode (void)
 	comprintf("\topcode = do_byteswap_16(opcode);\n");
 	comprintf("#endif\n");
 }
-#endif
 
 static void
 sync_m68k_pc(void)
@@ -635,8 +678,8 @@ static void genmov16(uae_u32 opcode, struct instr* curi)
 	}
 
 	/* Align on 16-byte boundaries */
-	comprintf("\tand_l_ri(src,~15);\n");
-	comprintf("\tand_l_ri(dst,~15);\n");
+	comprintf("\tarm_AND_l_ri8(src,~15);\n");
+	comprintf("\tarm_AND_l_ri8(dst,~15);\n");
 
 	if ((opcode & 0xfff8) == 0xf620)
 	{
@@ -649,9 +692,26 @@ static void genmov16(uae_u32 opcode, struct instr* curi)
 	else if ((opcode & 0xfff8) == 0xf608)
 		comprintf("\tarm_ADD_l_ri8(dstreg+8,16);\n");
 
-	comprintf("\tint tmp=scratchie;\n");
+	comprintf("\tif (special_mem) {\n");
+	comprintf("\t\tint tmp=scratchie;\n");
+	comprintf("\tscratchie+=4;\n"
+		"\treadlong(src,tmp,scratchie);\n"
+		"\twritelong_clobber(dst,tmp,scratchie);\n"
+		"\tarm_ADD_l_ri8(src,4);\n"
+		"\tarm_ADD_l_ri8(dst,4);\n"
+		"\treadlong(src,tmp,scratchie);\n"
+		"\twritelong_clobber(dst,tmp,scratchie);\n"
+		"\tarm_ADD_l_ri8(src,4);\n"
+		"\tarm_ADD_l_ri8(dst,4);\n"
+		"\treadlong(src,tmp,scratchie);\n"
+		"\twritelong_clobber(dst,tmp,scratchie);\n"
+		"\tarm_ADD_l_ri8(src,4);\n"
+		"\tarm_ADD_l_ri8(dst,4);\n"
+		"\treadlong(src,tmp,scratchie);\n"
+		"\twritelong_clobber(dst,tmp,scratchie);\n");
+	comprintf("\t} else {\n");
+	comprintf("\t\tint tmp=scratchie;\n");
 	comprintf("\tscratchie+=4;\n");
-
 	comprintf("\tget_n_addr(src,src,scratchie);\n"
 		"\tget_n_addr(dst,dst,scratchie);\n"
 		"\tmov_l_rR(tmp+0,src,0);\n"
@@ -673,8 +733,14 @@ genmovemel(uae_u16 opcode)
 	comprintf("\tuae_u16 mask = %s;\n", gen_nextiword());
 	comprintf("\tint native=scratchie++;\n");
 	comprintf("\tint i;\n");
-	comprintf("\tsigned char offset=0;\n");
+	comprintf("\tint offset=0;\n");
 	genamode(amodes(table68k[opcode].dmode), "dstreg", wordsizes(table68k[opcode].size), "src", 2, 1);
+	if (table68k[opcode].size == sz_long)
+		comprintf("\tif (!currprefs.comptrustlong && !special_mem) {\n");
+	else
+		comprintf("\tif (!currprefs.comptrustword && !special_mem) {\n");
+
+	/* Fast but unsafe...  */
 	comprintf("\tget_n_addr(srca,native,scratchie);\n");
 
 	comprintf("\tfor (i=0;i<16;i++) {\n"
@@ -700,6 +766,35 @@ genmovemel(uae_u16 opcode)
 	{
 		comprintf("\t\t\tlea_l_brr(8+dstreg,srca,offset);\n");
 	}
+	/* End fast but unsafe.   */
+
+	comprintf("\t} else {\n");
+
+	comprintf("\tint tmp=scratchie++;\n");
+
+	comprintf("\tmov_l_rr(tmp,srca);\n");
+	comprintf("\tfor (i=0;i<16;i++) {\n"
+		"\t\tif ((mask>>i)&1) {\n");
+	switch (table68k[opcode].size)
+	{
+	case sz_long:
+		comprintf("\t\t\treadlong(tmp,i,scratchie);\n"
+			"\t\t\tarm_ADD_l_ri8(tmp,4);\n");
+		break;
+	case sz_word:
+		comprintf("\t\t\treadword(tmp,i,scratchie);\n"
+			"\t\t\tarm_ADD_l_ri8(tmp,2);\n");
+		break;
+	default: abort();
+	}
+
+	comprintf("\t\t}\n"
+		"\t}");
+	if (table68k[opcode].dmode == Aipi)
+	{
+		comprintf("\t\t\tmov_l_rr(8+dstreg,tmp);\n");
+	}
+	comprintf("\t}\n");
 }
 
 
@@ -713,6 +808,15 @@ genmovemle(uae_u16 opcode)
 	comprintf("\tsigned char offset=0;\n");
 	genamode(amodes(table68k[opcode].dmode), "dstreg", wordsizes(table68k[opcode].size), "src", 2, 1);
 
+	/* *Sigh* Some clever geek realized that the fastest way to copy a
+       buffer from main memory to the gfx card is by using movmle. Good
+       on her, but unfortunately, gfx mem isn't "real" mem, and thus that
+       act of cleverness means that movmle must pay attention to special_mem,
+       or Genetic Species is a rather boring-looking game ;-) */
+	if (table68k[opcode].size == sz_long)
+		comprintf("\tif (!currprefs.comptrustlong && !special_mem) {\n");
+	else
+		comprintf("\tif (!currprefs.comptrustword && !special_mem) {\n");
 	comprintf("\tget_n_addr(srca,native,scratchie);\n");
 
 	if (table68k[opcode].dmode != Apdi)
@@ -760,15 +864,58 @@ genmovemle(uae_u16 opcode)
 		}
 	}
 
-
 	comprintf("\t\t}\n"
 		"\t}");
 	if (table68k[opcode].dmode == Apdi)
 	{
 		comprintf("\t\t\tlea_l_brr(8+dstreg,srca,(uae_s32)offset);\n");
 	}
-}
+	comprintf("\t} else {\n");
 
+	if (table68k[opcode].dmode != Apdi)
+	{
+		comprintf("\tmov_l_rr(tmp,srca);\n");
+		comprintf("\tfor (i=0;i<16;i++) {\n"
+			"\t\tif ((mask>>i)&1) {\n");
+		switch (table68k[opcode].size)
+		{
+		case sz_long:
+			comprintf("\t\t\twritelong(tmp,i,scratchie);\n"
+				"\t\t\tarm_ADD_l_ri8(tmp,4);\n");
+			break;
+		case sz_word:
+			comprintf("\t\t\twriteword(tmp,i,scratchie);\n"
+				"\t\t\tarm_ADD_l_ri8(tmp,2);\n");
+			break;
+		default: abort();
+		}
+	}
+	else
+	{ /* Pre-decrement */
+		comprintf("\tfor (i=0;i<16;i++) {\n"
+			"\t\tif ((mask>>i)&1) {\n");
+		switch (table68k[opcode].size)
+		{
+		case sz_long:
+			comprintf("\t\t\tsub_l_ri(srca,4);\n"
+				"\t\t\twritelong(srca,15-i,scratchie);\n");
+			break;
+		case sz_word:
+			comprintf("\t\t\tsub_l_ri(srca,2);\n"
+				"\t\t\twriteword(srca,15-i,scratchie);\n");
+			break;
+		default: abort();
+		}
+	}
+
+	comprintf("\t\t}\n"
+		"\t}");
+	if (table68k[opcode].dmode == Apdi)
+	{
+		comprintf("\t\t\tmov_l_rr(8+dstreg,srca);\n");
+	}
+	comprintf("\t}\n");
+}
 
 static void
 duplicate_carry(void)
@@ -871,7 +1018,7 @@ genflags(flagtypes type, wordsizes size, char* value, char* src, char* dst)
 			case sz_byte:
 				comprintf("if (kill_rodent(dst)) {\n");
 				comprintf("\tzero_extend_8_rr(scratchie,%s);\n", src);
-				comprintf("\tand_l_ri(%s,0xffffff00);\n", dst); // nf
+				comprintf("\tarm_AND_l_ri8(%s,0xffffff00);\n", dst); // nf
 				comprintf("\tarm_ORR_l(%s,scratchie);\n", dst);
 				comprintf("\tforget_about(scratchie);\n");
 				comprintf("\t} else \n"
@@ -880,7 +1027,7 @@ genflags(flagtypes type, wordsizes size, char* value, char* src, char* dst)
 			case sz_word:
 				comprintf("if (kill_rodent(dst)) {\n");
 				comprintf("\tzero_extend_16_rr(scratchie,%s);\n", src);
-				comprintf("\tand_l_ri(%s,0xffff0000);\n", dst); // nf
+				comprintf("\tarm_AND_l_ri8(%s,0xffff0000);\n", dst); // nf
 				comprintf("\tarm_ORR_l(%s,scratchie);\n", dst);
 				comprintf("\tforget_about(scratchie);\n");
 				comprintf("\t} else \n"
@@ -1175,6 +1322,49 @@ genflags(flagtypes type, wordsizes size, char* value, char* src, char* dst)
 	}
 }
 
+static void
+force_range_for_rox(const char* var, wordsizes size)
+{
+	/* Could do a modulo operation here... which one is faster? */
+	switch (size)
+	{
+	case sz_long:
+		comprintf("\tif (%s >= 33) %s -= 33;\n", var, var);
+		break;
+	case sz_word:
+		comprintf("\tif (%s >= 34) %s -= 34;\n", var, var);
+		comprintf("\tif (%s >= 17) %s -= 17;\n", var, var);
+		break;
+	case sz_byte:
+		comprintf("\tif (%s >= 36) %s -= 36;\n", var, var);
+		comprintf("\tif (%s >= 18) %s -= 18;\n", var, var);
+		comprintf("\tif (%s >= 9) %s -= 9;\n", var, var);
+		break;
+	}
+}
+
+static const char*
+cmask(wordsizes size)
+{
+	switch (size)
+	{
+	case sz_byte:
+		return "0x80";
+	case sz_word:
+		return "0x8000";
+	case sz_long:
+		return "0x80000000";
+	default:
+		abort();
+	}
+}
+
+static int
+source_is_imm1_8(struct instr* i)
+{
+	return i->stype == 3;
+}
+
 static int /* returns zero for success, non-zero for failure */
 gen_opcode(unsigned long int opcode)
 {
@@ -1376,12 +1566,11 @@ gen_opcode(unsigned long int opcode)
 		genamode(amodes(curi->dmode), "dstreg", wordsizes(curi->size), "dst", 1, 0);
 		start_brace();
 		comprintf("\tint s=scratchie++;\n"
-			"\tint tmp=scratchie++;\n"
 			"\tmov_l_rr(s,src);\n");
 		if (curi->size == sz_byte)
-			comprintf("\tand_l_ri(s,7);\n");
+			comprintf("\tarm_AND_l_ri8(s,7);\n");
 		else
-			comprintf("\tand_l_ri(s,31);\n");
+			comprintf("\tarm_AND_l_ri8(s,31);\n");
 
 		{
 			char* op;
@@ -1407,7 +1596,7 @@ gen_opcode(unsigned long int opcode)
 			if (!noflags)
 			{
 				comprintf("\tstart_needflags();\n"
-					"\tset_zero(s,tmp);\n"
+					"\tsetzflg_l(s);\n"
 					"\tlive_flags();\n"
 					"\tend_needflags();\n");
 			}
@@ -1574,6 +1763,7 @@ gen_opcode(unsigned long int opcode)
 		start_brace();
 		comprintf("\tint newad=scratchie++;\n"
 			"\treadlong(15,newad,scratchie);\n"
+			"\tarm_AND_l_ri8(newad,~1);\n"
 			"\tmov_l_mr((uintptr)&regs.pc,newad);\n"
 			"\tget_n_addr_jmp(newad,PC_P,scratchie);\n"
 			"\tmov_l_mr((uintptr)&regs.pc_oldp,PC_P);\n"
@@ -1603,9 +1793,10 @@ gen_opcode(unsigned long int opcode)
 	case i_RTS:
 		comprintf("\tint newad=scratchie++;\n"
 			"\treadlong(15,newad,scratchie);\n"
-			"\tmov_l_mr((uintptr)&regs.pc,newad);\n"
+			"\tarm_AND_l_ri8(newad,~1);\n"
+			"\tmov_l_mr((uae_u32)&regs.pc,newad);\n"
 			"\tget_n_addr_jmp(newad,PC_P,scratchie);\n"
-			"\tmov_l_mr((uintptr)&regs.pc_oldp,PC_P);\n"
+			"\tmov_l_mr((uae_u32)&regs.pc_oldp,PC_P);\n"
 			"\tm68k_pc_offset=0;\n"
 			"\tlea_l_brr(15,15,4);\n");
 		gen_update_next_handler();
@@ -1628,24 +1819,29 @@ gen_opcode(unsigned long int opcode)
 			"\tmov_l_ri(ret,retadd);\n"
 			"\tsub_l_ri(15,4);\n"
 			"\twritelong_clobber(15,ret,scratchie);\n");
-		comprintf("\tmov_l_mr((uintptr)&regs.pc,srca);\n"
+		comprintf("\tarm_AND_l_ri8(srca,~1);\n"
+			"\tmov_l_mr((uae_u32)&regs.pc,srca);\n"
 			"\tget_n_addr_jmp(srca,PC_P,scratchie);\n"
-			"\tmov_l_mr((uintptr)&regs.pc_oldp,PC_P);\n"
+			"\tmov_l_mr((uae_u32)&regs.pc_oldp,PC_P);\n"
 			"\tm68k_pc_offset=0;\n");
 		gen_update_next_handler();
 		break;
 	case i_JMP:
 		isjump;
 		genamode(amodes(curi->smode), "srcreg", wordsizes(curi->size), "src", 0, 0);
-		comprintf("\tmov_l_mr((uintptr)&regs.pc,srca);\n"
+		comprintf("\tarm_AND_l_ri8(srca,~1);\n"
+			"\tmov_l_mr((uae_u32)&regs.pc,srca);\n"
 			"\tget_n_addr_jmp(srca,PC_P,scratchie);\n"
-			"\tmov_l_mr((uintptr)&regs.pc_oldp,PC_P);\n"
+			"\tmov_l_mr((uae_u32)&regs.pc_oldp,PC_P);\n"
 			"\tm68k_pc_offset=0;\n");
 		gen_update_next_handler();
 		break;
 	case i_BSR:
+		if (curi->size == sz_long)
+			failure;
 		is_const_jump;
 		genamode(amodes(curi->smode), "srcreg", wordsizes(curi->size), "src", 1, 0);
+		comprintf("\tarm_AND_l_ri8(srca,~1);\n");
 		start_brace();
 		comprintf("\tuae_u32 retadd=start_pc+((char *)comp_pc_p-(char *)start_pc_p)+m68k_pc_offset;\n");
 		comprintf("\tint ret=scratchie++;\n"
@@ -1655,6 +1851,7 @@ gen_opcode(unsigned long int opcode)
 		comprintf("\tarm_ADD_l_ri(src,m68k_pc_offset_thisinst+2);\n");
 		comprintf("\tm68k_pc_offset=0;\n");
 		comprintf("\tarm_ADD_l(PC_P,src);\n");
+
 		comprintf("\tcomp_pc_p=(uae_u8*)get_const(PC_P);\n");
 		break;
 	case i_Bcc:
@@ -1669,6 +1866,7 @@ gen_opcode(unsigned long int opcode)
 			break;
 		case sz_long: break;
 		}
+		comprintf("\tarm_AND_l_ri8(srca,~1);\n");
 		comprintf("\tsub_l_ri(src,m68k_pc_offset-m68k_pc_offset_thisinst-2);\n");
 		/* Leave the following as "add" --- it will allow it to be optimized
 		   away due to src being a constant ;-) */
@@ -1939,7 +2137,7 @@ gen_opcode(unsigned long int opcode)
 					"\tint tmpcnt=scratchie++;\n"
 					"\tint highshift=scratchie++;\n");
 				comprintf("\tmov_l_rr(tmpcnt,cnt);\n"
-				          "\tand_l_ri(tmpcnt,63);\n"
+				          "\tarm_AND_l_ri8(tmpcnt,63);\n"
 				          "\tmov_l_ri(cdata,0);\n"
 				          "\tcmov_l_rr(cdata,data,%d);\n", NATIVE_CC_NE);
 				/* cdata is now either data (for shift count!=0) or
@@ -2152,7 +2350,7 @@ gen_opcode(unsigned long int opcode)
 					"\tint cdata=scratchie++;\n"
 					"\tint tmpcnt=scratchie++;\n");
 				comprintf("\tmov_l_rr(tmpcnt,cnt);\n"
-				          "\tand_l_ri(tmpcnt,63);\n"
+				          "\tarm_AND_l_ri8(tmpcnt,63);\n"
 				          "\tmov_l_ri(cdata,0);\n"
 				          "\tcmov_l_rr(cdata,data,%d);\n", NATIVE_CC_NE);
 				/* cdata is now either data (for shift count!=0) or
@@ -2322,7 +2520,7 @@ gen_opcode(unsigned long int opcode)
 					"\tint cdata=scratchie++;\n"
 					"\tint tmpcnt=scratchie++;\n");
 				comprintf("\tmov_l_rr(tmpcnt,cnt);\n"
-				          "\tand_l_ri(tmpcnt,63);\n"
+				          "\tarm_AND_l_ri8(tmpcnt,63);\n"
 				          "\tmov_l_ri(cdata,0);\n"
 				          "\tcmov_l_rr(cdata,data,%d);\n", NATIVE_CC_NE);
 				/* cdata is now either data (for shift count!=0) or
@@ -2489,7 +2687,7 @@ gen_opcode(unsigned long int opcode)
 					"\tint cdata=scratchie++;\n"
 					"\tint tmpcnt=scratchie++;\n");
 				comprintf("\tmov_l_rr(tmpcnt,cnt);\n"
-				          "\tand_l_ri(tmpcnt,63);\n"
+				          "\tarm_AND_l_ri8(tmpcnt,63);\n"
 				          "\tmov_l_ri(cdata,0);\n"
 				          "\tcmov_l_rr(cdata,data,%d);\n", NATIVE_CC_NE);
 				/* cdata is now either data (for shift count!=0) or
@@ -2925,7 +3123,7 @@ gen_opcode(unsigned long int opcode)
 		isjump;
 		failure;
 		break;
-	
+
 	case i_EMULOP:
 		failure;
 		break;
@@ -2936,11 +3134,22 @@ gen_opcode(unsigned long int opcode)
 		break;
 
 	case i_MMUOP:
-		isjump; 
+		//TODO
+//	case i_MMUOP030:
+//	case i_PFLUSHN:
+//	case i_PFLUSH:
+//	case i_PFLUSHAN:
+//	case i_PFLUSHA:
+//	case i_PLPAR:
+//	case i_PLPAW:
+//	case i_PTESTR:
+//	case i_PTESTW:
+//	case i_LPSTOP:
+		isjump;
 		failure;
 		break;
 	default:
-		abort ();
+		abort();
 		break;
 	}
 	comprintf("%s", endstr);
@@ -2952,18 +3161,132 @@ gen_opcode(unsigned long int opcode)
 }
 
 static void
-generate_includes(FILE* f)
+generate_includes(FILE* f, int bigger)
 {
+	fprintf(f, "#include \"sysconfig.h\"\n");
 	fprintf(f, "#include \"sysdeps.h\"\n");
-	fprintf(f, "#include \"m68k.h\"\n");
+	if (bigger)
+		fprintf(f, "#include \"options.h\"\n");
+//	fprintf(f, "#include \"m68k.h\"\n");
 	fprintf(f, "#include \"memory.h\"\n");
-	fprintf(f, "#include \"readcpu.h\"\n");
+//	fprintf(f, "#include \"readcpu.h\"\n");
 	fprintf(f, "#include \"newcpu.h\"\n");
 	fprintf(f, "#include \"comptbl.h\"\n");
-	fprintf(f, "#include \"debug.h\"\n");
+//	fprintf(f, "#include \"debug.h\"\n");
 }
 
 static int postfix;
+
+static char* decodeEA(amodes mode, wordsizes size)
+{
+	static char buffer[80];
+
+	buffer[0] = 0;
+	switch (mode)
+	{
+	case Dreg:
+		strcpy(buffer, "Dn");
+		break;
+	case Areg:
+		strcpy(buffer, "An");
+		break;
+	case Aind:
+		strcpy(buffer, "(An)");
+		break;
+	case Aipi:
+		strcpy(buffer, "(An)+");
+		break;
+	case Apdi:
+		strcpy(buffer, "-(An)");
+		break;
+	case Ad16:
+		strcpy(buffer, "(d16,An)");
+		break;
+	case Ad8r:
+		strcpy(buffer, "(d8,An,Xn)");
+		break;
+	case PC16:
+		strcpy(buffer, "(d16,PC)");
+		break;
+	case PC8r:
+		strcpy(buffer, "(d8,PC,Xn)");
+		break;
+	case absw:
+		strcpy(buffer, "(xxx).W");
+		break;
+	case absl:
+		strcpy(buffer, "(xxx).L");
+		break;
+	case imm:
+		switch (size)
+		{
+		case sz_byte:
+			strcpy(buffer, "#<data>.B");
+			break;
+		case sz_word:
+			strcpy(buffer, "#<data>.W");
+			break;
+		case sz_long:
+			strcpy(buffer, "#<data>.L");
+			break;
+		default:
+			break;
+		}
+		break;
+	case imm0:
+		strcpy(buffer, "#<data>.B");
+		break;
+	case imm1:
+		strcpy(buffer, "#<data>.W");
+		break;
+	case imm2:
+		strcpy(buffer, "#<data>.L");
+		break;
+	case immi:
+		strcpy(buffer, "#<data>");
+		break;
+
+	default:
+		break;
+	}
+	return buffer;
+}
+
+static char* outopcode(int opcode)
+{
+	static char out[100];
+	struct instr* ins;
+	int i;
+
+	ins = &table68k[opcode];
+	for (i = 0; lookuptab[i].name[0]; i++)
+	{
+		if (ins->mnemo == lookuptab[i].mnemo)
+			break;
+	}
+	{
+		char* s = ua(lookuptab[i].name);
+		strcpy(out, s);
+		xfree(s);
+	}
+	if (ins->smode == immi)
+		strcat(out, "Q");
+	if (ins->size == sz_byte)
+		strcat(out, ".B");
+	if (ins->size == sz_word)
+		strcat(out, ".W");
+	if (ins->size == sz_long)
+		strcat(out, ".L");
+	strcat(out, " ");
+	if (ins->suse)
+		strcat(out, decodeEA(ins->smode, ins->size));
+	if (ins->duse)
+	{
+		if (ins->suse) strcat(out, ",");
+		strcat(out, decodeEA(ins->dmode, ins->size));
+	}
+	return out;
+}
 
 static void
 generate_one_opcode(int rp, int noflags)
@@ -2990,32 +3313,21 @@ generate_one_opcode(int rp, int noflags)
 
 	switch (table68k[opcode].stype)
 	{
-	case 0:
-		smsk = 7;
+	case 0: smsk = 7;
 		break;
-	case 1:
-		smsk = 255;
+	case 1: smsk = 255;
 		break;
-	case 2:
-		smsk = 15;
+	case 2: smsk = 15;
 		break;
-	case 3:
-		smsk = 7;
+	case 3: smsk = 7;
 		break;
-	case 4:
-		smsk = 7;
+	case 4: smsk = 7;
 		break;
-	case 5:
-		smsk = 63;
+	case 5: smsk = 63;
 		break;
-	case 6:
-		smsk = 255;
+	case 7: smsk = 3;
 		break;
-	case 7:
-		smsk = 3;
-		break;
-	default:
-		abort();
+	default: abort();
 	}
 	dmsk = 7;
 
@@ -3030,9 +3342,9 @@ generate_one_opcode(int rp, int noflags)
 		if (table68k[opcode].spos == -1)
 		{
 			if (int(table68k[opcode].sreg) >= 128)
-				comprintf("\tuae_s32 srcreg = (uae_s32)(uae_s8)%d;\n", (int) table68k[opcode].sreg);
+				comprintf("\tuae_s32 srcreg = (uae_s32)(uae_s8)%d;\n", int(table68k[opcode].sreg));
 			else
-				comprintf("\tuae_s32 srcreg = %d;\n", (int) table68k[opcode].sreg);
+				comprintf("\tuae_s32 srcreg = %d;\n", int(table68k[opcode].sreg));
 		}
 		else
 		{
@@ -3040,23 +3352,6 @@ generate_one_opcode(int rp, int noflags)
 			int pos = table68k[opcode].spos;
 
 			comprintf("#ifdef HAVE_GET_WORD_UNSWAPPED\n");
-
-			if (pos < 8 && (smsk >> (8 - pos)) != 0)
-				sprintf(source, "(((opcode >> %d) | (opcode << %d)) & %d)",
-				        pos ^ 8, 8 - pos, dmsk);
-			else if (pos != 8)
-				sprintf(source, "((opcode >> %d) & %d)", pos ^ 8, smsk);
-			else
-				sprintf(source, "(opcode & %d)", smsk);
-
-			if (table68k[opcode].stype == 3)
-				comprintf("\tuae_u32 srcreg = imm8_table[%s];\n", source);
-			else if (table68k[opcode].stype == 1)
-				comprintf("\tuae_u32 srcreg = (uae_s32)(uae_s8)%s;\n", source);
-			else
-				comprintf("\tuae_u32 srcreg = %s;\n", source);
-
-			comprintf("#else\n");
 
 			if (pos)
 				sprintf(source, "((opcode >> %d) & %d)", pos, smsk);
@@ -3069,8 +3364,6 @@ generate_one_opcode(int rp, int noflags)
 				comprintf("\tuae_s32 srcreg = (uae_s32)(uae_s8)%s;\n", source);
 			else
 				comprintf("\tuae_s32 srcreg = %s;\n", source);
-
-			comprintf("#endif\n");
 		}
 	}
 	if (table68k[opcode].duse
@@ -3091,26 +3384,12 @@ generate_one_opcode(int rp, int noflags)
 		{
 			int pos = table68k[opcode].dpos;
 
-			comprintf("#ifdef HAVE_GET_WORD_UNSWAPPED\n");
-
-			if (pos < 8 && (dmsk >> (8 - pos)) != 0)
-				comprintf("\tuae_u32 dstreg = ((opcode >> %d) | (opcode << %d)) & %d;\n",
-				          pos ^ 8, 8 - pos, dmsk);
-			else if (pos != 8)
-				comprintf("\tuae_u32 dstreg = (opcode >> %d) & %d;\n",
-				          pos ^ 8, dmsk);
-			else
-				comprintf("\tuae_u32 dstreg = opcode & %d;\n", dmsk);
-
-			comprintf("#else\n");
-
 			if (pos)
 				comprintf("\tuae_u32 dstreg = (opcode >> %d) & %d;\n",
-				          pos, dmsk);
+					pos,
+					dmsk);
 			else
 				comprintf("\tuae_u32 dstreg = opcode & %d;\n", dmsk);
-
-			comprintf("#endif\n");
 		}
 	}
 
@@ -3147,30 +3426,33 @@ generate_one_opcode(int rp, int noflags)
 		if (global_isaddx) flags |= 8;
 		if (global_iscjump) flags |= 16;
 		if (global_fpu) flags |= 32;
-
+		comprintf("return 0;\n");
 		comprintf("}\n");
 
+		char* name = ua(lookuptab[i].name);
 		if (aborted)
 		{
-			fprintf(stblfile, "{ NULL, 0x%08x, %ld }, /* %s */\n", flags, opcode, lookuptab[i].name);
+			fprintf(stblfile, "{ NULL, %ld, 0x%08x }, /* %s */\n", opcode, flags, name);
 			com_discard();
 		}
 		else
 		{
+			printf("/* %s */\n", outopcode(opcode));
 			if (noflags)
 			{
-				fprintf(stblfile, "{ op_%lx_%d_comp_nf, 0x%08x, %ld }, /* %s */\n", opcode, postfix, flags, opcode, lookuptab[i].name);
+				fprintf(stblfile, "{ op_%lx_%d_comp_nf, %ld, 0x%08x }, /* %s */\n", opcode, postfix, opcode, flags, name);
 				fprintf(headerfile, "extern compop_func op_%lx_%d_comp_nf;\n", opcode, postfix);
-				printf("void REGPARAM2 op_%lx_%d_comp_nf(uae_u32 opcode) /* %s */\n{\n", opcode, postfix, lookuptab[i].name);
+				printf("uae_u32 REGPARAM2 op_%lx_%d_comp_nf(uae_u32 opcode)\n{\n", opcode, postfix);
 			}
 			else
 			{
-				fprintf(stblfile, "{ op_%lx_%d_comp_ff, 0x%08x, %ld }, /* %s */\n", opcode, postfix, flags, opcode, lookuptab[i].name);
+				fprintf(stblfile, "{ op_%lx_%d_comp_ff, %ld, 0x%08x }, /* %s */\n", opcode, postfix, opcode, flags, name);
 				fprintf(headerfile, "extern compop_func op_%lx_%d_comp_ff;\n", opcode, postfix);
-				printf("void REGPARAM2 op_%lx_%d_comp_ff(uae_u32 opcode) /* %s */\n{\n", opcode, postfix, lookuptab[i].name);
+				printf("uae_u32 REGPARAM2 op_%lx_%d_comp_ff(uae_u32 opcode)\n{\n", opcode, postfix);
 			}
 			com_flush();
 		}
+		xfree(name);
 	}
 	opcode_next_clev[rp] = next_cpu_level;
 	opcode_last_postfix[rp] = postfix;
@@ -3185,13 +3467,13 @@ generate_func(int noflags)
 	using_exception_3 = 0;
 	for (i = 0; i < 1; i++) /* We only do one level! */
 	{
-		cpu_level = 4 - i;
+		cpu_level = 5 - i;
 		postfix = i;
 
 		if (noflags)
-			fprintf(stblfile, "struct comptbl op_smalltbl_%d_comp_nf[] = {\n", postfix);
+			fprintf(stblfile, "const struct comptbl op_smalltbl_%d_comp_nf[] = {\n", postfix);
 		else
-			fprintf(stblfile, "struct comptbl op_smalltbl_%d_comp_ff[] = {\n", postfix);
+			fprintf(stblfile, "const struct comptbl op_smalltbl_%d_comp_ff[] = {\n", postfix);
 
 
 		/* sam: this is for people with low memory (eg. me :)) */
@@ -3209,7 +3491,13 @@ generate_func(int noflags)
 			"#define PART_6 1\n"
 			"#define PART_7 1\n"
 			"#define PART_8 1\n"
-			"#endif\n\n");
+			"#endif\n\n"
+			"extern void setzflg_l(uae_u32);\n"
+			"extern void comp_fpp_opp();\n"
+			"extern void comp_fscc_opp();\n"
+			"extern void comp_fbcc_opp();\n\n");
+
+		printf("#define JIT_M68K_PC_SYNC 100\n\n");
 
 		rp = 0;
 		for (j = 1; j <= 8; ++j)
@@ -3221,20 +3509,20 @@ generate_func(int noflags)
 			printf("#endif\n\n");
 		}
 
-		fprintf(stblfile, "{ 0, 0,65536 }};\n");
+		fprintf(stblfile, "{ 0, 65536, 0 }};\n");
 	}
 }
 
 int
-main()
+main(int argc, char** argv)
 {
 	read_table68k();
 	do_merges();
 
-	opcode_map = static_cast<int *>(malloc(sizeof (int) * nr_cpuop_funcs));
-	opcode_last_postfix = static_cast<int *>(malloc(sizeof (int) * nr_cpuop_funcs));
-	opcode_next_clev = static_cast<int *>(malloc(sizeof (int) * nr_cpuop_funcs));
-	counts = static_cast<unsigned long *>(malloc(65536 * sizeof (unsigned long)));
+	opcode_map = xmalloc(int, nr_cpuop_funcs);
+	opcode_last_postfix = xmalloc(int, nr_cpuop_funcs);
+	opcode_next_clev = xmalloc(int, nr_cpuop_funcs);
+	counts = xmalloc(unsigned long, 65536);
 	read_counts();
 
 	/* It would be a lot nicer to put all in one file (we'd also get rid of
@@ -3242,37 +3530,39 @@ main()
 	 * I don't dare to touch the 68k version.  */
 
 	headerfile = fopen("comptbl.h", "wb");
-	stblfile = fopen("compstbl.cpp", "wb");
-	assert(freopen ("compemu.cpp", "wb", stdout) != NULL);
 
-	generate_includes(stdout);
-	generate_includes(stblfile);
+	fprintf(headerfile, ""
+		        "#ifdef NOFLAGS_SUPPORT\n"
+		        "/* 68040 */\n"
+		        "extern const struct comptbl op_smalltbl_0_nf[];\n"
+		        "#endif\n"
+		        "extern const struct comptbl op_smalltbl_0_comp_nf[];\n"
+		        "extern const struct comptbl op_smalltbl_0_comp_ff[];\n"
+		        "");
+
+	stblfile = fopen("compstbl.cpp", "wb");
+	freopen("compemu.cpp", "wb", stdout);
+
+	generate_includes(stdout, 1);
+	generate_includes(stblfile, 1);
 
 	printf("#include \"compiler/compemu.h\"\n");
 
 	noflags = 0;
 	generate_func(noflags);
 
-	free(opcode_map);
-	free(opcode_last_postfix);
-	free(opcode_next_clev);
-	free(counts);
 
-	opcode_map = static_cast<int *>(malloc(sizeof (int) * nr_cpuop_funcs));
-	opcode_last_postfix = static_cast<int *>(malloc(sizeof (int) * nr_cpuop_funcs));
-	opcode_next_clev = static_cast<int *>(malloc(sizeof (int) * nr_cpuop_funcs));
-	counts = static_cast<unsigned long *>(malloc(65536 * sizeof (unsigned long)));
+	opcode_map = xmalloc(int, nr_cpuop_funcs);
+	opcode_last_postfix = xmalloc(int, nr_cpuop_funcs);
+	opcode_next_clev = xmalloc(int, nr_cpuop_funcs);
+	counts = xmalloc(unsigned long, 65536);
 	read_counts();
 	noflags = 1;
 	generate_func(noflags);
 
-	free(opcode_map);
-	free(opcode_last_postfix);
-	free(opcode_next_clev);
-	free(counts);
+	printf("#endif\n");
+	fprintf(stblfile, "#endif\n");
 
 	free(table68k);
-	fclose(stblfile);
-	fclose(headerfile);
 	return 0;
 }

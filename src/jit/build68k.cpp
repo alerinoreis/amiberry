@@ -30,13 +30,17 @@
  * Copyright 1995,1996 Bernd Schmidt
  */
 
-#include "readcpu.h"
-
-#include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
 #include <assert.h>
+#include <ctype.h>
+
+#define TCHAR char
+
+#include "sysconfig.h"
+#include "sysdeps.h"
+
+
+#include "readcpu.h"
 #undef abort
 
 static FILE *tablef;
@@ -81,6 +85,7 @@ int main(int argc, char **argv)
 {
 	int no_insns = 0;
 
+	printf("#include \"sysconfig.h\"\n");
 	printf("#include \"sysdeps.h\"\n");
 	printf("#include \"readcpu.h\"\n");
 	printf("struct instr_def defs68k[] = {\n");
@@ -95,22 +100,23 @@ int main(int argc, char **argv)
 #endif
 	getnextch();
 	while (nextch != EOF) {
-		int cpulevel, plevel, sduse;
+		int cpulevel, uncpulevel, plevel, sduse;
 		int i;
 
 		char patbits[16];
 		char opcstr[256];
 		int bitpos[16];
 		int flagset[5], flaguse[5];
-		char cflow;
 
 		unsigned int bitmask, bitpattern;
 		int n_variable;
 
+		int head = 0, tail = 0, clocks = 0, fetchmode = 0;
+
 		n_variable = 0;
 		bitmask = bitpattern = 0;
-		memset(bitpos, 0, sizeof(bitpos));
-		for (i = 0; i < 16; i++) {
+		memset (bitpos, 0, sizeof(bitpos));
+		for(i=0; i<16; i++) {
 			int currbit;
 			bitmask <<= 1;
 			bitpattern <<= 1;
@@ -134,7 +140,6 @@ int main(int argc, char **argv)
 			case 'r': currbit = bitr; break;
 			case 'R': currbit = bitR; break;
 			case 'z': currbit = bitz; break;
-			case 'E': currbit = bitE; break;
 			case 'p': currbit = bitp; break;
 			default: abort();
 			}
@@ -150,9 +155,8 @@ int main(int argc, char **argv)
 			patbits[i] = nextch;
 			getnextch();
 		}
-		(void) patbits;
 
-		while (isspace(nextch) || nextch == ':') /* Get CPU and privilege level */
+		while (isspace(nextch) || nextch == ':') /* Get CPU level, unimplemented level, and privilege level */
 			getnextch();
 
 		switch (nextch) {
@@ -162,6 +166,21 @@ int main(int argc, char **argv)
 		case '3': cpulevel = 3; break;
 		case '4': cpulevel = 4; break;
 		case '5': cpulevel = 5; break;
+		case '6': cpulevel = 6; break;
+		case '7': cpulevel = 7; break;
+		default: abort();
+		}
+		getnextch();
+
+		switch (nextch) {
+		case '0': uncpulevel = 0; break;
+		case '1': uncpulevel = 1; break;
+		case '2': uncpulevel = 2; break;
+		case '3': uncpulevel = 3; break;
+		case '4': uncpulevel = 4; break;
+		case '5': uncpulevel = 5; break;
+		case '6': uncpulevel = 6; break;
+		case '7': uncpulevel = 7; break;
 		default: abort();
 		}
 		getnextch();
@@ -202,9 +221,9 @@ int main(int argc, char **argv)
 		if (nextch != ':')                        /* Get flag used information */
 			abort();
 
-		for(i = 0; i < 5; i++) {
+		for (i = 0; i < 5; i++) {
 			getnextch();
-			switch(nextch){
+			switch (nextch) {
 			case '-': flaguse[i] = fu_unused; break;
 			case '/': flaguse[i] = fu_isjmp; break;
 			case '+': flaguse[i] = fu_maybecc; break;
@@ -213,26 +232,6 @@ int main(int argc, char **argv)
 			}
 		}
 
-		getnextch();
-		while (isspace(nextch))
-			getnextch();
-
-		if (nextch != ':')                        /* Get control flow information */
-			abort();
-	
-		cflow = 0;
-		for(i = 0; i < 2; i++) {
-			getnextch();
-			switch(nextch){
-			case '-': break;
-			case 'R': cflow |= fl_return; break;
-			case 'B': cflow |= fl_branch; break;
-			case 'J': cflow |= fl_jump; break;
-			case 'T': cflow |= fl_trap; break;
-			default: abort();
-			}
-		}
-	
 		getnextch();
 		while (isspace(nextch))
 			getnextch();
@@ -252,40 +251,99 @@ int main(int argc, char **argv)
 		if (nextch != ':')
 			abort();
 
-		assert(fgets(opcstr, 250, tablef) != NULL);
+		fgets(opcstr, 250, tablef);
 		getnextch();
-		{
-			int j;
-			/* Remove superfluous spaces from the string */
-			char *opstrp = opcstr, *osendp;
-			int slen = 0;
 
-			while (isspace((int)*opstrp))
-				opstrp++;
-
-			osendp = opstrp;
-			while (*osendp) {
-				if (!isspace ((int)*osendp))
-					slen = osendp - opstrp + 1;
-				osendp++;
+		if (nextch == '-') {
+			int neg;
+			char fm[20];
+			getnextch();
+			while (isspace(nextch))
+				getnextch();
+			neg = 1;
+			if (nextch == '-') {
+				neg = -1;
+				getnextch();
 			}
-			opstrp[slen] = 0;
-
-			if (no_insns > 0)
-				printf(",\n");
-			no_insns++;
-			printf("{ %d, %d, {", bitpattern, n_variable);
-			for (j = 0; j < 16; j++) {
-				printf("%d", bitpos[j]);
-				if (j < 15)
-					printf(",");
+			for (;;) {
+				if (nextch < '0' || nextch > '9')
+					break;
+				head *= 10;
+				head += nextch - '0';
+				nextch = fgetc (tablef);
 			}
-			printf ("}, %d, %d, %d, { ", bitmask, cpulevel, plevel);
-			for(i = 0; i < 5; i++) {
-				printf("{ %d, %d }%c ", flaguse[i], flagset[i], i == 4 ? ' ' : ',');
+			head *= neg;
+			while (isspace(nextch))
+				getnextch();
+			for (;;) {
+				if (nextch < '0' || nextch > '9')
+					break;
+				tail *= 10;
+				tail += nextch - '0';
+				nextch = fgetc (tablef);
 			}
-			printf("}, %d, %d, \"%s\"}", cflow, sduse, opstrp);
+			while (isspace(nextch))
+				getnextch();
+			for (;;) {
+				if (nextch < '0' || nextch > '9')
+					break;
+				clocks *= 10;
+				clocks += nextch - '0';
+				nextch = fgetc (tablef);
+			}
+			if (nextch == ' ') {
+				fgets(fm, sizeof fm, tablef);
+				if (!strncmp(fm, "fea", 3))
+					fetchmode = 1;
+				if (!strncmp(fm, "cea", 3))
+					fetchmode = 2;
+				if (!strncmp(fm, "fiea", 4))
+					fetchmode = 3;
+				if (!strncmp(fm, "ciea", 4))
+					fetchmode = 4;
+				if (!strncmp(fm, "jea", 3))
+					fetchmode = 5;
+			}
+			getnextch();
 		}
+
+		int j;
+		/* Remove superfluous spaces from the string */
+		char *opstrp = opcstr, *osendp;
+		char tmp[100], *p;
+		int slen = 0;
+
+		while (isspace(*opstrp))
+			opstrp++;
+
+		osendp = opstrp;
+		while (*osendp) {
+			if (!isspace (*osendp))
+				slen = osendp - opstrp + 1;
+			osendp++;
+		}
+		opstrp[slen] = 0;
+
+		if (no_insns > 0)
+			printf(",\n");
+		no_insns++;
+		strcpy (tmp, opstrp);
+		strcat (tmp, " ");
+		p = tmp;
+		while (!isspace(*p++));
+		*p = 0;
+		printf("/* %s */\n", tmp);
+		printf("{0x%04X,%2d,{", bitpattern, n_variable);
+		for (j = 0; j < 16; j++) {
+			printf("%2d", bitpos[j]);
+			if (j < 15)
+				printf(",");
+		}
+		printf ("},0x%04X,%d,%d,%d,{", bitmask, cpulevel, uncpulevel, plevel);
+		for(i = 0; i < 5; i++) {
+			printf("{%d,%d}%s", flaguse[i], flagset[i], i == 4 ? "" : ",");
+		}
+		printf("},%2d,_T(\"%s\"),%2d,%2d,%2d,%2d}", sduse, opstrp, head, tail, clocks, fetchmode);
 	}
 	printf("};\nint n_defs68k = %d;\n", no_insns);
 	return 0;
