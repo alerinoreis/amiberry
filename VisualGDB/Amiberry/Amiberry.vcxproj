@@ -202,6 +202,7 @@
     <ClCompile Include="..\..\src\jit\compiler\compemu_fpp.cpp" />
     <ClCompile Include="..\..\src\jit\compiler\compemu_support.cpp" />
     <ClCompile Include="..\..\src\jit\cpummu.cpp" />
+    <ClCompile Include="..\..\src\jit\cpummu30.cpp" />
     <ClCompile Include="..\..\src\jit\fpu\exceptions.cpp" />
     <ClCompile Include="..\..\src\jit\fpu\flags.cpp" />
     <ClCompile Include="..\..\src\jit\fpu\fpu_ieee.cpp" />
@@ -493,6 +494,7 @@
     <ClInclude Include="..\..\src\jit\compiler\comptbl.h" />
     <ClInclude Include="..\..\src\jit\compiler\flags_arm.h" />
     <ClInclude Include="..\..\src\jit\cpummu.h" />
+    <ClInclude Include="..\..\src\jit\cpummu030.h" />
     <ClInclude Include="..\..\src\jit\cputbl.h" />
     <ClInclude Include="..\..\src\jit\cpu_emulation.h" />
     <ClInclude Include="..\..\src\jit\fpu\core.h" />
@@ -505,12 +507,12 @@
     <ClInclude Include="..\..\src\jit\fpu\mathlib.h" />
     <ClInclude Include="..\..\src\jit\fpu\rounding.h" />
     <ClInclude Include="..\..\src\jit\fpu\types.h" />
-    <ClInclude Include="..\..\src\jit\m68k.h" />
     <ClInclude Include="..\..\src\jit\newcpu.h" />
     <ClInclude Include="..\..\src\jit\noflags.h" />
     <ClInclude Include="..\..\src\jit\readcpu.h" />
     <ClInclude Include="..\..\src\jit\registers.h" />
     <ClInclude Include="..\..\src\jit\spcflags.h" />
+    <ClInclude Include="..\..\src\machdep\m68k.h" />
     <ClInclude Include="..\..\src\machdep\maccess.h" />
     <ClInclude Include="..\..\src\machdep\md-fpp.h" />
     <ClInclude Include="..\..\src\machdep\rpt.h" />

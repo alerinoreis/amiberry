@@ -58,7 +58,6 @@
 #define isaddx			global_isaddx=1
 #define uses_cmov		global_cmov=1
 #define mayfail			global_mayfail=1
-#define uses_fpu		global_fpu=1
 
 int hack_opcode;
 
@@ -302,14 +301,6 @@ gen_nextibyte(void)
 
 	long_opcode = 1;
 	return buffer;
-}
-
-static void
-swap_opcode (void)
-{
-	comprintf("#ifdef HAVE_GET_WORD_UNSWAPPED\n");
-	comprintf("\topcode = do_byteswap_16(opcode);\n");
-	comprintf("#endif\n");
 }
 
 static void
@@ -3046,57 +3037,34 @@ gen_opcode(unsigned long int opcode)
 		failure;
 		break;
 	case i_FPP:
-		uses_fpu;
-#ifdef USE_JIT_FPU
-	mayfail;
-	comprintf("\tuae_u16 extra=%s;\n",gen_nextiword());
-	swap_opcode();
-	comprintf("\tcomp_fpp_opp(opcode,extra);\n");
-#else
-		failure;
-#endif
+		mayfail;
+		comprintf("\tuae_u16 extra=%s;\n",gen_nextiword());
+		comprintf("\tcomp_fpp_opp(opcode,extra);\n");
 		break;
 	case i_FBcc:
-		uses_fpu;
-#ifdef USE_JIT_FPU
-	isjump;
-	uses_cmov;
-	mayfail;
-	swap_opcode();
-	comprintf("\tcomp_fbcc_opp(opcode);\n");
-#else
 		isjump;
-		failure;
-#endif
+		uses_cmov;
+		mayfail;
+		comprintf("\tcomp_fbcc_opp(opcode);\n");
 		break;
 	case i_FDBcc:
-		uses_fpu;
 		isjump;
 		failure;
 		break;
 	case i_FScc:
-		uses_fpu;
-#ifdef USE_JIT_FPU
-	mayfail;
-	uses_cmov;
-	comprintf("\tuae_u16 extra=%s;\n",gen_nextiword());
-	swap_opcode();
-	comprintf("\tcomp_fscc_opp(opcode,extra);\n");
-#else
-		failure;
-#endif
+		mayfail;
+		uses_cmov;
+		comprintf("\tuae_u16 extra=%s;\n",gen_nextiword());
+		comprintf("\tcomp_fscc_opp(opcode,extra);\n");
 		break;
 	case i_FTRAPcc:
-		uses_fpu;
 		isjump;
 		failure;
 		break;
 	case i_FSAVE:
-		uses_fpu;
 		failure;
 		break;
 	case i_FRESTORE:
-		uses_fpu;
 		failure;
 		break;
 
@@ -3530,7 +3498,7 @@ main(int argc, char** argv)
 	generate_includes(stdout, 1);
 	generate_includes(stblfile, 1);
 
-	printf("#include \"compiler/compemu.h\"\n");
+	printf("#include \"compemu.h\"\n");
 
 	noflags = 0;
 	generate_func(noflags);

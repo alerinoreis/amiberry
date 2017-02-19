@@ -633,6 +633,9 @@
     <ClCompile Include="..\..\src\jit\readcpu.cpp">
       <Filter>Source files\jit</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\jit\cpummu30.cpp">
+      <Filter>Source files\jit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\data\35floppy.ico">
@@ -1284,9 +1287,6 @@
     <ClInclude Include="..\..\src\jit\cpummu.h">
       <Filter>Header files\jit</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\jit\m68k.h">
-      <Filter>Header files\jit</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\jit\newcpu.h">
       <Filter>Header files\jit</Filter>
     </ClInclude>
@@ -1304,6 +1304,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\jit\cputbl.h">
       <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\jit\cpummu030.h">
+      <Filter>Header files\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\machdep\m68k.h">
+      <Filter>Header files\machdep</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

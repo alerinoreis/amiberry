@@ -1,325 +1,573 @@
 /*
- * newcpu.h - CPU emulation
- *
- * Copyright (c) 2009 ARAnyM dev team (see AUTHORS)
- * 
- * Inspired by Christian Bauer's Basilisk II
- *
- * This file is part of the ARAnyM project which builds a new and powerful
- * TOS/FreeMiNT compatible virtual machine running on almost any hardware.
- *
- * ARAnyM is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * ARAnyM is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with ARAnyM; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
- /*
-  * UAE - The Un*x Amiga Emulator
-  *
-  * MC68000 emulation
-  *
-  * Copyright 1995 Bernd Schmidt
-  */
+* UAE - The Un*x Amiga Emulator
+*
+* MC68000 emulation
+*
+* Copyright 1995 Bernd Schmidt
+*/
 
-#ifndef NEWCPU_H
-#define NEWCPU_H
+#pragma once
+#include "readcpu.h"
+#include "machdep/m68k.h"
+#include "events.h"
+#include "include/memory.h"
 
-#include "sysdeps.h"
-#include "registers.h"
-#include "spcflags.h"
-#include "m68k.h"
-#include "memory.h"
+#ifndef SET_CFLG
 
-# include <csetjmp>
+#define SET_CFLG(x) (CFLG() = (x))
+#define SET_NFLG(x) (NFLG() = (x))
+#define SET_VFLG(x) (VFLG() = (x))
+#define SET_ZFLG(x) (ZFLG() = (x))
+#define SET_XFLG(x) (XFLG() = (x))
 
-extern struct fixup {
-    int flag;
-    uae_u32 reg;
-    uaecptr value;
-}fixup;
+#define GET_CFLG() CFLG()
+#define GET_NFLG() NFLG()
+#define GET_VFLG() VFLG()
+#define GET_ZFLG() ZFLG()
+#define GET_XFLG() XFLG()
 
-extern int areg_byteinc[];
-extern int imm8_table[];
+#define CLEAR_CZNV() do { \
+	SET_CFLG (0); \
+	SET_ZFLG (0); \
+	SET_NFLG (0); \
+	SET_VFLG (0); \
+} while (0)
+
+#define COPY_CARRY() (SET_XFLG (GET_CFLG ()))
+#endif
+
+extern const int areg_byteinc[];
+extern const int imm8_table[];
 
 extern int movem_index1[256];
 extern int movem_index2[256];
 extern int movem_next[256];
 
-extern int broken_in;
-
-#ifdef X86_ASSEMBLY
-/* This hack seems to force all register saves (pushl %reg) to be moved to the
-   begining of the function, thus making it possible to cpuopti to remove them
-   since m68k_run_1 will save those registers before calling the instruction
-   handler */
-# define cpuop_tag(tag)		__asm__ __volatile__ ( "#cpuop_" tag )
-#else
-# define cpuop_tag(tag)		;
+#ifdef FPUEMU
+extern int fpp_movem_index1[256];
+extern int fpp_movem_index2[256];
+extern int fpp_movem_next[256];
 #endif
 
-#define cpuop_begin()		do { cpuop_tag("begin"); } while (0)
-#define cpuop_end()		do { cpuop_tag("end"); } while (0)
-
-typedef void REGPARAM2 cpuop_func (uae_u32) REGPARAM;
+typedef uae_u32 REGPARAM3 cpuop_func(uae_u32) REGPARAM;
+typedef void REGPARAM3 cpuop_func_ce(uae_u32) REGPARAM;
 
 struct cputbl {
-    cpuop_func *handler;
-    uae_u16 specific;
-    uae_u16 opcode;
+	cpuop_func *handler;
+	uae_u16 opcode;
 };
 
-extern cpuop_func *cpufunctbl[65536] ASM_SYM_FOR_FUNC ("cpufunctbl");
-
-#ifdef USE_JIT
-typedef void compop_func (uae_u32) REGPARAM;
+#ifdef JIT
+typedef uae_u32 REGPARAM3 compop_func(uae_u32) REGPARAM;
 
 struct comptbl {
-    compop_func *handler;
-	uae_u32		specific;
-	uae_u32		opcode;
+	compop_func *handler;
+	uae_u32 opcode;
+	int specific;
 };
 #endif
 
-extern void REGPARAM2 op_illg (uae_u32) REGPARAM;
+extern uae_u32 REGPARAM3 op_illg(uae_u32) REGPARAM;
+extern void REGPARAM3 op_unimpl(uae_u16) REGPARAM;
+
+typedef uae_u8 flagtype;
+
+#ifdef FPUEMU
+
+#if USE_LONG_DOUBLE
+typedef long double fptype;
+#define LDPTR tbyte ptr
+#else
+typedef double fptype;
+#define LDPTR qword ptr
+#endif
+#endif
+
+#define MAX68020CYCLES 4
+
+#define CPU_PIPELINE_MAX 4
+#define CPU000_MEM_CYCLE 4
+#define CPU000_CLOCK_MULT 2
+#define CPU020_MEM_CYCLE 3
+#define CPU020_CLOCK_MULT 4
+
+#define CACHELINES020 64
+struct cache020
+{
+	uae_u32 data;
+	uae_u32 tag;
+	bool valid;
+};
+
+#define CACHELINES030 16
+struct cache030
+{
+	uae_u32 data[4];
+	bool valid[4];
+	uae_u32 tag;
+};
+
+#if 0
+#define CACHESETS040 64
+#define CACHELINES040 4
+struct cache040
+{
+	uae_u32 data[CACHELINES040][4];
+	bool valid[CACHELINES040];
+	uae_u32 tag[CACHELINES040];
+};
+#endif
+
+struct mmufixup
+{
+	int reg;
+	uae_u32 value;
+};
+extern struct mmufixup mmufixup[2];
+
+typedef struct
+{
+	fptype fp;
+#ifdef USE_SOFT_LONG_DOUBLE
+	bool fpx;
+	uae_u32 fpm;
+	uae_u64 fpe;
+#endif
+} fpdata;
+
+struct regstruct
+{
+	uae_u32 regs[16];
+
+	uae_u32 pc;
+	uae_u8 *pc_p;
+	uae_u8 *pc_oldp;
+	uae_u32 instruction_pc;
+
+	uae_u16 irc, ir, db;
+	uae_u32 spcflags;
+	uae_u32 last_prefetch;
+	uae_u32 chipset_latch_rw;
+	uae_u32 chipset_latch_read;
+	uae_u32 chipset_latch_write;
+
+	uaecptr usp, isp, msp;
+	uae_u16 sr;
+	flagtype t1;
+	flagtype t0;
+	flagtype s;
+	flagtype m;
+	flagtype x;
+	flagtype stopped;
+	int halted;
+	int exception;
+	int intmask;
+	int ipl, ipl_pin;
+
+	uae_u32 vbr, sfc, dfc;
+
+#ifdef FPUEMU
+	fpdata fp[8];
+	fpdata fp_result;
+	uae_u32 fp_result_status;
+	uae_u32 fpcr, fpsr, fpiar;
+	uae_u32 fpu_state;
+	uae_u32 fpu_exp_state;
+	fpdata exp_src1, exp_src2;
+	uae_u32 exp_pack[3];
+	uae_u16 exp_opcode, exp_extra, exp_type;
+	bool fp_exception;
+#endif
+#ifndef CPUEMU_68000_ONLY
+	uae_u32 cacr, caar;
+	uae_u32 itt0, itt1, dtt0, dtt1;
+	uae_u32 tcr, mmusr, urp, srp, buscr;
+	uae_u32 mmu_fslw;
+	uae_u32 mmu_fault_addr, mmu_effective_addr;
+	uae_u16 mmu_ssw;
+	uae_u32 wb2_address;
+	uae_u32 wb3_data;
+	uae_u8 wb3_status, wb2_status;
+	int mmu_enabled;
+	int mmu_page_size;
+#endif
+
+	uae_u32 pcr;
+	uae_u32 address_space_mask;
+
+	uae_u8 panic;
+	uae_u32 panic_pc, panic_addr;
+
+	uae_u32 prefetch020[CPU_PIPELINE_MAX];
+	uae_u32 prefetch020addr;
+	uae_u32 cacheholdingdata020;
+	uae_u32 cacheholdingaddr020;
+	int ce020memcycles;
+	bool ce020memcycle_data;
+	int ce020_tail;
+	frame_time_t ce020_tail_cycles;
+};
+
+extern struct regstruct regs;
+
+#define MAX_CPUTRACESIZE 128
+struct cputracememory
+{
+	uae_u32 addr;
+	uae_u32 data;
+	int mode;
+};
+
+struct cputracestruct
+{
+	uae_u32 regs[16];
+	uae_u32 usp, isp, pc;
+	uae_u16 ir, irc, sr, opcode;
+	int intmask, stopped, state;
+
+	uae_u32 msp, vbr;
+	uae_u32 cacr, caar;
+	uae_u32 prefetch020[CPU_PIPELINE_MAX];
+	uae_u32 prefetch020addr;
+	uae_u32 cacheholdingdata020;
+	uae_u32 cacheholdingaddr020;
+	struct cache020 caches020[CACHELINES020];
+
+	uae_u32 startcycles;
+	int needendcycles;
+	int memoryoffset;
+	int cyclecounter, cyclecounter_pre, cyclecounter_post;
+	int readcounter, writecounter;
+	struct cputracememory ctm[MAX_CPUTRACESIZE];
+};
+
+STATIC_INLINE uae_u32 munge24(uae_u32 x)
+{
+	return x & regs.address_space_mask;
+}
+
+extern int mmu_enabled, mmu_triggered;
+extern int cpu_cycles;
+extern int cpucycleunit;
+extern bool m68k_pc_indirect;
+STATIC_INLINE void set_special(uae_u32 x)
+{
+	regs.spcflags |= x;
+	cycles_do_special();
+}
+
+STATIC_INLINE void unset_special(uae_u32 x)
+{
+	regs.spcflags &= ~x;
+}
 
 #define m68k_dreg(r,num) ((r).regs[(num)])
 #define m68k_areg(r,num) (((r).regs + 8)[(num)])
 
-#ifdef FULLMMU
-static ALWAYS_INLINE uae_u8 get_ibyte(uae_u32 o)
+
+/* direct (regs.pc_p) access */
+
+STATIC_INLINE void m68k_setpc(uaecptr newpc)
 {
-	return mmu_get_byte(m68k_getpc() + o + 1, 0, sz_byte);
+	regs.pc_p = regs.pc_oldp = get_real_address(newpc);
+	regs.instruction_pc = regs.pc = newpc;
 }
-static ALWAYS_INLINE uae_u16 get_iword(uae_u32 o)
+STATIC_INLINE uaecptr m68k_getpc(void)
 {
-	return mmu_get_word(m68k_getpc() + o, 0, sz_word);
+	return (uaecptr)(regs.pc + ((uae_u8*)regs.pc_p - (uae_u8*)regs.pc_oldp));
 }
-static ALWAYS_INLINE uae_u32 get_ilong(uae_u32 o)
+#define M68K_GETPC m68k_getpc()
+STATIC_INLINE uaecptr m68k_getpc_p(uae_u8 *p)
 {
-	uaecptr addr = m68k_getpc() + o;
-
-	if (unlikely(is_unaligned(addr, 4)))
-		return mmu_get_long_unaligned(addr, 0);
-	return mmu_get_long(addr, 0, sz_long);
+	return (uaecptr)(regs.pc + ((uae_u8*)p - (uae_u8*)regs.pc_oldp));
 }
-
-#else
-#define get_ibyte(o) do_get_mem_byte((uae_u8 *)(get_real_address(m68k_getpc(), 0, sz_byte) + (o) + 1))
-#define get_iword(o) do_get_mem_word((uae_u16 *)(get_real_address(m68k_getpc(), 0, sz_word) + (o)))
-#define get_ilong(o) do_get_mem_long((uae_u32 *)(get_real_address(m68k_getpc(), 0, sz_long) + (o)))
-#endif
-
-#if 0
-static inline uae_u32 get_ibyte_prefetch (uae_s32 o)
+STATIC_INLINE void m68k_incpc(int o)
 {
-    if (o > 3 || o < 0)
-	return do_get_mem_byte((uae_u8 *)(do_get_real_address(regs.pcp, false, false) + o + 1));
-
-    return do_get_mem_byte((uae_u8 *)(((uae_u8 *)&regs.prefetch) + o + 1));
-}
-static inline uae_u32 get_iword_prefetch (uae_s32 o)
-{
-    if (o > 3 || o < 0)
-	return do_get_mem_word((uae_u16 *)(do_get_real_address(regs.pcp, false, false) + o));
-
-    return do_get_mem_word((uae_u16 *)(((uae_u8 *)&regs.prefetch) + o));
-}
-static inline uae_u32 get_ilong_prefetch (uae_s32 o)
-{
-    if (o > 3 || o < 0)
-	return do_get_mem_long((uae_u32 *)(do_get_real_address(regs.pcp, false, false) + o));
-    if (o == 0)
-	return do_get_mem_long(&regs.prefetch);
-    return (do_get_mem_word (((uae_u16 *)&regs.prefetch) + 1) << 16) | do_get_mem_word ((uae_u16 *)(do_get_real_address(regs.pcp, false, false) + 4));
-}
-#endif
-
-#ifdef FULLMMU
-#define m68k_incpc(o) (regs.pc += (o))
-#else
-#define m68k_incpc(o) (regs.pc_p += (o))
-#endif
-
-static inline void fill_prefetch_0 (void)
-{
-#if USE_PREFETCH_BUFFER
-    uae_u32 r;
-#ifdef UNALIGNED_PROFITABLE
-    r = *(uae_u32 *)do_get_real_address(m68k_getpc(), false, false);
-    regs.prefetch = r;
-#else
-    r = do_get_mem_long ((uae_u32 *)do_get_real_address(m68k_getpc(), false, false));
-    do_put_mem_long (&regs.prefetch, r);
-#endif
-#endif
+	regs.pc_p += o;
 }
 
-#if 0
-static inline void fill_prefetch_2 (void)
+STATIC_INLINE uae_u32 get_dibyte(int o)
 {
-    uae_u32 r = do_get_mem_long (&regs.prefetch) << 16;
-    uae_u32 r2 = do_get_mem_word (((uae_u16 *)do_get_real_address(regs.pcp, false, false)) + 1);
-    r |= r2;
-    do_put_mem_long (&regs.prefetch, r);
+	return do_get_mem_byte((uae_u8 *)((regs).pc_p + (o)+1));
 }
-#else
-#define fill_prefetch_2 fill_prefetch_0
-#endif
-
-/* These are only used by the 68020/68881 code, and therefore don't
- * need to handle prefetch.  */
-static inline uae_u32 next_ibyte (void)
+STATIC_INLINE uae_u32 get_diword(int o)
 {
-    uae_u32 r = get_ibyte (0);
-    m68k_incpc (2);
-    return r;
+	return do_get_mem_word((uae_u16 *)((regs).pc_p + (o)));
 }
-
-static inline uae_u32 next_iword (void)
+STATIC_INLINE uae_u32 get_dilong(int o)
 {
-    uae_u32 r = get_iword (0);
-    m68k_incpc (2);
-    return r;
+	return do_get_mem_long((uae_u32 *)((regs).pc_p + (o)));
+}
+STATIC_INLINE uae_u32 next_diword(void)
+{
+	uae_u32 r = do_get_mem_word((uae_u16 *)((regs).pc_p));
+	m68k_incpc(2);
+	return r;
+}
+STATIC_INLINE uae_u32 next_dilong(void)
+{
+	uae_u32 r = do_get_mem_long((uae_u32 *)((regs).pc_p));
+	m68k_incpc(4);
+	return r;
 }
 
-static inline uae_u32 next_ilong (void)
+STATIC_INLINE void m68k_do_bsr(uaecptr oldpc, uae_s32 offset)
 {
-    uae_u32 r = get_ilong (0);
-    m68k_incpc (4);
-    return r;
+	m68k_areg(regs, 7) -= 4;
+	put_long(m68k_areg(regs, 7), oldpc);
+	m68k_incpc(offset);
+}
+STATIC_INLINE void m68k_do_rts(void)
+{
+	uae_u32 newpc = get_long(m68k_areg(regs, 7));
+	m68k_setpc(newpc);
+	m68k_areg(regs, 7) += 4;
 }
 
-static inline void m68k_setpc (uaecptr newpc)
+/* indirect (regs.pc) access */
+
+STATIC_INLINE void m68k_setpci(uaecptr newpc)
 {
-#ifndef FULLMMU
-    regs.pc_p = regs.pc_oldp = get_real_address(newpc, 0, sz_word);
-#endif
-    regs.fault_pc = regs.pc = newpc;
+	regs.instruction_pc = regs.pc = newpc;
+}
+STATIC_INLINE uaecptr m68k_getpci(void)
+{
+	return regs.pc;
+}
+STATIC_INLINE void m68k_incpci(int o)
+{
+	regs.pc += o;
 }
 
-#define m68k_setpc_fast m68k_setpc
-#define m68k_setpc_bcc  m68k_setpc
-#define m68k_setpc_rte  m68k_setpc
-
-static inline void m68k_do_rts(void)
+STATIC_INLINE uae_u32 get_iibyte(int o)
 {
-    m68k_setpc(get_long(m68k_areg(regs, 7)));
-    m68k_areg(regs, 7) += 4;
+	return get_wordi(m68k_getpci() + (o)+1);
 }
- 
-static inline void m68k_do_bsr(uaecptr oldpc, uae_s32 offset)
+STATIC_INLINE uae_u32 get_iiword(int o)
 {
-    put_long(m68k_areg(regs, 7) - 4, oldpc);
-    m68k_areg(regs, 7) -= 4;
-    m68k_incpc(offset);
+	return get_wordi(m68k_getpci() + (o));
 }
- 
-static inline void m68k_do_jsr(uaecptr oldpc, uaecptr dest)
+STATIC_INLINE uae_u32 get_iilong(int o)
 {
-    put_long(m68k_areg(regs, 7) - 4, oldpc);
-    m68k_areg(regs, 7) -= 4;
-    m68k_setpc(dest);
+	return get_longi(m68k_getpci() + (o));
 }
 
-static inline void m68k_setstopped (int stop)
+STATIC_INLINE uae_u32 next_iibyte(void)
 {
-    regs.stopped = stop;
-    /* A traced STOP instruction drops through immediately without
-       actually stopping.  */
-   if (stop && !( SPCFLAGS_TEST( SPCFLAG_DOTRACE )))
-	SPCFLAGS_SET( SPCFLAG_STOP );
+	uae_u32 r = get_iibyte(0);
+	m68k_incpci(2);
+	return r;
+}
+STATIC_INLINE uae_u32 next_iiword(void)
+{
+	uae_u32 r = get_iiword(0);
+	m68k_incpci(2);
+	return r;
+}
+STATIC_INLINE uae_u32 next_iiwordi(void)
+{
+	uae_u32 r = get_wordi(m68k_getpci());
+	m68k_incpci(2);
+	return r;
+}
+STATIC_INLINE uae_u32 next_iilong(void)
+{
+	uae_u32 r = get_iilong(0);
+	m68k_incpci(4);
+	return r;
+}
+STATIC_INLINE uae_u32 next_iilongi(void)
+{
+	uae_u32 r = get_longi(m68k_getpci());
+	m68k_incpci(4);
+	return r;
 }
 
-#ifdef FULLMMU
-# define GET_OPCODE (get_iword (0))
-#elif defined ARAM_PAGE_CHECK
-# ifdef HAVE_GET_WORD_UNSWAPPED
-#  define GET_OPCODE (do_get_mem_word_unswapped((uae_u16*)(pc + pc_offset)));
-# else
-#  define GET_OPCODE (do_get_mem_word((uae_u16*)(pc + pc_offset)));
-# endif
-#else
-# ifdef HAVE_GET_WORD_UNSWAPPED
-#  define GET_OPCODE (do_get_mem_word_unswapped ((uae_u16*)get_real_address(m68k_getpc(), 0, sz_word)))
-# else
-#  define GET_OPCODE (get_iword (0))
-# endif
-#endif
+STATIC_INLINE void m68k_do_bsri(uaecptr oldpc, uae_s32 offset)
+{
+	m68k_areg(regs, 7) -= 4;
+	put_long(m68k_areg(regs, 7), oldpc);
+	m68k_incpci(offset);
+}
+STATIC_INLINE void m68k_do_rtsi(void)
+{
+	uae_u32 newpc = get_long(m68k_areg(regs, 7));
+	m68k_setpci(newpc);
+	m68k_areg(regs, 7) += 4;
+}
 
-extern REGPARAM uae_u32 get_disp_ea_020 (uae_u32 base, uae_u32 dp);
-extern REGPARAM uae_u32 get_disp_ea_000 (uae_u32 base, uae_u32 dp);
-extern REGPARAM uae_u32 get_bitfield(uae_u32 src, uae_u32 bdata[2], uae_s32 offset, int width);
-extern REGPARAM void put_bitfield(uae_u32 dst, uae_u32 bdata[2], uae_u32 val, uae_s32 offset, int width);
+/* common access */
 
+STATIC_INLINE void m68k_incpc_normal(int o)
+{
+	if (m68k_pc_indirect)
+		m68k_incpci(o);
+	else
+		m68k_incpc(o);
+}
 
+STATIC_INLINE void m68k_setpc_normal(uaecptr pc)
+{
+	if (m68k_pc_indirect) {
+		regs.pc_p = regs.pc_oldp = 0;
+		m68k_setpci(pc);
+	}
+	else {
+		m68k_setpc(pc);
+	}
+}
 
-extern void MakeSR (void);
-extern void MakeFromSR (void);
-extern void Exception (int, uaecptr);
-extern void dump_counts (void);
-extern int m68k_move2c (int, uae_u32 *);
-extern int m68k_movec2 (int, uae_u32 *);
-extern void m68k_divl (uae_u32, uae_u32, uae_u16, uaecptr);
-extern void m68k_mull (uae_u32, uae_u32, uae_u16);
-extern void m68k_emulop (uae_u32);
-extern void m68k_emulop_return (void);
-extern void m68k_natfeat_id(void);
-extern void m68k_natfeat_call(void);
-extern void init_m68k (void);
-extern void exit_m68k (void);
-extern void m68k_dumpstate (FILE *, uaecptr *);
-extern void m68k_disasm (FILE *, uaecptr, uaecptr *, int);
-extern void newm68k_disasm(FILE *, uaecptr, uaecptr *, unsigned int);
-extern void showDisasm(uaecptr);
-extern void m68k_reset (void);
-extern void m68k_enter_debugger(void);
-extern int m68k_do_specialties(void);
-extern void m68k_instr_set(void);
-uae_u32 linea68000(uae_u16 opcode);
+extern uae_u32(*x_prefetch)(int);
+extern uae_u32(*x_get_byte)(uaecptr addr);
+extern uae_u32(*x_get_word)(uaecptr addr);
+extern uae_u32(*x_get_long)(uaecptr addr);
+extern void(*x_put_byte)(uaecptr addr, uae_u32 v);
+extern void(*x_put_word)(uaecptr addr, uae_u32 v);
+extern void(*x_put_long)(uaecptr addr, uae_u32 v);
+extern uae_u32(*x_next_iword)(void);
+extern uae_u32(*x_next_ilong)(void);
+extern uae_u32(*x_get_ilong)(int);
+extern uae_u32(*x_get_iword)(int);
+extern uae_u32(*x_get_ibyte)(int);
 
-/* Opcode of faulting instruction */
-extern uae_u16 last_op_for_exception_3;
-/* PC at fault time */
-extern uaecptr last_addr_for_exception_3;
-/* Address that generated the exception */
-extern uaecptr last_fault_for_exception_3;
+extern uae_u32(*x_cp_get_byte)(uaecptr addr);
+extern uae_u32(*x_cp_get_word)(uaecptr addr);
+extern uae_u32(*x_cp_get_long)(uaecptr addr);
+extern void(*x_cp_put_byte)(uaecptr addr, uae_u32 v);
+extern void(*x_cp_put_word)(uaecptr addr, uae_u32 v);
+extern void(*x_cp_put_long)(uaecptr addr, uae_u32 v);
+extern uae_u32(*x_cp_next_iword)(void);
+extern uae_u32(*x_cp_next_ilong)(void);
+
+extern uae_u32(REGPARAM3 *x_cp_get_disp_ea_020)(uae_u32 base, int idx) REGPARAM;
+
+extern void(*x_do_cycles)(unsigned long);
+extern void(*x_do_cycles_pre)(unsigned long);
+extern void(*x_do_cycles_post)(unsigned long, uae_u32);
+
+extern uae_u32 REGPARAM3 x_get_disp_ea_020(uae_u32 base, int idx) REGPARAM;
+extern uae_u32 REGPARAM3 x_get_disp_ea_ce020(uae_u32 base, int idx) REGPARAM;
+extern uae_u32 REGPARAM3 x_get_disp_ea_ce030(uae_u32 base, int idx) REGPARAM;
+extern uae_u32 REGPARAM3 x_get_bitfield(uae_u32 src, uae_u32 bdata[2], uae_s32 offset, int width) REGPARAM;
+extern void REGPARAM3 x_put_bitfield(uae_u32 dst, uae_u32 bdata[2], uae_u32 val, uae_s32 offset, int width) REGPARAM;
+
+extern void m68k_setstopped(void);
+extern void m68k_resumestopped(void);
+
+extern uae_u32 REGPARAM3 get_disp_ea_020(uae_u32 base, int idx) REGPARAM;
+extern uae_u32 REGPARAM3 get_bitfield(uae_u32 src, uae_u32 bdata[2], uae_s32 offset, int width) REGPARAM;
+extern void REGPARAM3 put_bitfield(uae_u32 dst, uae_u32 bdata[2], uae_u32 val, uae_s32 offset, int width) REGPARAM;
+
+extern void m68k_disasm_ea(uaecptr addr, uaecptr *nextpc, int cnt, uae_u32 *seaddr, uae_u32 *deaddr);
+extern void m68k_disasm(uaecptr addr, uaecptr *nextpc, int cnt);
+extern void m68k_disasm_2(TCHAR *buf, int bufsize, uaecptr addr, uaecptr *nextpc, int cnt, uae_u32 *seaddr, uae_u32 *deaddr, int safemode);
+extern void sm68k_disasm(TCHAR*, TCHAR*, uaecptr addr, uaecptr *nextpc);
+extern int get_cpu_model(void);
+
+extern void set_cpu_caches(bool flush);
+extern void REGPARAM3 MakeSR(void) REGPARAM;
+extern void REGPARAM3 MakeFromSR(void) REGPARAM;
+extern void REGPARAM3 Exception(int) REGPARAM;
+extern void REGPARAM3 ExceptionL(int, uaecptr) REGPARAM;
+extern void NMI(void);
+extern void NMI_delayed(void);
+extern void prepare_interrupt(uae_u32);
+extern void doint(void);
+extern void dump_counts(void);
+extern int m68k_move2c(int, uae_u32 *);
+extern int m68k_movec2(int, uae_u32 *);
+extern bool m68k_divl(uae_u32, uae_u32, uae_u16);
+extern bool m68k_mull(uae_u32, uae_u32, uae_u16);
+extern void init_m68k(void);
+extern void init_m68k_full(void);
+extern void m68k_go(int);
+extern void m68k_dumpstate(uaecptr *);
+extern void m68k_dumpstate(uaecptr, uaecptr *);
+extern void m68k_dumpcache(void);
+extern int getDivu68kCycles(uae_u32 dividend, uae_u16 divisor);
+extern int getDivs68kCycles(uae_s32 dividend, uae_s16 divisor);
+extern void divbyzero_special(bool issigned, uae_s32 dst);
+extern void m68k_do_rte(void);
+extern void protect_roms(bool);
+extern void unprotect_maprom(void);
+
+extern void mmu_op(uae_u32, uae_u32);
+extern void mmu_op30(uaecptr, uae_u32, uae_u16, uaecptr);
+
+extern void fpuop_arithmetic(uae_u32, uae_u16);
+extern void fpuop_dbcc(uae_u32, uae_u16);
+extern void fpuop_scc(uae_u32, uae_u16);
+extern void fpuop_trapcc(uae_u32, uaecptr, uae_u16);
+extern void fpuop_bcc(uae_u32, uaecptr, uae_u32);
+extern void fpuop_save(uae_u32);
+extern void fpuop_restore(uae_u32);
+extern uae_u32 fpp_get_fpsr(void);
+extern void fpu_reset(void);
+extern void fpux_save(int*);
+extern void fpux_restore(int*);
+extern bool fpu_get_constant(fpdata *fp, int cr);
+extern int fpp_cond(int condition);
+
+extern void exception3(uae_u32 opcode, uaecptr addr);
+extern void exception3i(uae_u32 opcode, uaecptr addr);
+extern void exception3b(uae_u32 opcode, uaecptr addr, bool w, bool i, uaecptr pc);
+extern void exception2(uaecptr addr, bool read, int size, uae_u32 fc);
+extern void exception2_fake(uaecptr addr);
+extern void cpureset(void);
+extern void cpu_halt(int id);
+
+extern void fill_prefetch(void);
+extern void fill_prefetch_020(void);
+extern void fill_prefetch_030(void);
 
 #define CPU_OP_NAME(a) op ## a
 
-/* 68040+ 68881 */
-extern struct cputbl op_smalltbl_0_ff[];
+/* 68060 */
+extern const struct cputbl op_smalltbl_0_ff[];
+extern const struct cputbl op_smalltbl_22_ff[]; // CE
+extern const struct cputbl op_smalltbl_33_ff[]; // MMU
+												/* 68040 */
+extern const struct cputbl op_smalltbl_1_ff[];
+extern const struct cputbl op_smalltbl_23_ff[]; // CE
+extern const struct cputbl op_smalltbl_31_ff[]; // MMU
+												/* 68030 */
+extern const struct cputbl op_smalltbl_2_ff[];
+extern const struct cputbl op_smalltbl_24_ff[]; // CE
+extern const struct cputbl op_smalltbl_32_ff[]; // MMU
+												/* 68020 */
+extern const struct cputbl op_smalltbl_3_ff[];
+extern const struct cputbl op_smalltbl_20_ff[]; // prefetch
+extern const struct cputbl op_smalltbl_21_ff[]; // CE
+												/* 68010 */
+extern const struct cputbl op_smalltbl_4_ff[];
+extern const struct cputbl op_smalltbl_11_ff[]; // prefetch
+extern const struct cputbl op_smalltbl_13_ff[]; // CE
+												/* 68000 */
+extern const struct cputbl op_smalltbl_5_ff[];
+extern const struct cputbl op_smalltbl_12_ff[]; // prefetch
+extern const struct cputbl op_smalltbl_14_ff[]; // CE
 
-#ifdef FLIGHT_RECORDER
-extern void m68k_record_step(uaecptr, int);
-#endif
+extern cpuop_func *cpufunctbl[65536] ASM_SYM_FOR_FUNC("cpufunctbl");
 
-extern void m68k_do_execute(void);
-extern void m68k_execute(void);
-#ifdef USE_JIT
-extern void m68k_compile_execute(void);
-extern void m68k_do_compile_execute(void);
-#endif
-#ifdef USE_CPU_EMUL_SERVICES
-extern int32 emulated_ticks;
-extern void cpu_do_check_ticks(void);
-
-static inline void cpu_check_ticks(void)
-{
-	if (--emulated_ticks <= 0)
-		cpu_do_check_ticks();
-}
+#ifdef JIT
+extern void flush_icache(uaecptr, int);
+extern void compemu_reset(void);
+extern bool check_prefs_changed_comp(void);
 #else
-#define cpu_check_ticks()
-#define cpu_do_check_ticks()
+#define flush_icache(uaecptr, int) do {} while (0)
 #endif
+extern void flush_dcache(uaecptr, int);
+extern void flush_mmu(uaecptr, int);
 
-#endif /* NEWCPU_H */
+extern int movec_illg(int regno);
+extern uae_u32 val_move2c(int regno);
+extern void val_move2c2(int regno, uae_u32 val);
+struct cpum2c {
+	int regno;
+	TCHAR *regname;
+};
+extern struct cpum2c m2cregs[];
+
+extern bool is_cpu_tracer(void);
+extern bool set_cpu_tracer(bool force);
+extern bool can_cpu_tracer(void);

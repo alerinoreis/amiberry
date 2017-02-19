@@ -37,7 +37,7 @@
 #include "audio.h"
 #include "md-fpp.h"
 #ifdef JIT
-#include "jit/compemu.h"
+#include "compiler/compemu.h"
 #include <signal.h>
 #else
 /* Need to have these somewhere */
