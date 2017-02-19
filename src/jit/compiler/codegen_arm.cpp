@@ -178,8 +178,8 @@ static inline int isword(uae_s32 x)
 
 static void jit_fail(const char *msg, const char *file, int line, const char *function)
 {
-	panicbug("JIT failure in function %s from file %s at line %d: %s",
-			function, file, line, msg);
+	//panicbug("JIT failure in function %s from file %s at line %d: %s",
+	//		function, file, line, msg);
 	abort();
 }
 
@@ -1928,7 +1928,7 @@ static inline void raw_load_flagreg(uae_u32 target, uae_u32 r)
 
 static inline void raw_fflags_into_flags(int r)
 {
-	jit_unimplemented("raw_fflags_into_flags %x", r);
+	//jit_unimplemented("raw_fflags_into_flags %x", r);
 }
 
 static inline void raw_fp_init(void)
@@ -1943,7 +1943,7 @@ static inline void raw_fp_init(void)
 // Verify
 static inline void raw_fp_cleanup_drop(void)
 {
-D(panicbug("raw_fp_cleanup_drop"));
+//D(panicbug("raw_fp_cleanup_drop"));
 
     while (live.tos>=1) {
 //	emit_byte(0xde);
@@ -1960,25 +1960,25 @@ D(panicbug("raw_fp_cleanup_drop"));
 
 LOWFUNC(NONE,WRITE,2,raw_fmov_mr_drop,(MEMW m, FR r))
 {
-	jit_unimplemented("raw_fmov_mr_drop %x %x", m, r);
+	//jit_unimplemented("raw_fmov_mr_drop %x %x", m, r);
 }
 LENDFUNC(NONE,WRITE,2,raw_fmov_mr_drop,(MEMW m, FR r))
 
 LOWFUNC(NONE,WRITE,2,raw_fmov_mr,(MEMW m, FR r))
 {
-	jit_unimplemented("raw_fmov_mr %x %x", m, r);
+	//jit_unimplemented("raw_fmov_mr %x %x", m, r);
 }
 LENDFUNC(NONE,WRITE,2,raw_fmov_mr,(MEMW m, FR r))
 
 LOWFUNC(NONE,READ,2,raw_fmov_rm,(FW r, MEMR m))
 {
-	jit_unimplemented("raw_fmov_rm %x %x", r, m);
+	//jit_unimplemented("raw_fmov_rm %x %x", r, m);
 }
 LENDFUNC(NONE,READ,2,raw_fmov_rm,(FW r, MEMR m))
 
 LOWFUNC(NONE,NONE,2,raw_fmov_rr,(FW d, FR s))
 {
-	jit_unimplemented("raw_fmov_rr %x %x", d, s);
+	//jit_unimplemented("raw_fmov_rr %x %x", d, s);
 }
 LENDFUNC(NONE,NONE,2,raw_fmov_rr,(FW d, FR s))
 
@@ -2138,6 +2138,12 @@ LENDFUNC(WRITE,NONE,2,raw_ROR_l_ri,(RW4 r, IMM i))
 //
 // compuemu_support used raw calls
 //
+LOWFUNC(WRITE, NONE, 2, compemu_raw_MERGE_rr, (RW4 d, RR4 s))
+{
+	PKHBT_rrr(d, d, s);
+}
+LENDFUNC(WRITE, NONE, 2, compemu_raw_MERGE_rr, (RW4 d, RR4 s))
+
 LOWFUNC(WRITE,RMW,2,compemu_raw_add_l_mi,(IMM d, IMM s))
 {
 	LDR_rRI(REG_WORK1, RPC_INDEX, 20);         			// ldr	r2, [pc, #20]	; <value>
@@ -2207,10 +2213,10 @@ LOWFUNC(NONE,READ,5,compemu_raw_cmov_l_rm_indexed,(W4 d, IMM base, RR4 index, IM
 
 	switch (cond) {
 	case 9: // LS
-		jit_unimplemented("cmov LS not implemented");
+		//jit_unimplemented("cmov LS not implemented");
 		abort();
 	case 8: // HI
-		jit_unimplemented("cmov HI not implemented");
+		//jit_unimplemented("cmov HI not implemented");
 		abort();
 	default:
 		CC_LDR_rRI(cond, REG_WORK1, RPC_INDEX, 4);			// ldrcc   r2, [pc, #4]    ; <value>
